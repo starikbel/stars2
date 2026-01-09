@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Ломатель-3000</title>
+<style>
+    body {
+        background: #0b0f1a;
+        color: #00ffcc;
+        font-family: monospace;
+        text-align: center;
+        padding-top: 50px;
+    }
+    input {
+        font-size: 20px;
+        padding: 10px;
+        width: 300px;
+        text-align: center;
+    }
+    button {
+        font-size: 22px;
+        padding: 10px 25px;
+        margin-top: 20px;
+        cursor: pointer;
+    }
+    #result {
+        margin-top: 30px;
+        font-size: 28px;
+        min-height: 60px;
+    }
+    .bad { color: #ff4444; }
+    .good { color: #00ff00; }
+</style>
+</head>
+
+<body>
+
+<h1>💀 ЛОМАТЕЛЬ-3000 💀</h1>
+<p>Введите пароль:</p>
+
+<input type="password" id="password" placeholder="Введите пароль">
+<br>
+<button onclick="hack()">ВЗЛОМАТЬ</button>
+
+<div id="result"></div>
+
+<script>
+function hack() {
+    const pwd = document.getElementById("password").value;
+    const result = document.getElementById("result");
+
+    if (pwd.length === 0) {
+        result.innerHTML = "❗ Пароль не введён";
+        return;
+    }
+
+    let score = 0;
+    if (pwd.length >= 8) score++;
+    if (/[a-z]/.test(pwd)) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^a-zA-Z0-9]/.test(pwd)) score++;
+
+    result.innerHTML = "⏳ ВЗЛОМ ИДЁТ...";
+    
+    setTimeout(() => {
+        if (score <= 1) {
+            result.innerHTML = "💥 ВЗЛОМАНО ЗА 1 СЕКУНДУ!";
+            result.className = "bad";
+        } else if (score <= 3) {
+            result.innerHTML = "⚠ ВЗЛОМ ЗА 5 МИНУТ";
+            result.className = "bad";
+        } else if (score === 4) {
+            result.innerHTML = "😮 ВЗЛОМ ЗА 2 ГОДА";
+            result.className = "good";
+        } else {
+            result.innerHTML = "🛡 ВЗЛОМ ЗА 100 ЛЕТ!";
+            result.className = "good";
+        }
+    }, 1500);
+}
+</script>
+
+</body>
+</html>
