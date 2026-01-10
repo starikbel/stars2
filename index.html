@@ -30,11 +30,11 @@
     }
     .bad { color: #ff4444; }
     .good { color: #00ff00; }
-
 body {
-    zoom: 2;
+    zoom: 1.5;
 }
-    
+
+
 </style>
 </head>
 
@@ -43,7 +43,11 @@ body {
 <h1>💀 ЛОМАТЕЛЬ-3000 💀</h1>
 <p>Введите пароль:</p>
 
-<input type="password" id="password" placeholder="Введите пароль">
+<input type="text" id="password" placeholder="Введите пароль" oninput="hideLater()">
+<p style="color:#ffaa00; font-size:20px;">
+👀 Пароль виден, пока ты печатаешь!
+</p>
+
 <br>
 <button onclick="hack()">ВЗЛОМАТЬ</button>
 
@@ -82,6 +86,24 @@ function hack() {
             result.innerHTML = "🛡 ВЗЛОМ ЗА 100 ЛЕТ!";
             result.className = "good";
         }
+    }, 1500);
+}
+</script>
+<script>
+let hideTimer;
+
+function hideLater() {
+    const input = document.getElementById("password");
+
+    // показываем символы
+    input.type = "text";
+
+    // сбрасываем таймер
+    clearTimeout(hideTimer);
+
+    // через 1.5 секунды скрываем
+    hideTimer = setTimeout(() => {
+        input.type = "password";
     }, 1500);
 }
 </script>
