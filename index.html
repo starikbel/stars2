@@ -71,9 +71,35 @@
 
         #soundBtn { position: absolute; top: 20px; left: 20px; background: rgba(255,255,255,0.15); border: 2px solid #00ffea; color: #00ffea; padding: 8px 16px; font-size: 1rem; border-radius: 8px; cursor: pointer; z-index: 60; }
 
-        #qrContainer { position: absolute; bottom: 25px; left: 25px; z-index: 25; background: #ffffff; padding: 12px; border-radius: 12px; box-shadow: 0 0 25px rgba(0, 255, 234, 0.5); text-align: center; }
+        /* ====================== QR-КОД ====================== */
+        #qrContainer {
+            position: absolute;
+            bottom: 25px;
+            left: 25px;
+            z-index: 25;
+            background: #ffffff;
+            padding: 14px;
+            border-radius: 14px;
+            box-shadow: 0 0 30px rgba(0, 255, 234, 0.5);
+            text-align: center;
+            display: block; /* видно только на ПК */
+        }
 
-        /* ====================== ТОЛЬКО ДЛЯ МОБИЛЬНЫХ В ГОРИЗОНТАЛИ (S23 Ultra и т.п.) ====================== */
+        #qrContainer p {
+            margin: 10px 0 0 0;
+            font-size: 0.9rem;
+            color: #111;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        /* Скрываем QR на ВСЕХ мобильных устройствах */
+        @media (max-width: 768px) {
+            #qrContainer {
+                display: none !important;
+            }
+        }
+
+        /* ====================== МОБИЛЬНЫЕ МЕДИА (без изменений) ====================== */
         @media (max-width: 1024px) and (orientation: landscape) {
             :root { --logo-size: 72px; }
             #logo { max-width: 80px; top: 10px; right: 10px; }
@@ -84,10 +110,8 @@
             #result { font-size: 1.05rem; margin-bottom: 8px; }
             .container { padding: 15px 20px; }
             #soundBtn { top: 8px; left: 8px; padding: 5px 10px; font-size: 0.82rem; }
-            #qrContainer { display: none !important; }
         }
 
-        /* Вертикальная мобильная */
         @media (max-width: 768px) and (orientation: portrait) {
             :root { --logo-size: 95px; }
             #logo { max-width: 105px; top: 15px; right: 15px; }
@@ -210,8 +234,10 @@
         window.onload = () => {
             new QRCode(document.getElementById("qrcode"), {
                 text: window.location.href,
-                width: 148, height: 148,
-                colorDark: "#000000", colorLight: "#ffffff",
+                width: 168,
+                height: 168,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
                 correctLevel: QRCode.CorrectLevel.H
             });
         };
