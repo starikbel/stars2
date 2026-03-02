@@ -21,201 +21,65 @@
         [data-theme="dusk"]   { --accent:#d8b4fe; --button:#5b21b6; --bg1:#1e1238; --bg2:#312e81; --text:#f3e8ff; --star-speed:35s; }
         [data-theme="ocean"]  { --accent:#7dd3fc; --button:#0c4a6e; --bg1:#0c4a6e; --bg2:#164e63; --text:#e0f2fe; --star-speed:28s; }
 
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
+        html,body{height:100vh;margin:0;padding:0;overflow:hidden}
+        body{
+            background:linear-gradient(135deg,var(--bg1),var(--bg2));
+            color:var(--text);
+            font-family:'Roboto',sans-serif;
+            display:flex;align-items:center;justify-content:center;
+            position:relative;
         }
-        body {
-            background: linear-gradient(135deg, var(--bg1), var(--bg2));
-            color: var(--text);
-            font-family: 'Roboto', sans-serif;
-            position: relative;
-            min-height: 100vh;
-            overflow-y: auto;
+        body::before{
+            content:'';position:absolute;inset:0;
+            background:radial-gradient(circle,rgba(255,255,255,0.09)1px,transparent 1px);
+            background-size:60px 60px;
+            animation:stars var(--star-speed) linear infinite;
         }
-        body::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle, rgba(255,255,255,0.09) 1px, transparent 1px);
-            background-size: 60px 60px;
-            animation: stars var(--star-speed) linear infinite;
-            pointer-events: none;
-        }
-        @keyframes stars { 0% { background-position: 0 0 } 100% { background-position: 400px 400px } }
+        @keyframes stars{0%{background-position:0 0}100%{background-position:400px 400px}}
 
-        #logo {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            max-height: var(--logo-size, 100px);
-            max-width: 140px;
-            object-fit: contain;
-            filter: drop-shadow(0 0 20px var(--accent));
-            z-index: 20;
-            pointer-events: none;
+        #logo{position:absolute;top:20px;right:20px;max-height:var(--logo-size,140px);max-width:180px;object-fit:contain;filter:drop-shadow(0 0 25px var(--accent));z-index:20;pointer-events:none}
+
+        .top-bar{position:absolute;top:15px;left:50%;transform:translateX(-50%);z-index:70;display:flex;gap:12px}
+        select{
+            background:rgba(255,255,255,0.15);border:2px solid var(--accent);
+            color:#111 !important;padding:9px 16px;border-radius:10px;font-size:1rem;cursor:pointer;
         }
 
-        #soundBtn {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(255,255,255,0.12);
-            border: 2px solid var(--accent);
-            color: var(--accent);
-            padding: 6px 12px;
-            font-size: 0.9rem;
-            border-radius: 8px;
-            cursor: pointer;
-            z-index: 60;
-        }
+        .container{text-align:center;z-index:10;max-width:920px;padding:85px 25px 30px;width:100%}
+        h1{font-family:'Press Start 2P',cursive;font-size:2.8rem;margin:15px 0 25px;text-shadow:0 0 20px var(--accent);color:var(--accent)}
 
-        .top-bar {
-            position: relative;
-            z-index: 70;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin: 70px 0 20px;
-            padding: 0 15px;
+        #result{display:none;font-size:1.35rem;color:var(--button);text-shadow:0 0 15px var(--button);margin-bottom:18px;font-weight:bold}
+        .display{
+            background:rgba(255,255,255,0.1);border:6px solid var(--accent);border-radius:20px;
+            padding:45px 30px;min-height:240px;font-size:2.15rem;line-height:1.35;
+            margin:0 auto 25px;max-width:820px;box-shadow:0 0 60px rgba(0,255,234,0.4);
+            display:flex;align-items:center;justify-content:center;text-align:center;transition:all .4s;
         }
+        .display.glow{animation:finalGlow 1.2s infinite alternate;border-color:var(--button)}
+        @keyframes finalGlow{from{box-shadow:0 0 60px rgba(0,255,234,0.7)}to{box-shadow:0 0 130px var(--button),0 0 180px var(--accent)}}
 
-        select {
-            background: rgba(255,255,255,0.12);
-            border: 2px solid var(--accent);
-            color: #111;
-            padding: 8px 14px;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            cursor: pointer;
-            min-width: 130px;
-        }
+        button,.copy-btn{font-family:'Press Start 2P',cursive;cursor:pointer;transition:all .3s;touch-action:manipulation;z-index:50}
+        button{font-size:1.65rem;padding:22px 65px;background:var(--button);color:white;border:none;border-radius:15px;box-shadow:0 0 35px var(--button);margin-bottom:20px}
+        .copy-btn{padding:14px 35px;font-size:1.2rem;background:var(--accent);color:#000}
 
-        .container {
-            text-align: center;
-            z-index: 10;
-            width: 100%;
-            max-width: 920px;
-            padding: 20px 16px 60px;
-            box-sizing: border-box;
-        }
+        #soundBtn{position:absolute;top:20px;left:20px;background:rgba(255,255,255,0.15);border:2px solid var(--accent);color:var(--accent);padding:8px 16px;font-size:1rem;border-radius:8px;cursor:pointer;z-index:60}
 
-        h1 {
-            font-family: 'Press Start 2P', cursive;
-            font-size: clamp(1.9rem, 7vw, 2.5rem);
-            margin: 0 0 20px;
-            text-shadow: 0 0 18px var(--accent);
-            color: var(--accent);
-        }
+        #qrContainer{position:absolute;bottom:25px;left:25px;z-index:25;background:#fff;padding:12px;border-radius:14px;box-shadow:0 0 30px rgba(0,255,234,0.5);text-align:center;max-width:178px}
+        #qrContainer p{max-width:168px;font-size:0.82rem;margin:8px 0 0 0;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-        #result {
-            display: none;
-            font-size: clamp(1.1rem, 4vw, 1.3rem);
-            color: var(--button);
-            text-shadow: 0 0 12px var(--button);
-            margin-bottom: 16px;
-            font-weight: bold;
-        }
-
-        .display {
-            background: rgba(255,255,255,0.08);
-            border: 5px solid var(--accent);
-            border-radius: 18px;
-            padding: clamp(20px, 5vw, 35px) 18px;
-            min-height: 160px;
-            font-size: clamp(1.35rem, 5vw, 1.9rem);
-            line-height: 1.4;
-            margin: 0 auto 20px;
-            max-width: 92%;
-            box-shadow: 0 0 50px rgba(0,255,234,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            transition: all .4s;
-        }
-
-        .display.glow {
-            animation: finalGlow 1.3s infinite alternate;
-            border-color: var(--button);
-        }
-        @keyframes finalGlow {
-            from { box-shadow: 0 0 50px rgba(0,255,234,0.6); }
-            to   { box-shadow: 0 0 120px var(--button), 0 0 160px var(--accent); }
-        }
-
-        button, .copy-btn {
-            font-family: 'Press Start 2P', cursive;
-            cursor: pointer;
-            transition: all .3s;
-            touch-action: manipulation;
-            border: none;
-            border-radius: 14px;
-        }
-        button {
-            font-size: clamp(1.15rem, 5vw, 1.5rem);
-            padding: clamp(14px, 5vw, 18px) clamp(40px, 8vw, 55px);
-            background: var(--button);
-            color: white;
-            box-shadow: 0 0 30px var(--button);
-            margin: 15px 0;
-        }
-        .copy-btn {
-            padding: 12px 30px;
-            font-size: 1.1rem;
-            background: var(--accent);
-            color: #000;
-        }
-
-        #qrContainer {
-            position: fixed;
-            bottom: 15px;
-            left: 15px;
-            z-index: 25;
-            background: #fff;
-            padding: 10px;
-            border-radius: 12px;
-            box-shadow: 0 0 25px rgba(0,255,234,0.4);
-            text-align: center;
-            max-width: 160px;
-        }
-        #qrContainer p { font-size: 0.78rem; margin: 6px 0 0; color: #111; }
-
-        /* Адаптация */
-        @media (max-width: 768px) {
-            body { overflow-y: auto; }
-            .top-bar { margin: 80px 0 30px; }
-            #logo { max-height: 80px; top: 8px; right: 8px; }
-            #soundBtn { top: 8px; left: 8px; padding: 6px 10px; font-size: 0.85rem; }
-            .container { padding-bottom: 80px; }
-        }
-
-        @media (orientation: landscape) and (max-height: 520px) {
-            body { padding-top: 10px; }
-            .top-bar {
-                margin: 50px 0 15px;
-                flex-direction: row;
-                gap: 8px;
-            }
-            select { font-size: 0.85rem; padding: 6px 10px; min-width: 110px; }
-            .container { padding: 10px 12px 40px; }
-            h1 { font-size: 1.8rem; margin-bottom: 12px; }
-            .display { min-height: 110px; font-size: 1.2rem; padding: 12px 14px; }
-            button { padding: 10px 30px; font-size: 0.95rem; margin: 8px 0; }
-            #logo { max-height: 60px; }
-            #soundBtn { padding: 5px 8px; font-size: 0.8rem; }
-        }
-
-        @media (max-width: 480px) and (orientation: portrait) {
-            .top-bar { flex-direction: column; gap: 12px; }
-            select { width: 80%; max-width: 260px; margin: 0 auto; }
+        @media (max-width:768px){#qrContainer{display:none !important}}
+        @media (max-width:1024px) and (orientation:landscape){
+            :root{--logo-size:72px}
+            .container{padding:15px 20px}
+            h1{font-size:1.65rem}
+            .display{font-size:1.38rem;padding:22px 18px;min-height:130px}
+            button{font-size:1.25rem;padding:14px 32px}
         }
     </style>
 </head>
 <body>
     <img id="logo" src="logo.png" alt="Логотип">
+
     <button id="soundBtn">🔊 Звук включён</button>
 
     <div class="top-bar">
@@ -228,7 +92,7 @@
         </select>
     </div>
 
-    <div id="qrContainer" style="display:none;">
+    <div id="qrContainer">
         <div id="qrcode"></div>
         <p>Сканируй для открытия</p>
     </div>
@@ -250,10 +114,10 @@
         let audioContext;
 
         const themeSounds = {
-            neon:   { tick: [1100,1800], final: [523,659,784] },
-            forest: { tick: [700,1100],  final: [392,523,659] },
-            dusk:   { tick: [900,1400],  final: [440,554,698] },
-            ocean:  { tick: [800,1300],  final: [523,659,880] }
+            neon:   {tick:[1100,1800], final:[523,659,784]},
+            forest: {tick:[700,1100],  final:[392,523,659]},
+            dusk:   {tick:[900,1400],  final:[440,554,698]},
+            ocean:  {tick:[800,1300],  final:[523,659,880]}
         };
 
         function getAudioContext() {
@@ -263,60 +127,52 @@
 
         function playSpinTick() {
             if (!soundEnabled) return;
-            const theme = document.documentElement.dataset.theme || 'neon';
-            const t = themeSounds[theme];
+            const t = themeSounds[document.documentElement.dataset.theme || 'neon'];
             const ctx = getAudioContext();
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
             osc.type = 'sine';
-            osc.frequency.value = t.tick[Math.floor(Math.random() * t.tick.length)];
+            osc.frequency.value = t.tick[Math.floor(Math.random()*t.tick.length)];
             gain.gain.value = 0.11;
             osc.connect(gain); gain.connect(ctx.destination);
             osc.start();
-            setTimeout(() => {
-                gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.04);
-                osc.stop(ctx.currentTime + 0.06);
-            }, 12);
+            setTimeout(()=>{gain.gain.linearRampToValueAtTime(0,ctx.currentTime+0.04);osc.stop(ctx.currentTime+0.06)},12);
         }
 
         function playFinalSound() {
             if (!soundEnabled) return;
-            const theme = document.documentElement.dataset.theme || 'neon';
-            const t = themeSounds[theme];
+            const t = themeSounds[document.documentElement.dataset.theme || 'neon'];
             const ctx = getAudioContext();
-            t.final.forEach((freq, i) => {
-                setTimeout(() => {
+            t.final.forEach((freq,i)=>{
+                setTimeout(()=>{
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
-                    osc.type = 'sine'; osc.frequency.value = freq; gain.gain.value = 0.24;
+                    osc.type='sine'; osc.frequency.value=freq; gain.gain.value=0.24;
                     osc.connect(gain); gain.connect(ctx.destination);
                     osc.start();
-                    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.3);
-                    osc.stop(ctx.currentTime + 1.5);
-                }, i * 75);
+                    gain.gain.linearRampToValueAtTime(0,ctx.currentTime+1.3);
+                    osc.stop(ctx.currentTime+1.5);
+                },i*75);
             });
         }
 
         function startSpin() {
             if (isSpinning) return;
             isSpinning = true;
-            const resultEl = document.getElementById('result');
-            const copyBtn = document.getElementById('copyBtn');
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('copyBtn').style.display = 'none';
             const display = document.getElementById('display');
-
-            resultEl.style.display = 'none';
-            copyBtn.style.display = 'none';
             display.classList.remove('glow');
 
+            let delay = 18, step = 0, total = 68;
             const tasks = window.categories?.[currentCategory] || [];
+
             if (tasks.length === 0) {
                 display.textContent = "Нет заданий в категории 😔";
                 isSpinning = false;
-                resultEl.style.display = 'block';
+                document.getElementById('result').style.display = 'block';
                 return;
             }
-
-            let delay = 18, step = 0, total = 68;
 
             function spinLoop() {
                 currentTask = tasks[Math.floor(Math.random() * tasks.length)];
@@ -330,8 +186,8 @@
                 else {
                     isSpinning = false;
                     display.classList.add('glow');
-                    resultEl.style.display = 'block';
-                    copyBtn.style.display = 'inline-block';
+                    document.getElementById('result').style.display = 'block';
+                    document.getElementById('copyBtn').style.display = 'inline-block';
                     playFinalSound();
                 }
             }
@@ -379,11 +235,9 @@
 
             document.getElementById('spinBtn').addEventListener('click', startSpin);
             document.getElementById('copyBtn').addEventListener('click', copyTask);
-            document.getElementById('soundBtn').addEventListener('click', toggleSound);  // ← здесь фикс кнопки звука
+            document.getElementById('soundBtn').addEventListener('click', toggleSound);  // ← исправленная привязка
 
-            // QR только на десктопе
             if (window.innerWidth > 768) {
-                document.getElementById('qrContainer').style.display = 'block';
                 new QRCode(document.getElementById("qrcode"), {
                     text: window.location.href,
                     width: 168, height: 168,
@@ -392,9 +246,8 @@
                 });
             }
 
-            // Разблокировка аудио после первого тача/клика
-            document.body.addEventListener('touchstart', () => {
-                if (audioContext) audioContext.resume();
+            document.body.addEventListener('click', () => {
+                getAudioContext().resume();
             }, { once: true });
         });
     </script>
