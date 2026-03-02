@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🚀 IT Челлендж</title>
+    <title>🎲 IT Челлендж</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@700&display=swap');
@@ -17,107 +17,76 @@
             --star-speed: 30s;
         }
 
-        [data-theme="neon"]   { --accent:#00ffea; --button:#ff00aa; --bg1:#0f0c29; --bg2:#302b63; --text:#f0f9ff; --star-speed:25s; }
-        [data-theme="forest"] { --accent:#bef264; --button:#3f6212; --bg1:#0a2e17; --bg2:#1a472a; --text:#f1fae8; --star-speed:38s; }
-        [data-theme="dusk"]   { --accent:#f472b6; --button:#6d28d9; --bg1:#1a0f2e; --bg2:#3b1e5a; --text:#f5efff; --star-speed:32s; }
-        [data-theme="ocean"]  { --accent:#06b6d4; --button:#0c4a6e; --bg1:#0e2b3d; --bg2:#0f5e7a; --text:#e0f7ff; --star-speed:22s; }
-
-        html, body { height: 100vh; margin: 0; padding: 0; overflow: hidden; }
-
-        body {
-            background: linear-gradient(135deg, var(--bg1), var(--bg2));
-            color: var(--text);
-            font-family: 'Roboto', sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
+        [data-theme="neon"] {
+            --accent:     #00ffea;      /* яркий циан */
+            --button:     #ff00aa;      /* яркий маджента */
+            --bg1:        #0f0c29;
+            --bg2:        #302b63;
+            --text:       #f0f9ff;
+            --star-speed: 25s;
         }
 
-        body::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle, rgba(255,255,255,0.09) 1px, transparent 1px);
-            background-size: 60px 60px;
-            animation: stars var(--star-speed) linear infinite;
-            pointer-events: none;
-            z-index: 0;
+        [data-theme="forest"] {
+            --accent:     #a3e635;      /* яркий лайм-зелёный */
+            --button:     #4d7c0f;      /* тёмно-зелёный */
+            --bg1:        #052e16;
+            --bg2:        #14532d;
+            --text:       #f0fdf4;      /* почти белый с зелёным подтоном */
+            --star-speed: 40s;
         }
 
-        @keyframes stars { 0% { background-position: 0 0 } 100% { background-position: 400px 400px } }
-
-        .bg-animation {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            overflow: hidden;
-            z-index: 1;
+        [data-theme="dusk"] {
+            --accent:     #f472b6;      /* яркий розово-фиолетовый */
+            --button:     #6d28d9;      /* глубокий фиолетовый */
+            --bg1:        #1e1238;
+            --bg2:        #312e81;
+            --text:       #f3e8ff;      /* светлый лавандовый */
+            --star-speed: 35s;
         }
 
-        /* ────────────────────── OCEAN ────────────────────── */
-        [data-theme="ocean"] .bubble {
-            position: absolute;
-            background: rgba(200, 240, 255, 0.35);
-            border-radius: 50%;
-            box-shadow: 0 0 20px rgba(200, 240, 255, 0.5), inset 0 0 12px rgba(255,255,255,0.4);
-            animation: bubbleRise linear infinite;
-            will-change: transform, opacity;
+        [data-theme="ocean"] {
+            --accent:     #22d3ee;      /* яркий бирюзовый */
+            --button:     #0e7490;      /* глубокий циан-синий */
+            --bg1:        #0c4a6e;
+            --bg2:        #164e63;
+            --text:       #e0f2fe;      /* светлый голубой */
+            --star-speed: 28s;
         }
 
-        @keyframes bubbleRise {
-            0%   { transform: scale(var(--scale,1)); opacity: 0; bottom: var(--start-bottom); left: var(--left-pos); }
-            10%  { opacity: 0.8; }
-            90%  { opacity: 0.7; }
-            100% { transform: scale(calc(var(--scale,1) * 1.3)); opacity: 0; bottom: 110%; left: calc(var(--left-pos) + 60px * var(--drift)); }
+        html,body{height:100vh;margin:0;padding:0;overflow:hidden}
+        body{
+            background:linear-gradient(135deg,var(--bg1),var(--bg2));
+            color:var(--text);
+            font-family:'Roboto',sans-serif;
+            display:flex;align-items:center;justify-content:center;
+            position:relative;
         }
-
-        /* ────────────────────── FOREST (вернул оригинал) ────────────────────── */
-        [data-theme="forest"] .leaf {
-            position: absolute;
-            width: 22px;
-            height: 12px;
-            background: linear-gradient(to bottom right, #bef264, #84cc16);
-            border-radius: 50% 0;
-            opacity: 0.6;
-            animation: leafFall 20s linear infinite;
-            transform: rotate(30deg);
+        body::before{
+            content:'';position:absolute;inset:0;
+            background:radial-gradient(circle,rgba(255,255,255,0.09)1px,transparent 1px);
+            background-size:60px 60px;
+            animation:stars var(--star-speed) linear infinite;
         }
-
-        @keyframes leafFall {
-            0%   { top: var(--rand-top, -30%); left: var(--rand-left); transform: rotate(30deg); opacity: 0; }
-            20%  { opacity: 0.8; }
-            50%  { transform: rotate(30deg) translateX(calc(80px * sin(var(--osc, 0)))); }
-            100% { top: 110%; left: calc(var(--rand-left) + 60px * sin(var(--osc, 0))); transform: rotate(720deg); opacity: 0; }
-        }
-
-        /* ────────────────────── DUSK ────────────────────── */
-        [data-theme="dusk"] .spark {
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            background: #f472b6;
-            border-radius: 50%;
-            box-shadow: 0 0 14px #f472b6, 0 0 24px #fb923c;
-            animation: sparkFall 12s linear infinite;
-        }
-
-        @keyframes sparkFall {
-            0%   { top: var(--rand-top, -40%); left: var(--rand-left); opacity: 0.3; transform: scale(0.6); }
-            50%  { opacity: 1; transform: scale(1.3); }
-            100% { top: 110%; opacity: 0; transform: scale(0.4); }
-        }
+        @keyframes stars{0%{background-position:0 0}100%{background-position:400px 400px}}
 
         #logo{position:absolute;top:20px;right:20px;max-height:var(--logo-size,140px);max-width:180px;object-fit:contain;filter:drop-shadow(0 0 25px var(--accent));z-index:20;pointer-events:none}
 
         .top-bar{position:absolute;top:15px;left:50%;transform:translateX(-50%);z-index:70;display:flex;gap:12px}
-        select{background:rgba(255,255,255,0.15);border:2px solid var(--accent);color:#111 !important;padding:9px 16px;border-radius:10px;font-size:1rem;cursor:pointer;}
+        select{
+            background:rgba(255,255,255,0.15);border:2px solid var(--accent);
+            color:#111 !important;padding:9px 16px;border-radius:10px;font-size:1rem;cursor:pointer;
+        }
 
         .container{text-align:center;z-index:10;max-width:920px;padding:85px 25px 30px;width:100%}
         h1{font-family:'Press Start 2P',cursive;font-size:2.8rem;margin:15px 0 25px;text-shadow:0 0 20px var(--accent);color:var(--accent)}
 
         #result{display:none;font-size:1.35rem;color:var(--button);text-shadow:0 0 15px var(--button);margin-bottom:18px;font-weight:bold}
-        .display{background:rgba(255,255,255,0.1);border:6px solid var(--accent);border-radius:20px;padding:45px 30px;min-height:240px;font-size:2.15rem;line-height:1.35;margin:0 auto 25px;max-width:820px;box-shadow:0 0 60px rgba(0,255,234,0.4);display:flex;align-items:center;justify-content:center;text-align:center;transition:all .4s;}
+        .display{
+            background:rgba(255,255,255,0.1);border:6px solid var(--accent);border-radius:20px;
+            padding:45px 30px;min-height:240px;font-size:2.15rem;line-height:1.35;
+            margin:0 auto 25px;max-width:820px;box-shadow:0 0 60px rgba(0,255,234,0.4);
+            display:flex;align-items:center;justify-content:center;text-align:center;transition:all .4s;
+        }
         .display.glow{animation:finalGlow 1.2s infinite alternate;border-color:var(--button)}
         @keyframes finalGlow{from{box-shadow:0 0 60px rgba(0,255,234,0.7)}to{box-shadow:0 0 130px var(--button),0 0 180px var(--accent)}}
 
@@ -132,11 +101,27 @@
 
         @media (max-width:768px){
             body { overflow-y: auto; height: auto; min-height: 100vh; }
-            .top-bar { position: static; transform: none; margin: 90px auto 30px; width: 90%; max-width: 380px; flex-direction: column; gap: 14px; }
-            select { width: 100%; font-size: 1.1rem; padding: 12px; }
+            .top-bar {
+                position: static;
+                transform: none;
+                margin: 90px auto 30px;
+                width: 90%;
+                max-width: 380px;
+                flex-direction: column;
+                gap: 14px;
+            }
+            select {
+                width: 100%;
+                font-size: 1.1rem;
+                padding: 12px;
+            }
             .container { padding: 20px 18px 80px; }
             h1 { font-size: 2.1rem; margin: 10px 0 20px; }
-            .display { font-size: 1.6rem; padding: 30px 20px; min-height: 180px; }
+            .display {
+                font-size: 1.6rem;
+                padding: 30px 20px;
+                min-height: 180px;
+            }
             button { font-size: 1.3rem; padding: 18px 50px; }
             #logo { top: 12px; right: 12px; max-height: 90px; }
             #soundBtn { top: 12px; left: 12px; padding: 7px 14px; font-size: 0.95rem; }
@@ -150,8 +135,18 @@
         }
 
         @media (orientation: landscape) and (max-height: 520px){
-            .top-bar { margin: 60px auto 20px; flex-direction: row; gap: 10px; width: 96%; }
-            select { font-size: 0.95rem; padding: 8px 12px; min-width: 0; flex: 1; }
+            .top-bar {
+                margin: 60px auto 20px;
+                flex-direction: row;
+                gap: 10px;
+                width: 96%;
+            }
+            select {
+                font-size: 0.95rem;
+                padding: 8px 12px;
+                min-width: 0;
+                flex: 1;
+            }
             .container { padding: 10px 16px 60px; }
             h1 { font-size: 1.7rem; margin: 8px 0 12px; }
             .display { min-height: 120px; font-size: 1.25rem; padding: 18px 16px; }
@@ -181,36 +176,11 @@
         <p>Сканируй для открытия</p>
     </div>
 
-    <!-- Фоновая анимация -->
-    <div class="bg-animation">
-        <!-- Ocean — 12 пузырьков -->
-        <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
-        <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
-        <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
-
-        <!-- Forest — 5 листьев (как было изначально) -->
-        <div class="leaf"></div>
-        <div class="leaf"></div>
-        <div class="leaf"></div>
-        <div class="leaf"></div>
-        <div class="leaf"></div>
-
-        <!-- Dusk — 8 огоньков -->
-        <div class="spark"></div>
-        <div class="spark"></div>
-        <div class="spark"></div>
-        <div class="spark"></div>
-        <div class="spark"></div>
-        <div class="spark"></div>
-        <div class="spark"></div>
-        <div class="spark"></div>
-    </div>
-
     <div class="container">
-        <h1>🚀 IT ЧЕЛЛЕНДЖ</h1>
+        <h1>🎲 IT ЧЕЛЛЕНДЖ</h1>
         <div id="result">✅ ГОТОВО! Вот твоё задание:</div>
         <div id="display" class="display">Нажми «КРУТИТЬ!», чтобы получить задание!</div>
-        <button id="spinBtn">💻 КРУТИТЬ ЗАДАНИЕ!</button>
+        <button id="spinBtn">🚀 КРУТИТЬ ЗАДАНИЕ!</button>
         <button id="copyBtn" class="copy-btn" style="display:none;">📋 Скопировать задание</button>
     </div>
 
@@ -321,47 +291,7 @@
         window.addEventListener('load', () => {
             const catSelect = document.getElementById('categorySelect');
             const themeSelect = document.getElementById('themeSelect');
-            const bubbles = document.querySelectorAll('.bubble');
-            const leaves = document.querySelectorAll('.leaf');
-            const sparks = document.querySelectorAll('.spark');
             const cats = window.categories || {};
-
-            // Рандомизация элементов
-            function randomizeElements(elements, isFromBottom = false, type) {
-                elements.forEach(el => {
-                    // Горизонтальное положение по всему экрану
-                    const left = Math.random() * 90 + 5;
-                    el.style.setProperty('--left-pos', `${left}%`);
-
-                    if (isFromBottom) {
-                        // Ocean — снизу
-                        const startBottom = -10 - Math.random() * 40; // от -10% до -50%
-                        el.style.setProperty('--start-bottom', `${startBottom}%`);
-                        const scale = 0.8 + Math.random() * 2.2;     // 0.8–3.0
-                        const drift = (Math.random() - 0.5) * 2;      // -1 .. +1
-                        el.style.setProperty('--scale', scale);
-                        el.style.setProperty('--drift', drift);
-                    } else {
-                        // forest и dusk — сверху
-                        const topPos = -20 - Math.random() * 60;
-                        el.style.setProperty('--rand-top', `${topPos}%`);
-                        const leftPos = Math.random() * 90 + 5;
-                        el.style.setProperty('--rand-left', `${leftPos}%`);
-                        const osc = Math.random() * Math.PI * 2;
-                        el.style.setProperty('--osc', osc);
-                    }
-
-                    // Разная длительность и задержка
-                    let duration = 12 + Math.random() * 14; // 12–26 сек
-                    if (type === 'bubble') duration = 14 + Math.random() * 18; // пузыри медленнее
-                    el.style.animationDuration = `${duration}s`;
-                    el.style.animationDelay = `-${Math.random() * duration * 0.8}s`;
-                });
-            }
-
-            randomizeElements(bubbles, true, 'bubble');
-            randomizeElements(leaves, false, 'leaf');
-            randomizeElements(sparks, false, 'spark');
 
             Object.keys(cats).forEach(name => {
                 const opt = document.createElement('option');
@@ -380,16 +310,7 @@
 
             themeSelect.addEventListener('change', () => {
                 document.documentElement.dataset.theme = themeSelect.value;
-                updateAnimations(themeSelect.value);
             });
-
-            function updateAnimations(theme) {
-                bubbles.forEach(b => b.style.display = (theme === 'ocean') ? 'block' : 'none');
-                leaves.forEach(l => l.style.display = (theme === 'forest') ? 'block' : 'none');
-                sparks.forEach(s => s.style.display = (theme === 'dusk') ? 'block' : 'none');
-            }
-
-            updateAnimations(themeSelect.value);
 
             document.getElementById('spinBtn').addEventListener('click', startSpin);
             document.getElementById('copyBtn').addEventListener('click', copyTask);
