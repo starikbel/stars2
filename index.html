@@ -457,15 +457,20 @@
                 max-width: 92vw !important; 
                 height: auto !important;
             }
-            /* === ИСПРАВЛЕНИЕ: кнопки управления змейкой больше НЕ налазят друг на друга === */
+            /* === ОПТИМИЗАЦИЯ КНОПОК ЗМЕЙКИ (только этот блок изменён) — кнопки больше НЕ могут налезать === */
             .snake-controls { 
-                grid-template-columns: repeat(3, 52px); 
-                gap: 12px; 
-                margin: 16px auto 0;
+                grid-template-columns: repeat(3, 58px); 
+                gap: 16px; 
+                margin: 22px auto 0;
+                max-width: 230px;
             }
             .snake-controls button { 
-                font-size: 2.15rem; 
-                padding: 10px; 
+                font-size: 2.35rem; 
+                padding: 12px; 
+                min-width: 58px;
+                min-height: 58px;
+                aspect-ratio: 1 / 1;
+                line-height: 1;
             }
             .game-info { font-size: 1.05rem; }
         }
@@ -504,15 +509,20 @@
                 max-width: 78vw !important; 
                 max-height: 78vw !important;
             }
-            /* === ИСПРАВЛЕНИЕ: кнопки управления змейкой больше НЕ налазят друг на друга === */
+            /* === ОПТИМИЗАЦИЯ КНОПОК ЗМЕЙКИ (только этот блок изменён) — кнопки больше НЕ могут налезать === */
             .snake-controls { 
-                grid-template-columns: repeat(3, 48px); 
-                gap: 9px; 
-                margin: 14px auto 0;
+                grid-template-columns: repeat(3, 52px); 
+                gap: 13px; 
+                margin: 18px auto 0;
+                max-width: 200px;
             }
             .snake-controls button { 
-                font-size: 1.95rem; 
-                padding: 9px; 
+                font-size: 2.05rem; 
+                padding: 10px; 
+                min-width: 52px;
+                min-height: 52px;
+                aspect-ratio: 1 / 1;
+                line-height: 1;
             }
             .modal-content { 
                 max-height: 96vh !important;
