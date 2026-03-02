@@ -58,18 +58,48 @@
         /* ────────────────────────────────────────────────
            OCEAN — исправленная версия (2025–2026)
         ──────────────────────────────────────────────── */
-        [data-theme="ocean"] .bubble {
-            position: absolute;
-            background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.55), rgba(200,240,255,0.35) 50%, transparent 75%);
-            border-radius: 50%;
-            box-shadow: 
-                0 0 24px rgba(255,255,255,0.6),
-                inset 0 0 16px rgba(180,240,255,0.4),
-                0 0 40px rgba(6,182,212,0.3);
-            animation: bubbleRise linear infinite;
-            will-change: transform, opacity;
-            pointer-events: none;
-        }
+     [data-theme="ocean"] {
+        --accent:     #06b6d4;       /* яркий бирюзово-голубой */
+        --button:     #0c4a6e;
+        --bg1:        #0e2b3d;       /* глубокий океан */
+        --bg2:        #0f5e7a;       /* средний бирюзовый */
+        --text:       #e0f7ff;       /* очень светлый голубовато-белый */
+        --star-speed: 22s;           /* чуть быстрее звёздочки для ощущения движения воды */
+    }
+
+        /* Плавающие пузырьки — только для ocean */
+    [data-theme="ocean"] body::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+        [data-theme="ocean"] body::after::before,
+    [data-theme="ocean"] body::after::after,
+    [data-theme="ocean"] .bubble {
+        content: "";
+        position: absolute;
+        background: rgba(255,255,255,0.25);
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255,255,255,0.4);
+        animation: float 12s infinite linear;
+    }
+
+    [data-theme="ocean"] .bubble:nth-child(1) { width: 20px; height: 20px; left: 10%; animation-duration: 18s; animation-delay: 0s; }
+    [data-theme="ocean"] .bubble:nth-child(2) { width: 35px; height: 35px; left: 25%; animation-duration: 22s; animation-delay: 3s; }
+    [data-theme="ocean"] .bubble:nth-child(3) { width: 15px; height: 15px; left: 40%; animation-duration: 15s; animation-delay: 6s; }
+    [data-theme="ocean"] .bubble:nth-child(4) { width: 28px; height: 28px; left: 60%; animation-duration: 20s; animation-delay: 9s; }
+    [data-theme="ocean"] .bubble:nth-child(5) { width: 40px; height: 40px; left: 75%; animation-duration: 25s; animation-delay: 12s; }
+    [data-theme="ocean"] .bubble:nth-child(6) { width: 18px; height: 18px; left: 85%; animation-duration: 16s; animation-delay: 2s; }
+
+    @keyframes float {
+        0%   { bottom: -10%; opacity: 0.1; transform: translateX(0); }
+        50%  { opacity: 0.7; transform: translateX(15px); }
+        100% { bottom: 110%; opacity: 0; transform: translateX(-10px); }
+    }
 
         @keyframes bubbleRise {
             0% {
@@ -430,3 +460,4 @@
     </script>
 </body>
 </html>
+
