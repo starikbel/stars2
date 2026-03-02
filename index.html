@@ -395,7 +395,7 @@
             line-height: 1.4;
         }
 
-        /* ==================== МОБИЛЬНАЯ АДАПТАЦИЯ (исправлено) ==================== */
+        /* ==================== МОБИЛЬНАЯ АДАПТАЦИЯ (оригинал) ==================== */
         @media (max-width:768px){
             #qrContainer { display: none !important; }
             .modal-content { 
@@ -434,6 +434,110 @@
                 margin: 8px auto 0;
             }
             .snake-controls button { font-size: 1.7rem; padding: 7px; }
+        }
+
+        /* ====================== НОВЫЕ ИСПРАВЛЕНИЯ ТОЛЬКО ДЛЯ МОБИЛЬНОЙ ВЕРСИИ ====================== */
+        /* (ПК остаётся 100% прежним — height:100vh + overflow:hidden) */
+
+        @media (max-width: 768px) {
+            html, body {
+                height: auto !important;
+                min-height: 100vh;
+                overflow-y: auto !important;
+                overflow-x: hidden;
+                -webkit-overflow-scrolling: touch;
+            }
+            body {
+                padding-bottom: 55px;
+            }
+            .container {
+                padding: 74px 20px 38px !important;
+            }
+            h1 {
+                font-size: 2.28rem !important;
+                margin: 12px 0 19px !important;
+            }
+            .display {
+                font-size: 1.82rem !important;
+                min-height: 168px !important;
+                padding: 28px 20px !important;
+            }
+            button {
+                font-size: 1.48rem !important;
+                padding: 18px 50px !important;
+            }
+            .top-bar {
+                top: 9px !important;
+                gap: 8px;
+            }
+            select {
+                padding: 8px 13px !important;
+                font-size: 0.96rem !important;
+            }
+            #logo {
+                max-height: 96px !important;
+                top: 12px;
+                right: 12px;
+            }
+        }
+
+        /* Специально для горизонтальной ориентации (landscape) — чтобы кнопка «КРУТИТЬ!» и выбор категории всегда были видны */
+        @media (orientation: landscape) and (max-width: 768px) {
+            .container {
+                padding: 46px 16px 25px !important;
+            }
+            h1 {
+                font-size: 1.98rem !important;
+                margin: 8px 0 14px !important;
+            }
+            .display {
+                font-size: 1.52rem !important;
+                min-height: 122px !important;
+                padding: 20px 16px !important;
+                margin-bottom: 16px;
+            }
+            button {
+                font-size: 1.28rem !important;
+                padding: 14px 42px !important;
+                margin-bottom: 14px;
+            }
+            .top-bar {
+                top: 6px !important;
+                gap: 7px;
+                transform: scale(0.92);
+            }
+            select {
+                padding: 6px 11px !important;
+                font-size: 0.92rem !important;
+            }
+            #logo {
+                max-height: 82px !important;
+                top: 8px;
+                right: 8px;
+            }
+            .game-modal .modal-content {
+                max-height: 97vh !important;
+                padding: 12px 12px !important;
+            }
+        }
+
+        /* Ещё более тесный landscape (очень маленькие телефоны) */
+        @media (orientation: landscape) and (max-height: 460px) {
+            .container {
+                padding: 36px 14px 20px !important;
+            }
+            h1 {
+                font-size: 1.85rem !important;
+            }
+            .display {
+                font-size: 1.42rem !important;
+                min-height: 108px !important;
+                padding: 18px 14px !important;
+            }
+            button {
+                font-size: 1.22rem !important;
+                padding: 12px 36px !important;
+            }
         }
     </style>
 </head>
