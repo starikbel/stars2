@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🎲 IT Челлендж</title>
+    <title>🚀 IT Челлендж</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@700&display=swap');
@@ -56,26 +56,39 @@
         }
 
         /* ────────────────────────────────────────────────
-           OCEAN — крупные пузырьки по всей ширине
+           OCEAN — исправленная версия (2025–2026)
         ──────────────────────────────────────────────── */
         [data-theme="ocean"] .bubble {
             position: absolute;
-            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.45), rgba(255,255,255,0.15) 60%, transparent 80%);
+            background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.55), rgba(200,240,255,0.35) 50%, transparent 75%);
             border-radius: 50%;
-            box-shadow: 0 0 18px rgba(255,255,255,0.5), inset 0 0 12px rgba(255,255,255,0.3);
+            box-shadow: 
+                0 0 24px rgba(255,255,255,0.6),
+                inset 0 0 16px rgba(180,240,255,0.4),
+                0 0 40px rgba(6,182,212,0.3);
             animation: bubbleRise linear infinite;
+            will-change: transform, opacity;
             pointer-events: none;
         }
 
         @keyframes bubbleRise {
-            0%   { transform: translateY(0) scale(var(--scale, 1)); opacity: 0; }
-            8%   { opacity: 0.85; }
-            100% { transform: translateY(-110vh) scale(calc(var(--scale, 1) * 1.15)); opacity: 0; }
+            0% {
+                transform: translateY(0) scale(var(--scale, 1));
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.9;
+            }
+            90% {
+                opacity: 0.85;
+            }
+            100% {
+                transform: translateY(-120vh) scale(calc(var(--scale, 1) * 1.25));
+                opacity: 0;
+            }
         }
 
-        /* ────────────────────────────────────────────────
-           FOREST — листья по всей ширине с качанием
-        ──────────────────────────────────────────────── */
+        /* Forest и Dusk оставляем без изменений */
         [data-theme="forest"] .leaf {
             position: absolute;
             width: 24px;
@@ -94,9 +107,6 @@
             100% { transform: translateY(110vh) translateX(calc(180px * sin(var(--osc) + 3))) rotate(calc(var(--start-rotate) + 720deg)); opacity: 0; }
         }
 
-        /* ────────────────────────────────────────────────
-           DUSK — искры/огоньки по всей ширине
-        ──────────────────────────────────────────────── */
         [data-theme="dusk"] .spark {
             position: absolute;
             background: #f472b6;
@@ -186,10 +196,10 @@
 
     <!-- Фоновая анимация -->
     <div class="bg-animation">
-        <!-- Ocean: 10 пузырьков (можно добавить/убрать) -->
+        <!-- Ocean: 12 пузырьков — больше шансов увидеть движение -->
         <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
         <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
-        <div class="bubble"></div><div class="bubble"></div>
+        <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
 
         <!-- Forest: 8 листьев -->
         <div class="leaf"></div><div class="leaf"></div><div class="leaf"></div><div class="leaf"></div>
@@ -202,10 +212,10 @@
     </div>
 
     <div class="container">
-        <h1>🎲 IT ЧЕЛЛЕНДЖ</h1>
+        <h1>🚀 IT ЧЕЛЛЕНДЖ</h1>
         <div id="result">✅ ГОТОВО! Вот твоё задание:</div>
         <div id="display" class="display">Нажми «КРУТИТЬ!», чтобы получить задание!</div>
-        <button id="spinBtn">🚀 КРУТИТЬ ЗАДАНИЕ!</button>
+        <button id="spinBtn">💻 КРУТИТЬ ЗАДАНИЕ!</button>
         <button id="copyBtn" class="copy-btn" style="display:none;">📋 Скопировать задание</button>
     </div>
 
@@ -323,52 +333,48 @@
 
             function randomizeElements(elements, startFromBottom = false, type) {
                 elements.forEach(el => {
-                    // Полная ширина — от 2% до 98%
                     const randomLeft = Math.random() * 96 + 2;
                     el.style.left = `${randomLeft}%`;
 
                     if (startFromBottom) {
-                        // Ocean — снизу, за экраном
-                        const randomBottom = -8 - Math.random() * 35;   // от -8% до -43%
+                        // Ocean — более надёжный старт снизу
+                        const randomBottom = -15 - Math.random() * 50;  // от -15% до -65%
                         el.style.bottom = `${randomBottom}%`;
                         el.style.top = 'auto';
                     } else {
-                        // Forest и Dusk — сверху, за экраном
-                        const randomTop = -8 - Math.random() * 40;      // от -8% до -48%
+                        const randomTop = -8 - Math.random() * 40;
                         el.style.top = `${randomTop}%`;
                         el.style.bottom = 'auto';
                     }
 
-                    // Случайное колебание по горизонтали
                     const randomOsc = Math.random() * Math.PI * 2;
                     el.style.setProperty('--osc', randomOsc);
 
                     let duration, scale, size;
 
                     if (type === 'bubble') {
-                        scale = Math.random() * 2.8 + 1.8;           // крупные: ~1.8–4.6×
-                        duration = Math.random() * 9 + 11;           // 11–20 сек
+                        scale = Math.random() * 3.2 + 1.4;           // 1.4 – 4.6×
+                        duration = Math.random() * 10 + 12;          // 12–22 сек
                         el.style.setProperty('--scale', scale);
                     }
                     else if (type === 'leaf') {
-                        scale = Math.random() * 0.7 + 0.7;           // 0.7–1.4×
-                        duration = Math.random() * 12 + 14;          // 14–26 сек
+                        scale = Math.random() * 0.7 + 0.7;
+                        duration = Math.random() * 12 + 14;
                         const startRotate = Math.random() * 80 - 40;
                         el.style.setProperty('--start-rotate', `${startRotate}deg`);
                         el.style.width  = `${24 * scale}px`;
                         el.style.height = `${14 * scale}px`;
                     }
                     else if (type === 'spark') {
-                        scale = Math.random() * 1.8 + 0.8;           // 0.8–2.6×
-                        duration = Math.random() * 8 + 9;            // 9–17 сек
+                        scale = Math.random() * 1.8 + 0.8;
+                        duration = Math.random() * 8 + 9;
                         el.style.setProperty('--scale', scale);
-                        size = 5 + Math.random() * 5;                // 5–10 px
+                        size = 5 + Math.random() * 5;
                         el.style.width = el.style.height = `${size}px`;
                     }
 
                     el.style.animationDuration = `${duration}s`;
-                    // отрицательная задержка → элементы появляются в разное время
-                    el.style.animationDelay = `-${Math.random() * duration * 0.9}s`;
+                    el.style.animationDelay = `-${Math.random() * duration * 0.85}s`;
                 });
             }
 
