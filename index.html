@@ -116,7 +116,7 @@
             100% { bottom: 110%; transform: translateX(-15px) rotate(-10deg); opacity: 0; }
         }
 
-        /* === НОВОЕ: Падающие листья для Forest === */
+        /* Падающие листья для Forest */
         .leaves {
             position: absolute;
             inset: 0;
@@ -136,15 +136,11 @@
         }
 
         @keyframes leafFall {
-            0% {
-                transform: translateY(-80px) rotate(0deg);
-            }
-            100% {
-                transform: translateY(110vh) rotate(920deg);
-            }
+            0% { transform: translateY(-80px) rotate(0deg); }
+            100% { transform: translateY(110vh) rotate(920deg); }
         }
 
-        /* === НОВОЕ: Пролетающие огоньки для Dusk === */
+        /* Пролетающие огоньки для Dusk */
         .fireflies {
             position: absolute;
             inset: 0;
@@ -159,10 +155,7 @@
             height: 7px;
             background: #fef08c;
             border-radius: 50%;
-            box-shadow: 
-                0 0 8px #fef08c,
-                0 0 18px #facc15,
-                0 0 32px #eab308;
+            box-shadow: 0 0 8px #fef08c, 0 0 18px #facc15, 0 0 32px #eab308;
             animation: fireflyMove linear infinite;
             opacity: 0.75;
         }
@@ -219,52 +212,132 @@
         #qrContainer { position: absolute; bottom: 25px; left: 25px; z-index: 25; background: #fff; padding: 12px; border-radius: 14px; box-shadow: 0 0 30px rgba(0,255,234,0.5); text-align: center; max-width: 178px; }
         #qrContainer p { max-width: 168px; font-size: 0.82rem; margin: 8px 0 0 0; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+        /* ============================================= */
+        /* СКРЫТАЯ ИГРА ДЛЯ ДЕТЕЙ: БЕЙ БАГИ! (Whac-a-Mole) */
+        /* ============================================= */
+        #gameTrigger {
+            position: absolute;
+            bottom: 28px;
+            right: 28px;
+            font-size: 26px;
+            opacity: 0.22;
+            cursor: pointer;
+            z-index: 85;
+            transition: all .3s ease;
+            user-select: none;
+            filter: drop-shadow(0 0 8px var(--accent));
+        }
+        #gameTrigger:hover {
+            opacity: 1;
+            transform: scale(1.35) rotate(12deg);
+        }
+
+        .game-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.88);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(6px);
+        }
+        .modal-content {
+            background: var(--bg2);
+            border: 7px solid var(--accent);
+            border-radius: 22px;
+            padding: 25px 30px;
+            max-width: 390px;
+            width: 92%;
+            text-align: center;
+            box-shadow: 0 0 70px var(--accent);
+            position: relative;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.45rem;
+            color: var(--accent);
+            text-shadow: 0 0 15px var(--accent);
+        }
+        .modal-header button {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            color: var(--text);
+            cursor: pointer;
+            padding: 0 8px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.15rem;
+            margin: 15px 0 20px;
+            color: var(--text);
+        }
+        .game-info div { font-family: 'Press Start 2P', cursive; }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin: 0 auto;
+            width: 285px;
+        }
+        .hole {
+            background: rgba(0,0,0,0.35);
+            border: 5px solid #222;
+            border-radius: 50%;
+            height: 92px;
+            position: relative;
+            cursor: pointer;
+            box-shadow: inset 0 8px 15px rgba(0,0,0,0.6);
+        }
+        .bug {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            font-size: 58px;
+            transform: translate(-50%, -50%) scale(0.3);
+            transition: transform .12s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            cursor: pointer;
+            animation: bugPop 0.25s forwards;
+        }
+        @keyframes bugPop {
+            to { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        #startGameBtn {
+            font-size: 1.35rem;
+            padding: 14px 48px;
+            margin: 18px auto 0;
+            background: var(--button);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 0 25px var(--button);
+        }
+        #gameResult {
+            margin-top: 20px;
+            font-size: 1.25rem;
+            color: #f43f5e;
+            text-shadow: 0 0 12px #f43f5e;
+            line-height: 1.4;
+        }
+
         @media (max-width:768px){
-            body { overflow-y: auto; height: auto; min-height: 100vh; }
-            .top-bar {
-                position: static;
-                transform: none;
-                margin: 90px auto 30px;
-                width: 90%;
-                max-width: 380px;
-                flex-direction: column;
-                gap: 14px;
-            }
-            select { width: 100%; font-size: 1.1rem; padding: 12px; }
-            .container { padding: 20px 18px 80px; }
-            h1 { font-size: 2.1rem; margin: 10px 0 20px; }
-            .display { font-size: 1.6rem; padding: 30px 20px; min-height: 180px; }
-            button { font-size: 1.3rem; padding: 18px 50px; }
-            #logo { top: 12px; right: 12px; max-height: 90px; }
-            #soundBtn { top: 12px; left: 12px; padding: 7px 14px; font-size: 0.95rem; }
-            #qrContainer { display: none !important; }
-        }
-
-        @media (max-width:480px){
-            h1 { font-size: 1.8rem; }
-            .display { font-size: 1.4rem; min-height: 160px; }
-            button { padding: 16px 40px; font-size: 1.15rem; }
-        }
-
-        @media (orientation: landscape) and (max-height: 520px){
-            .top-bar {
-                margin: 60px auto 20px;
-                flex-direction: row;
-                gap: 10px;
-                width: 96%;
-            }
-            select {
-                font-size: 0.95rem;
-                padding: 8px 12px;
-                min-width: 0;
-                flex: 1;
-            }
-            .container { padding: 10px 16px 60px; }
-            h1 { font-size: 1.7rem; margin: 8px 0 12px; }
-            .display { min-height: 120px; font-size: 1.25rem; padding: 18px 16px; }
-            button { padding: 12px 40px; font-size: 1rem; margin: 10px 0; }
-            #logo { max-height: 70px; top: 8px; right: 8px; }
-            #soundBtn { top: 8px; left: 8px; padding: 6px 12px; font-size: 0.85rem; }
+            #gameTrigger { bottom: 18px; right: 18px; font-size: 22px; }
+            .modal-content { padding: 20px 18px; max-width: 96%; }
+            .game-grid { width: 260px; }
+            .hole { height: 82px; }
+            .bug { font-size: 50px; }
         }
     </style>
 </head>
@@ -298,11 +371,38 @@
         <div class="bubble"></div>
     </div>
 
-    <!-- Листья для Forest (создаются через JS) -->
+    <!-- Листья для Forest -->
     <div class="leaves" id="leavesContainer"></div>
 
-    <!-- Огоньки для Dusk (создаются через JS) -->
+    <!-- Огоньки для Dusk -->
     <div class="fireflies" id="firefliesContainer"></div>
+
+    <!-- СКРЫТЫЙ ЗНАЧОК ИГРЫ (незаметный!) -->
+    <div id="gameTrigger" title="🐛 Секретная игра для детей">🐛</div>
+
+    <!-- МОДАЛЬНОЕ ОКНО ИГРЫ -->
+    <div id="gameModal" class="game-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🐛 БЕЙ БАГИ!</h2>
+                <button id="closeGameBtn">✕</button>
+            </div>
+            
+            <div class="game-info">
+                <div>Время: <span id="gameTimer">30</span></div>
+                <div>Счёт: <span id="gameScore">0</span></div>
+                <div>Рекорд: <span id="gameHighScore">0</span></div>
+            </div>
+
+            <div id="gameGrid" class="game-grid"></div>
+
+            <button id="startGameBtn">▶️ НАЧАТЬ ИГРУ</button>
+            <div id="gameResult" class="game-result" style="display:none;">
+                ИГРА ОКОНЧЕНА!<br>
+                Твой счёт: <span id="finalScore">0</span>
+            </div>
+        </div>
+    </div>
 
     <div class="container">
         <h1>🎲 IT ЧЕЛЛЕНДЖ</h1>
@@ -363,50 +463,42 @@
             });
         }
 
-        // === НОВОЕ: Создание падающих листьев ===
+        /* === ЛИСТЬЯ ДЛЯ FOREST === */
         function createLeaves() {
             const container = document.getElementById('leavesContainer');
             container.innerHTML = '';
             const leafTypes = ['🍂', '🍃', '🌿', '🍁'];
-            
             for (let i = 0; i < 14; i++) {
                 const leaf = document.createElement('div');
                 leaf.className = 'leaf';
                 leaf.textContent = leafTypes[Math.floor(Math.random() * leafTypes.length)];
-                
                 const left = Math.random() * 100;
                 const duration = 12 + Math.random() * 18;
                 const delay = Math.random() * -25;
                 const size = 22 + Math.random() * 18;
-                
                 leaf.style.left = `${left}vw`;
                 leaf.style.fontSize = `${size}px`;
                 leaf.style.animationDuration = `${duration}s`;
                 leaf.style.animationDelay = `${delay}s`;
                 leaf.style.opacity = 0.65 + Math.random() * 0.3;
-                
                 container.appendChild(leaf);
             }
         }
 
-        // === НОВОЕ: Создание огоньков ===
+        /* === ОГОНЬКИ ДЛЯ DUSK === */
         function createFireflies() {
             const container = document.getElementById('firefliesContainer');
             container.innerHTML = '';
-            
             for (let i = 0; i < 18; i++) {
                 const fly = document.createElement('div');
                 fly.className = 'firefly';
-                
                 const left = Math.random() * 100;
                 const top = Math.random() * 70;
                 const duration = 15 + Math.random() * 25;
                 const delay = Math.random() * -30;
                 const size = 4 + Math.random() * 5;
-                
                 const dx = (Math.random() - 0.5) * 380;
                 const dy = 120 + Math.random() * 280;
-                
                 fly.style.left = `${left}vw`;
                 fly.style.top = `${top}vh`;
                 fly.style.width = `${size}px`;
@@ -415,8 +507,96 @@
                 fly.style.animationDelay = `${delay}s`;
                 fly.style.setProperty('--dx', `${dx}px`);
                 fly.style.setProperty('--dy', `${dy}px`);
-                
                 container.appendChild(fly);
+            }
+        }
+
+        /* ============================================= */
+        /* МИНИ-ИГРА: БЕЙ БАГИ! (Whac-a-Mole) */
+        /* ============================================= */
+        let gameScore = 0;
+        let gameTimerInterval = null;
+        let bugPopInterval = null;
+        let gameActive = false;
+        let highScore = localStorage.getItem('bugBusterHighScore') || 0;
+
+        function createGameGrid() {
+            const grid = document.getElementById('gameGrid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 9; i++) {
+                const hole = document.createElement('div');
+                hole.className = 'hole';
+                grid.appendChild(hole);
+            }
+        }
+
+        function popBug() {
+            if (!gameActive) return;
+            const holes = document.querySelectorAll('.hole');
+            const randomIndex = Math.floor(Math.random() * 9);
+            const hole = holes[randomIndex];
+            if (hole.querySelector('.bug')) return;
+
+            const bug = document.createElement('div');
+            bug.className = 'bug';
+            bug.textContent = ['🐛','🪲','🐜'][Math.floor(Math.random()*3)];
+
+            bug.addEventListener('click', function handler(e) {
+                e.stopImmediatePropagation();
+                if (!gameActive) return;
+                bug.style.transform = 'translate(-50%, -50%) scale(0.1)';
+                setTimeout(() => { if (bug.parentNode) bug.parentNode.removeChild(bug); }, 180);
+                gameScore += 10;
+                document.getElementById('gameScore').textContent = gameScore;
+            });
+
+            hole.appendChild(bug);
+
+            // авто-исчезновение через 900 мс
+            setTimeout(() => {
+                if (bug.parentNode) {
+                    bug.style.transform = 'translate(-50%, -50%) scale(0.1)';
+                    setTimeout(() => { if (bug.parentNode) bug.parentNode.removeChild(bug); }, 180);
+                }
+            }, 900);
+        }
+
+        function startBugGame() {
+            gameScore = 0;
+            document.getElementById('gameScore').textContent = '0';
+            document.getElementById('startGameBtn').style.display = 'none';
+            document.getElementById('gameResult').style.display = 'none';
+
+            gameActive = true;
+            let timeLeft = 30;
+            document.getElementById('gameTimer').textContent = timeLeft;
+
+            if (gameTimerInterval) clearInterval(gameTimerInterval);
+            if (bugPopInterval) clearInterval(bugPopInterval);
+
+            gameTimerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('gameTimer').textContent = timeLeft;
+                if (timeLeft <= 0) endBugGame();
+            }, 1000);
+
+            bugPopInterval = setInterval(popBug, 420);
+        }
+
+        function endBugGame() {
+            gameActive = false;
+            if (gameTimerInterval) clearInterval(gameTimerInterval);
+            if (bugPopInterval) clearInterval(bugPopInterval);
+
+            document.getElementById('startGameBtn').style.display = 'block';
+            const resultEl = document.getElementById('gameResult');
+            resultEl.style.display = 'block';
+            document.getElementById('finalScore').textContent = gameScore;
+
+            if (gameScore > highScore) {
+                highScore = gameScore;
+                localStorage.setItem('bugBusterHighScore', highScore);
+                document.getElementById('gameHighScore').textContent = highScore;
             }
         }
 
@@ -479,7 +659,6 @@
             const bubbles = document.querySelector('.bubbles');
             const leavesContainer = document.getElementById('leavesContainer');
             const firefliesContainer = document.getElementById('firefliesContainer');
-            
             const cats = window.categories || {};
 
             Object.keys(cats).forEach(name => {
@@ -497,29 +676,49 @@
 
             catSelect.addEventListener('change', () => currentCategory = catSelect.value);
 
-            // Создаём анимации один раз при загрузке
+            // Создаём анимации фона
             createLeaves();
             createFireflies();
 
             themeSelect.addEventListener('change', () => {
                 const theme = themeSelect.value;
                 document.documentElement.dataset.theme = theme;
-                
                 bubbles.style.display = (theme === 'ocean') ? 'block' : 'none';
                 leavesContainer.style.display = (theme === 'forest') ? 'block' : 'none';
                 firefliesContainer.style.display = (theme === 'dusk') ? 'block' : 'none';
             });
 
-            // Первоначальное состояние
             const initialTheme = themeSelect.value;
             bubbles.style.display = (initialTheme === 'ocean') ? 'block' : 'none';
             leavesContainer.style.display = (initialTheme === 'forest') ? 'block' : 'none';
             firefliesContainer.style.display = (initialTheme === 'dusk') ? 'block' : 'none';
 
+            // Основные кнопки
             document.getElementById('spinBtn').addEventListener('click', startSpin);
             document.getElementById('copyBtn').addEventListener('click', copyTask);
             document.getElementById('soundBtn').addEventListener('click', toggleSound);
 
+            // === ИНИЦИАЛИЗАЦИЯ ИГРЫ БЕЙ БАГИ! ===
+            document.getElementById('gameHighScore').textContent = highScore;
+
+            document.getElementById('gameTrigger').addEventListener('click', () => {
+                const modal = document.getElementById('gameModal');
+                modal.style.display = 'flex';
+                createGameGrid();
+                document.getElementById('startGameBtn').style.display = 'block';
+                document.getElementById('gameResult').style.display = 'none';
+                document.getElementById('gameScore').textContent = '0';
+            });
+
+            document.getElementById('closeGameBtn').addEventListener('click', () => {
+                const modal = document.getElementById('gameModal');
+                modal.style.display = 'none';
+                if (gameActive) endBugGame();
+            });
+
+            document.getElementById('startGameBtn').addEventListener('click', startBugGame);
+
+            // QR-код
             if (window.innerWidth > 768) {
                 new QRCode(document.getElementById("qrcode"), {
                     text: window.location.href,
