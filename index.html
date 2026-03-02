@@ -16,60 +16,24 @@
             --text: #f1f5f9;
             --star-speed: 30s;
         }
-
-        /* Темы — улучшен контраст текста */
-        [data-theme="neon"]   {
-            --accent: #00ffea;
-            --button: #ff00aa;
-            --bg1: #0f0c29;
-            --bg2: #302b63;
-            --text: #f0f9ff;
-            --star-speed: 25s;
-        }
-        [data-theme="forest"] {
-            --accent: #5eead4;     /* более яркий акцент */
-            --button: #065f46;
-            --bg1: #052e16;
-            --bg2: #14532d;
-            --text: #ecfdf5;       /* очень светлый зелёно-белый */
-            --star-speed: 40s;
-        }
-        [data-theme="dusk"]   {
-            --accent: #d8b4fe;
-            --button: #5b21b6;
-            --bg1: #1e1238;
-            --bg2: #312e81;
-            --text: #f3e8ff;       /* светлый лавандовый */
-            --star-speed: 35s;
-        }
-        [data-theme="ocean"]  {
-            --accent: #7dd3fc;
-            --button: #0c4a6e;
-            --bg1: #0c4a6e;
-            --bg2: #164e63;
-            --text: #e0f2fe;       /* светлый голубой */
-            --star-speed: 28s;
-        }
+        [data-theme="neon"]   { --accent:#00ffea; --button:#ff00aa; --bg1:#0f0c29; --bg2:#302b63; --text:#f0f9ff; --star-speed:25s; }
+        [data-theme="forest"] { --accent:#5eead4; --button:#065f46; --bg1:#052e16; --bg2:#14532d; --text:#ecfdf5; --star-speed:40s; }
+        [data-theme="dusk"]   { --accent:#d8b4fe; --button:#5b21b6; --bg1:#1e1238; --bg2:#312e81; --text:#f3e8ff; --star-speed:35s; }
+        [data-theme="ocean"]  { --accent:#7dd3fc; --button:#0c4a6e; --bg1:#0c4a6e; --bg2:#164e63; --text:#e0f2fe; --star-speed:28s; }
 
         html, body {
             height: 100%;
             margin: 0;
             padding: 0;
-            overflow: hidden;
         }
-
         body {
             background: linear-gradient(135deg, var(--bg1), var(--bg2));
             color: var(--text);
             font-family: 'Roboto', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
             position: relative;
             min-height: 100vh;
+            overflow-y: auto;
         }
-
         body::before {
             content: '';
             position: absolute;
@@ -79,129 +43,18 @@
             animation: stars var(--star-speed) linear infinite;
             pointer-events: none;
         }
-
-        @keyframes stars {
-            0% { background-position: 0 0; }
-            100% { background-position: 400px 400px; }
-        }
+        @keyframes stars { 0% { background-position: 0 0 } 100% { background-position: 400px 400px } }
 
         #logo {
             position: absolute;
-            top: 12px;
-            right: 12px;
-            max-height: var(--logo-size, 110px);
-            max-width: 160px;
+            top: 10px;
+            right: 10px;
+            max-height: var(--logo-size, 100px);
+            max-width: 140px;
             object-fit: contain;
             filter: drop-shadow(0 0 20px var(--accent));
             z-index: 20;
             pointer-events: none;
-        }
-
-        .top-bar {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 70;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-            width: 90%;
-            max-width: 420px;
-        }
-
-        select {
-            background: rgba(255,255,255,0.12);
-            border: 2px solid var(--accent);
-            color: #111;
-            padding: 8px 14px;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            cursor: pointer;
-            min-width: 140px;
-        }
-
-        .container {
-            text-align: center;
-            z-index: 10;
-            width: 100%;
-            max-width: 920px;
-            padding: 80px 20px 40px;
-            box-sizing: border-box;
-        }
-
-        h1 {
-            font-family: 'Press Start 2P', cursive;
-            font-size: clamp(1.8rem, 7vw, 2.6rem);
-            margin: 10px 0 20px;
-            text-shadow: 0 0 18px var(--accent);
-            color: var(--accent);
-            line-height: 1.2;
-        }
-
-        #result {
-            display: none;
-            font-size: clamp(1.1rem, 4vw, 1.3rem);
-            color: var(--button);
-            text-shadow: 0 0 12px var(--button);
-            margin-bottom: 16px;
-            font-weight: bold;
-        }
-
-        .display {
-            background: rgba(255,255,255,0.08);
-            border: 5px solid var(--accent);
-            border-radius: 18px;
-            padding: clamp(20px, 5vw, 40px) 20px;
-            min-height: 180px;
-            font-size: clamp(1.4rem, 5vw, 2rem);
-            line-height: 1.4;
-            margin: 0 auto 20px;
-            max-width: 90%;
-            box-shadow: 0 0 50px rgba(0,255,234,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            transition: all .4s;
-            box-sizing: border-box;
-        }
-
-        .display.glow {
-            animation: finalGlow 1.3s infinite alternate;
-            border-color: var(--button);
-        }
-
-        @keyframes finalGlow {
-            from { box-shadow: 0 0 50px rgba(0,255,234,0.6); }
-            to   { box-shadow: 0 0 120px var(--button), 0 0 160px var(--accent); }
-        }
-
-        button, .copy-btn {
-            font-family: 'Press Start 2P', cursive;
-            cursor: pointer;
-            transition: all .3s;
-            touch-action: manipulation;
-            z-index: 50;
-            border: none;
-            border-radius: 14px;
-        }
-
-        button {
-            font-size: clamp(1.2rem, 5vw, 1.55rem);
-            padding: clamp(14px, 5vw, 20px) clamp(40px, 8vw, 60px);
-            background: var(--button);
-            color: white;
-            box-shadow: 0 0 30px var(--button);
-            margin: 15px 0;
-        }
-
-        .copy-btn {
-            padding: 12px 30px;
-            font-size: 1.1rem;
-            background: var(--accent);
-            color: #000;
         }
 
         #soundBtn {
@@ -218,8 +71,106 @@
             z-index: 60;
         }
 
+        .top-bar {
+            position: relative;
+            z-index: 70;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 70px 0 20px;
+            padding: 0 15px;
+        }
+
+        select {
+            background: rgba(255,255,255,0.12);
+            border: 2px solid var(--accent);
+            color: #111;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            min-width: 130px;
+        }
+
+        .container {
+            text-align: center;
+            z-index: 10;
+            width: 100%;
+            max-width: 920px;
+            padding: 20px 16px 60px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(1.9rem, 7vw, 2.5rem);
+            margin: 0 0 20px;
+            text-shadow: 0 0 18px var(--accent);
+            color: var(--accent);
+        }
+
+        #result {
+            display: none;
+            font-size: clamp(1.1rem, 4vw, 1.3rem);
+            color: var(--button);
+            text-shadow: 0 0 12px var(--button);
+            margin-bottom: 16px;
+            font-weight: bold;
+        }
+
+        .display {
+            background: rgba(255,255,255,0.08);
+            border: 5px solid var(--accent);
+            border-radius: 18px;
+            padding: clamp(20px, 5vw, 35px) 18px;
+            min-height: 160px;
+            font-size: clamp(1.35rem, 5vw, 1.9rem);
+            line-height: 1.4;
+            margin: 0 auto 20px;
+            max-width: 92%;
+            box-shadow: 0 0 50px rgba(0,255,234,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: all .4s;
+        }
+
+        .display.glow {
+            animation: finalGlow 1.3s infinite alternate;
+            border-color: var(--button);
+        }
+        @keyframes finalGlow {
+            from { box-shadow: 0 0 50px rgba(0,255,234,0.6); }
+            to   { box-shadow: 0 0 120px var(--button), 0 0 160px var(--accent); }
+        }
+
+        button, .copy-btn {
+            font-family: 'Press Start 2P', cursive;
+            cursor: pointer;
+            transition: all .3s;
+            touch-action: manipulation;
+            border: none;
+            border-radius: 14px;
+        }
+        button {
+            font-size: clamp(1.15rem, 5vw, 1.5rem);
+            padding: clamp(14px, 5vw, 18px) clamp(40px, 8vw, 55px);
+            background: var(--button);
+            color: white;
+            box-shadow: 0 0 30px var(--button);
+            margin: 15px 0;
+        }
+        .copy-btn {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            background: var(--accent);
+            color: #000;
+        }
+
         #qrContainer {
-            position: absolute;
+            position: fixed;
             bottom: 15px;
             left: 15px;
             z-index: 25;
@@ -230,45 +181,42 @@
             text-align: center;
             max-width: 160px;
         }
+        #qrContainer p { font-size: 0.78rem; margin: 6px 0 0; color: #111; }
 
-        #qrContainer p {
-            font-size: 0.78rem;
-            margin: 6px 0 0;
-            color: #111;
-        }
-
-        /* Мобильная адаптация + landscape */
+        /* Адаптация */
         @media (max-width: 768px) {
             body { overflow-y: auto; }
-            .container { padding: 70px 16px 60px; }
-            .top-bar { top: 8px; gap: 8px; width: 96%; }
-            select { font-size: 0.9rem; padding: 7px 12px; min-width: 120px; }
+            .top-bar { margin: 80px 0 30px; }
+            #logo { max-height: 80px; top: 8px; right: 8px; }
             #soundBtn { top: 8px; left: 8px; padding: 6px 10px; font-size: 0.85rem; }
-            button { padding: 16px 40px; font-size: 1.15rem; }
-            .display { min-height: 160px; padding: 20px 16px; font-size: 1.45rem; }
-            #logo { top: 8px; right: 8px; max-height: 90px; }
+            .container { padding-bottom: 80px; }
         }
 
-        @media (max-width: 480px) {
-            h1 { font-size: 1.9rem; margin: 8px 0 16px; }
-            .display { font-size: 1.3rem; min-height: 140px; }
-            button { padding: 14px 36px; font-size: 1.05rem; }
+        @media (orientation: landscape) and (max-height: 520px) {
+            body { padding-top: 10px; }
+            .top-bar {
+                margin: 50px 0 15px;
+                flex-direction: row;
+                gap: 8px;
+            }
+            select { font-size: 0.85rem; padding: 6px 10px; min-width: 110px; }
+            .container { padding: 10px 12px 40px; }
+            h1 { font-size: 1.8rem; margin-bottom: 12px; }
+            .display { min-height: 110px; font-size: 1.2rem; padding: 12px 14px; }
+            button { padding: 10px 30px; font-size: 0.95rem; margin: 8px 0; }
+            #logo { max-height: 60px; }
+            #soundBtn { padding: 5px 8px; font-size: 0.8rem; }
         }
 
-        /* Горизонтальная ориентация на мобильных */
-        @media (orientation: landscape) and (max-height: 500px) {
-            body { justify-content: flex-start; padding-top: 10px; }
-            .container { padding: 50px 20px 20px; }
-            .top-bar { top: 4px; transform: translateX(-50%) scale(0.9); }
-            .display { min-height: 120px; font-size: 1.25rem; padding: 16px 14px; }
-            button { padding: 12px 32px; font-size: 1rem; margin: 10px 0; }
-            #logo { max-height: 70px; }
-            #soundBtn { padding: 5px 10px; font-size: 0.8rem; }
+        @media (max-width: 480px) and (orientation: portrait) {
+            .top-bar { flex-direction: column; gap: 12px; }
+            select { width: 80%; max-width: 260px; margin: 0 auto; }
         }
     </style>
 </head>
 <body>
     <img id="logo" src="logo.png" alt="Логотип">
+    <button id="soundBtn">🔊 Звук включён</button>
 
     <div class="top-bar">
         <select id="categorySelect"></select>
@@ -280,9 +228,7 @@
         </select>
     </div>
 
-    <button id="soundBtn">🔊 Звук включён</button>
-
-    <div id="qrContainer">
+    <div id="qrContainer" style="display:none;">
         <div id="qrcode"></div>
         <p>Сканируй для открытия</p>
     </div>
@@ -354,7 +300,6 @@
         function startSpin() {
             if (isSpinning) return;
             isSpinning = true;
-
             const resultEl = document.getElementById('result');
             const copyBtn = document.getElementById('copyBtn');
             const display = document.getElementById('display');
@@ -434,8 +379,11 @@
 
             document.getElementById('spinBtn').addEventListener('click', startSpin);
             document.getElementById('copyBtn').addEventListener('click', copyTask);
+            document.getElementById('soundBtn').addEventListener('click', toggleSound);  // ← здесь фикс кнопки звука
 
+            // QR только на десктопе
             if (window.innerWidth > 768) {
+                document.getElementById('qrContainer').style.display = 'block';
                 new QRCode(document.getElementById("qrcode"), {
                     text: window.location.href,
                     width: 168, height: 168,
@@ -444,7 +392,8 @@
                 });
             }
 
-            document.body.addEventListener('click', () => {
+            // Разблокировка аудио после первого тача/клика
+            document.body.addEventListener('touchstart', () => {
                 if (audioContext) audioContext.resume();
             }, { once: true });
         });
