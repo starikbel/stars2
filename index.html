@@ -213,7 +213,7 @@
         #qrContainer p { max-width: 168px; font-size: 0.82rem; margin: 8px 0 0 0; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* ============================================= */
-        /* СКРЫТАЯ ИГРА ДЛЯ ДЕТЕЙ: БЕЙ БАГИ! */
+        /* СКРЫТАЯ ИГРА */
         /* ============================================= */
         #gameTrigger {
             position: absolute;
@@ -226,7 +226,7 @@
             transition: all .3s ease;
             user-select: none;
             filter: drop-shadow(0 0 8px var(--accent));
-            display: none; /* появляется только после 5 прокруток */
+            display: none;
         }
         #gameTrigger:hover {
             opacity: 1;
@@ -314,40 +314,46 @@
             to { transform: translate(-50%, -50%) scale(1); }
         }
 
-        /* === НОВЫЕ АНИМАЦИИ ТОЛЬКО ДЛЯ ИГРЫ === */
-        .explosion {
+        .explosion, .error-mark {
             position: absolute;
             top: 50%;
             left: 50%;
-            font-size: 68px;
-            transform: translate(-50%, -50%);
             pointer-events: none;
             z-index: 10;
-            animation: explodeAnim 650ms forwards;
         }
+        .explosion { font-size: 68px; animation: explodeAnim 650ms forwards; }
         @keyframes explodeAnim {
             0%   { transform: translate(-50%, -50%) scale(0.1); opacity: 1; }
             40%  { transform: translate(-50%, -50%) scale(1.35); }
             100% { transform: translate(-50%, -50%) scale(1.85); opacity: 0; }
         }
-
-        .error-mark {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            font-size: 52px;
-            color: #f43f5e;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            z-index: 10;
-            animation: errorAnim 700ms forwards;
-        }
+        .error-mark { font-size: 52px; color: #f43f5e; animation: errorAnim 700ms forwards; }
         @keyframes errorAnim {
             0%   { transform: translate(-50%, -50%) scale(0.4); opacity: 1; }
             100% { transform: translate(-50%, -50%) scale(1.65); opacity: 0; }
         }
 
-        #startGameBtn {
+        /* Змейка */
+        #snakeContainer {
+            display: none;
+        }
+        #snakeCanvas {
+            background: #111;
+            border: 6px solid var(--accent);
+            border-radius: 12px;
+            image-rendering: pixelated;
+            width: 100%;
+            max-width: 320px;
+            height: auto;
+        }
+        #snakeScoreDisplay {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.3rem;
+            margin: 15px 0;
+            color: #a3e635;
+        }
+
+        #startGameBtn, #startSnakeBtn {
             font-size: 1.35rem;
             padding: 14px 48px;
             margin: 18px auto 0;
@@ -367,10 +373,19 @@
 
         @media (max-width:768px){
             #gameTrigger { bottom: 18px; right: 18px; font-size: 22px; }
-            .modal-content { padding: 20px 18px; max-width: 96%; }
-            .game-grid { width: 260px; }
-            .hole { height: 82px; }
-            .bug { font-size: 50px; }
+            .modal-content { padding: 18px 15px !important; max-width: 96% !important; }
+            .game-grid { width: 100% !important; gap: 10px; }
+            .hole { height: 78px; }
+            .bug { font-size: 48px; }
+            #snakeCanvas { max-width: 280px; }
+        }
+
+        @media (orientation: landscape) and (max-height: 520px){
+            .modal-content { padding: 12px 15px !important; max-height: 92vh; overflow-y: auto; }
+            .game-grid { width: 260px !important; }
+            .hole { height: 68px; }
+            #snakeCanvas { max-width: 260px; }
+            .container { padding-bottom: 60px; }
         }
     </style>
 </head>
@@ -410,29 +425,37 @@
     <!-- Огоньки для Dusk -->
     <div class="fireflies" id="firefliesContainer"></div>
 
-    <!-- СКРЫТЫЙ ЗНАЧОК ИГРЫ (появляется после 5 прокруток) -->
+    <!-- СКРЫТЫЙ ЗНАЧОК ИГРЫ -->
     <div id="gameTrigger" title="Скрытая игра">🐛</div>
 
     <!-- МОДАЛЬНОЕ ОКНО ИГРЫ -->
     <div id="gameModal" class="game-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>🐛 БЕЙ БАГИ!</h2>
+                <h2 id="modalTitle">🐛 БЕЙ БАГИ!</h2>
                 <button id="closeGameBtn">✕</button>
             </div>
             
-            <div class="game-info">
-                <div>Время: <span id="gameTimer">30</span></div>
-                <div>Счёт: <span id="gameScore">0</span></div>
-                <div>Рекорд: <span id="gameHighScore">0</span></div>
+            <!-- БЕЙ БАГИ -->
+            <div id="whacContainer">
+                <div class="game-info">
+                    <div>Время: <span id="gameTimer">30</span></div>
+                    <div>Счёт: <span id="gameScore">0</span></div>
+                    <div>Рекорд: <span id="gameHighScore">0</span></div>
+                </div>
+                <div id="gameGrid" class="game-grid"></div>
+                <button id="startGameBtn">▶️ НАЧАТЬ ИГРУ</button>
+                <div id="gameResult" style="display:none;">
+                    ИГРА ОКОНЧЕНА!<br>
+                    Твой счёт: <span id="finalScore">0</span>
+                </div>
             </div>
 
-            <div id="gameGrid" class="game-grid"></div>
-
-            <button id="startGameBtn">▶️ НАЧАТЬ ИГРУ</button>
-            <div id="gameResult" class="game-result" style="display:none;">
-                ИГРА ОКОНЧЕНА!<br>
-                Твой счёт: <span id="finalScore">0</span>
+            <!-- ЗМЕЙКА -->
+            <div id="snakeContainer">
+                <div id="snakeScoreDisplay">Счёт: <span id="snakeScore">0</span></div>
+                <canvas id="snakeCanvas" width="320" height="320"></canvas>
+                <button id="startSnakeBtn">▶️ НАЧАТЬ ЗМЕЙКУ</button>
             </div>
         </div>
     </div>
@@ -452,7 +475,8 @@
         let isSpinning = false;
         let soundEnabled = true;
         let audioContext;
-        let spinCount = 0; /* счётчик прокруток для появления значка */
+        let spinCount = 0;
+        let gameMode = "whac"; // whac или snake
 
         const themeSounds = {
             neon:   {tick:[1100,1800], final:[523,659,784]},
@@ -497,7 +521,30 @@
             });
         }
 
-        /* === ЛИСТЬЯ ДЛЯ FOREST === */
+        /* ЗВУКИ ДЛЯ ИГРЫ */
+        function playGameSound(type) {
+            if (!soundEnabled) return;
+            const ctx = getAudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            if (type === 'good') {
+                osc.frequency.value = 920;
+                gain.gain.value = 0.28;
+            } else if (type === 'bad') {
+                osc.frequency.value = 180;
+                gain.gain.value = 0.35;
+            } else if (type === 'miss') {
+                osc.frequency.value = 420;
+                gain.gain.value = 0.22;
+            }
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start();
+            gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.25);
+            osc.stop(ctx.currentTime + 0.35);
+        }
+
+        /* ЛИСТЬЯ И ОГОНЬКИ (без изменений) */
         function createLeaves() {
             const container = document.getElementById('leavesContainer');
             container.innerHTML = '';
@@ -519,7 +566,6 @@
             }
         }
 
-        /* === ОГОНЬКИ ДЛЯ DUSK === */
         function createFireflies() {
             const container = document.getElementById('firefliesContainer');
             container.innerHTML = '';
@@ -545,14 +591,18 @@
             }
         }
 
-        /* ============================================= */
-        /* МИНИ-ИГРА: БЕЙ БАГИ! (только эта часть изменена) */
-        /* ============================================= */
+        /* ==================== БЕЙ БАГИ! ==================== */
         let gameScore = 0;
         let gameTimerInterval = null;
         let bugPopInterval = null;
         let gameActive = false;
         let highScore = localStorage.getItem('bugBusterHighScore') || 0;
+
+        const bugTypes = [
+            {emoji: '🪲', points: 10},   // жук
+            {emoji: '🐜', points: -20},  // муравей
+            {emoji: '🐛', points: -30}   // гусеница
+        ];
 
         function createGameGrid() {
             const grid = document.getElementById('gameGrid');
@@ -560,13 +610,11 @@
             for (let i = 0; i < 9; i++) {
                 const hole = document.createElement('div');
                 hole.className = 'hole';
-
-                /* Клик по норке (попал или промах) */
                 hole.addEventListener('click', () => {
                     if (!gameActive) return;
                     const bug = hole.querySelector('.bug');
                     if (bug) {
-                        /* === ПОПАДАНИЕ: взрыв 💥 === */
+                        const pts = parseInt(bug.dataset.points);
                         const explosion = document.createElement('div');
                         explosion.className = 'explosion';
                         explosion.textContent = '💥';
@@ -575,21 +623,21 @@
 
                         bug.style.transform = 'translate(-50%, -50%) scale(0.1)';
                         setTimeout(() => bug.remove(), 180);
-                        gameScore += 10;
+
+                        gameScore = Math.max(0, gameScore + pts);
                         document.getElementById('gameScore').textContent = gameScore;
+                        playGameSound(pts > 0 ? 'good' : 'bad');
                     } else {
-                        /* === ПРОМАХ: ошибка ❌ + минус 5 === */
                         const error = document.createElement('div');
                         error.className = 'error-mark';
                         error.textContent = '❌';
                         hole.appendChild(error);
                         setTimeout(() => error.remove(), 700);
-
                         gameScore = Math.max(0, gameScore - 5);
                         document.getElementById('gameScore').textContent = gameScore;
+                        playGameSound('miss');
                     }
                 });
-
                 grid.appendChild(hole);
             }
         }
@@ -601,16 +649,17 @@
             const hole = holes[randomIndex];
             if (hole.querySelector('.bug')) return;
 
+            const type = bugTypes[Math.floor(Math.random() * bugTypes.length)];
             const bug = document.createElement('div');
             bug.className = 'bug';
-            bug.textContent = ['🐛','🪲','🐜'][Math.floor(Math.random()*3)];
+            bug.textContent = type.emoji;
+            bug.dataset.points = type.points;
             hole.appendChild(bug);
 
-            // авто-исчезновение через 900 мс
             setTimeout(() => {
                 if (bug.parentNode) {
                     bug.style.transform = 'translate(-50%, -50%) scale(0.1)';
-                    setTimeout(() => { if (bug.parentNode) bug.parentNode.removeChild(bug); }, 180);
+                    setTimeout(() => bug.remove(), 180);
                 }
             }, 900);
         }
@@ -620,7 +669,6 @@
             document.getElementById('gameScore').textContent = '0';
             document.getElementById('startGameBtn').style.display = 'none';
             document.getElementById('gameResult').style.display = 'none';
-
             gameActive = true;
             let timeLeft = 30;
             document.getElementById('gameTimer').textContent = timeLeft;
@@ -641,17 +689,102 @@
             gameActive = false;
             if (gameTimerInterval) clearInterval(gameTimerInterval);
             if (bugPopInterval) clearInterval(bugPopInterval);
-
             document.getElementById('startGameBtn').style.display = 'block';
             const resultEl = document.getElementById('gameResult');
             resultEl.style.display = 'block';
             document.getElementById('finalScore').textContent = gameScore;
-
             if (gameScore > highScore) {
                 highScore = gameScore;
                 localStorage.setItem('bugBusterHighScore', highScore);
                 document.getElementById('gameHighScore').textContent = highScore;
             }
+        }
+
+        /* ==================== ЗМЕЙКА ==================== */
+        let snake = [];
+        let dx = 1, dy = 0;
+        let foodX, foodY;
+        let snakeScore = 0;
+        let snakeInterval = null;
+        const tileCount = 20;
+        let snakeCanvas, ctx;
+
+        function initSnake() {
+            snake = [{x: 10, y: 10}];
+            dx = 1; dy = 0;
+            snakeScore = 0;
+            document.getElementById('snakeScore').textContent = snakeScore;
+            placeFood();
+            drawSnake();
+        }
+
+        function placeFood() {
+            foodX = Math.floor(Math.random() * tileCount);
+            foodY = Math.floor(Math.random() * tileCount);
+            for (let seg of snake) {
+                if (seg.x === foodX && seg.y === foodY) {
+                    placeFood();
+                    return;
+                }
+            }
+        }
+
+        function drawSnake() {
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, snakeCanvas.width, snakeCanvas.height);
+            ctx.fillStyle = '#a3e635';
+            for (let seg of snake) {
+                ctx.fillRect(seg.x * 16, seg.y * 16, 16, 16);
+            }
+            ctx.fillStyle = '#f43f5e';
+            ctx.fillRect(foodX * 16, foodY * 16, 16, 16);
+        }
+
+        function moveSnake() {
+            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                endSnakeGame();
+                return;
+            }
+            for (let seg of snake) {
+                if (seg.x === head.x && seg.y === head.y) {
+                    endSnakeGame();
+                    return;
+                }
+            }
+            snake.unshift(head);
+            if (head.x === foodX && head.y === foodY) {
+                snakeScore += 10;
+                document.getElementById('snakeScore').textContent = snakeScore;
+                placeFood();
+            } else {
+                snake.pop();
+            }
+            drawSnake();
+        }
+
+        function changeDirection(e) {
+            if (!gameActive) return;
+            switch (e.key) {
+                case "ArrowUp":    if (dy !== 1) { dx = 0; dy = -1; } break;
+                case "ArrowDown":  if (dy !== -1) { dx = 0; dy = 1; } break;
+                case "ArrowLeft":  if (dx !== 1) { dx = -1; dy = 0; } break;
+                case "ArrowRight": if (dx !== -1) { dx = 1; dy = 0; } break;
+            }
+        }
+
+        function startSnakeGame() {
+            gameActive = true;
+            document.getElementById('startSnakeBtn').style.display = 'none';
+            initSnake();
+            snakeInterval = setInterval(moveSnake, 140);
+        }
+
+        function endSnakeGame() {
+            gameActive = false;
+            clearInterval(snakeInterval);
+            alert(`🐍 ИГРА ОКОНЧЕНА!\nТвой счёт: ${snakeScore}`);
+            document.getElementById('startSnakeBtn').style.display = 'block';
         }
 
         function startSpin() {
@@ -688,10 +821,13 @@
                     document.getElementById('copyBtn').style.display = 'inline-block';
                     playFinalSound();
 
-                    /* === НОВОЕ: считаем прокрутки и показываем значок после 5 === */
                     spinCount++;
-                    if (spinCount >= 5) {
-                        document.getElementById('gameTrigger').style.display = 'block';
+                    const trigger = document.getElementById('gameTrigger');
+                    if (spinCount >= 5) trigger.style.display = 'block';
+                    if (spinCount >= 10) {
+                        gameMode = "snake";
+                        trigger.textContent = '🐍';
+                        trigger.title = 'Змейка';
                     }
                 }
             }
@@ -736,7 +872,6 @@
 
             catSelect.addEventListener('change', () => currentCategory = catSelect.value);
 
-            // Создаём анимации фона
             createLeaves();
             createFireflies();
 
@@ -753,32 +888,51 @@
             leavesContainer.style.display = (initialTheme === 'forest') ? 'block' : 'none';
             firefliesContainer.style.display = (initialTheme === 'dusk') ? 'block' : 'none';
 
-            // Основные кнопки
             document.getElementById('spinBtn').addEventListener('click', startSpin);
             document.getElementById('copyBtn').addEventListener('click', copyTask);
             document.getElementById('soundBtn').addEventListener('click', toggleSound);
 
-            // === ИНИЦИАЛИЗАЦИЯ ИГРЫ (только игра изменена) ===
+            // ИНИЦИАЛИЗАЦИЯ ИГРЫ
             document.getElementById('gameHighScore').textContent = highScore;
 
             document.getElementById('gameTrigger').addEventListener('click', () => {
                 const modal = document.getElementById('gameModal');
                 modal.style.display = 'flex';
-                createGameGrid();
-                document.getElementById('startGameBtn').style.display = 'block';
-                document.getElementById('gameResult').style.display = 'none';
-                document.getElementById('gameScore').textContent = '0';
+
+                if (gameMode === "snake") {
+                    document.getElementById('whacContainer').style.display = 'none';
+                    document.getElementById('snakeContainer').style.display = 'block';
+                    document.getElementById('modalTitle').textContent = '🐍 ЗМЕЙКА!';
+                    snakeCanvas = document.getElementById('snakeCanvas');
+                    ctx = snakeCanvas.getContext('2d');
+                    document.getElementById('startSnakeBtn').style.display = 'block';
+                } else {
+                    document.getElementById('snakeContainer').style.display = 'none';
+                    document.getElementById('whacContainer').style.display = 'block';
+                    document.getElementById('modalTitle').textContent = '🐛 БЕЙ БАГИ!';
+                    createGameGrid();
+                    document.getElementById('startGameBtn').style.display = 'block';
+                    document.getElementById('gameResult').style.display = 'none';
+                    document.getElementById('gameScore').textContent = '0';
+                }
             });
 
             document.getElementById('closeGameBtn').addEventListener('click', () => {
                 const modal = document.getElementById('gameModal');
                 modal.style.display = 'none';
-                if (gameActive) endBugGame();
+                if (gameActive) {
+                    if (gameMode === "snake") endSnakeGame();
+                    else endBugGame();
+                }
             });
 
             document.getElementById('startGameBtn').addEventListener('click', startBugGame);
+            document.getElementById('startSnakeBtn').addEventListener('click', startSnakeGame);
 
-            // QR-код
+            // Управление змейкой клавишами
+            document.addEventListener('keydown', changeDirection);
+
+            // QR
             if (window.innerWidth > 768) {
                 new QRCode(document.getElementById("qrcode"), {
                     text: window.location.href,
