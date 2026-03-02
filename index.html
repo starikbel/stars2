@@ -353,7 +353,7 @@
             color: #a3e635;
         }
 
-        /* МОБИЛЬНЫЕ КНОПКИ УПРАВЛЕНИЯ ЗМЕЙКОЙ — ИСПРАВЛЕНО */
+        /* МОБИЛЬНЫЕ КНОПКИ УПРАВЛЕНИЯ ЗМЕЙКОЙ */
         .snake-controls {
             display: grid;
             grid-template-columns: repeat(3, 48px);
@@ -395,15 +395,14 @@
             line-height: 1.4;
         }
 
-        /* ==================== ИСПРАВЛЕННАЯ МОБИЛЬНАЯ ВЕРСИЯ ==================== */
+        /* ==================== МОБИЛЬНАЯ АДАПТАЦИЯ (исправлено) ==================== */
         @media (max-width:768px){
             #qrContainer { display: none !important; }
-            #gameTrigger { bottom: 18px; right: 18px; font-size: 22px; }
             .modal-content { 
-                padding: 14px 12px !important; 
+                padding: 12px 10px !important; 
                 max-width: 98% !important; 
-                max-height: 94vh !important;
-                overflow-y: auto;
+                max-height: 95vh !important;
+                overflow-y: auto !important;
             }
             .game-grid { width: 100% !important; gap: 9px; }
             .hole { height: 74px; }
@@ -412,6 +411,7 @@
             .snake-controls { 
                 grid-template-columns: repeat(3, 46px); 
                 gap: 5px; 
+                margin: 12px auto 0;
             }
             .snake-controls button { font-size: 1.85rem; padding: 9px; }
             .game-info { font-size: 1.05rem; }
@@ -419,9 +419,11 @@
         }
 
         @media (orientation: landscape) and (max-height: 520px){
+            #qrContainer { display: none !important; }
             .modal-content { 
-                padding: 10px 12px !important; 
+                padding: 10px 10px !important; 
                 max-height: 96vh !important;
+                overflow-y: auto !important;
             }
             .game-grid { width: 255px !important; }
             .hole { height: 66px; }
@@ -429,7 +431,7 @@
             .snake-controls { 
                 grid-template-columns: repeat(3, 40px); 
                 gap: 4px; 
-                margin: 10px auto 0;
+                margin: 8px auto 0;
             }
             .snake-controls button { font-size: 1.7rem; padding: 7px; }
         }
@@ -859,7 +861,6 @@
             const left = document.getElementById('btnLeft');
             const right = document.getElementById('btnRight');
 
-            // touch + click для максимальной совместимости
             up.addEventListener('touchstart', (e) => { e.preventDefault(); changeDirection(0, -1); });
             up.addEventListener('click', () => changeDirection(0, -1));
             down.addEventListener('touchstart', (e) => { e.preventDefault(); changeDirection(0, 1); });
@@ -1010,7 +1011,6 @@
                     snakeCanvas = document.getElementById('snakeCanvas');
                     ctx = snakeCanvas.getContext('2d');
 
-                    // Адаптация размера холста под мобильные
                     if (window.innerWidth <= 768) {
                         snakeCanvas.width = 260;
                         snakeCanvas.height = 260;
