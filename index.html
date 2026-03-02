@@ -67,14 +67,65 @@
         #qrContainer{position:absolute;bottom:25px;left:25px;z-index:25;background:#fff;padding:12px;border-radius:14px;box-shadow:0 0 30px rgba(0,255,234,0.5);text-align:center;max-width:178px}
         #qrContainer p{max-width:168px;font-size:0.82rem;margin:8px 0 0 0;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-        @media (max-width:768px){#qrContainer{display:none !important}}
-        @media (max-width:1024px) and (orientation:landscape){
-            :root{--logo-size:72px}
-            .container{padding:15px 20px}
-            h1{font-size:1.65rem}
-            .display{font-size:1.38rem;padding:22px 18px;min-height:130px}
-            button{font-size:1.25rem;padding:14px 32px}
+        /* ──────────────────────────────────────────────── */
+        /* Мобильная версия — только здесь меняем расположение */
+        @media (max-width: 768px) {
+            body { overflow-y: auto; height: auto; min-height: 100vh; }
+            .top-bar {
+                position: static;
+                transform: none;
+                margin: 90px auto 30px;
+                width: 90%;
+                max-width: 380px;
+                flex-direction: column;
+                gap: 14px;
+            }
+            select {
+                width: 100%;
+                font-size: 1.1rem;
+                padding: 12px;
+            }
+            .container { padding: 20px 18px 80px; }
+            h1 { font-size: 2.1rem; margin: 10px 0 20px; }
+            .display {
+                font-size: 1.6rem;
+                padding: 30px 20px;
+                min-height: 180px;
+            }
+            button { font-size: 1.3rem; padding: 18px 50px; }
+            #logo { top: 12px; right: 12px; max-height: 90px; }
+            #soundBtn { top: 12px; left: 12px; padding: 7px 14px; font-size: 0.95rem; }
+            #qrContainer { display: none !important; }
         }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 1.8rem; }
+            .display { font-size: 1.4rem; min-height: 160px; }
+            button { padding: 16px 40px; font-size: 1.15rem; }
+        }
+
+        /* Горизонтальная ориентация на мобильных */
+        @media (orientation: landscape) and (max-height: 520px) {
+            .top-bar {
+                margin: 60px auto 20px;
+                flex-direction: row;
+                gap: 10px;
+                width: 96%;
+            }
+            select {
+                font-size: 0.95rem;
+                padding: 8px 12px;
+                min-width: 0;
+                flex: 1;
+            }
+            .container { padding: 10px 16px 60px; }
+            h1 { font-size: 1.7rem; margin: 8px 0 12px; }
+            .display { min-height: 120px; font-size: 1.25rem; padding: 18px 16px; }
+            button { padding: 12px 40px; font-size: 1rem; margin: 10px 0; }
+            #logo { max-height: 70px; top: 8px; right: 8px; }
+            #soundBtn { top: 8px; left: 8px; padding: 6px 12px; font-size: 0.85rem; }
+        }
+        /* ──────────────────────────────────────────────── */
     </style>
 </head>
 <body>
@@ -235,7 +286,7 @@
 
             document.getElementById('spinBtn').addEventListener('click', startSpin);
             document.getElementById('copyBtn').addEventListener('click', copyTask);
-            document.getElementById('soundBtn').addEventListener('click', toggleSound);  // ← исправленная привязка
+            document.getElementById('soundBtn').addEventListener('click', toggleSound);
 
             if (window.innerWidth > 768) {
                 new QRCode(document.getElementById("qrcode"), {
