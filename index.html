@@ -22,12 +22,7 @@
         [data-theme="dusk"]   { --accent:#f472b6; --button:#6d28d9; --bg1:#1a0f2e; --bg2:#3b1e5a; --text:#f5efff; --star-speed:32s; }
         [data-theme="ocean"]  { --accent:#06b6d4; --button:#0c4a6e; --bg1:#0e2b3d; --bg2:#0f5e7a; --text:#e0f7ff; --star-speed:22s; }
 
-        html, body {
-            height: 100vh;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-        }
+        html, body { height: 100vh; margin: 0; padding: 0; overflow: hidden; }
 
         body {
             background: linear-gradient(135deg, var(--bg1), var(--bg2));
@@ -50,12 +45,9 @@
             z-index: 0;
         }
 
-        @keyframes stars {
-            0%   { background-position: 0 0; }
-            100% { background-position: 400px 400px; }
-        }
+        @keyframes stars { 0% { background-position: 0 0 } 100% { background-position: 400px 400px } }
 
-        /* Общие контейнеры для анимаций */
+        /* Фоновая анимация */
         .bg-animation {
             position: absolute;
             inset: 0;
@@ -64,78 +56,7 @@
             z-index: 1;
         }
 
-        /* Neon — мерцающие вспышки */
-        [data-theme="neon"] .neon-flicker {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 50% 50%, rgba(0,255,234,0.08) 0%, transparent 60%);
-            opacity: 0;
-            animation: flicker 8s infinite alternate;
-        }
-
-        @keyframes flicker {
-            0%, 100% { opacity: 0; }
-            10%, 30%, 70% { opacity: 0.4; }
-            50% { opacity: 0.15; }
-        }
-
-        /* Forest — падающие листья */
-        [data-theme="forest"] .leaf {
-            position: absolute;
-            width: 20px;
-            height: 10px;
-            background: linear-gradient(to bottom right, #bef264, #84cc16);
-            border-radius: 50% 0;
-            opacity: 0.6;
-            animation: fall 18s linear infinite;
-            transform: rotate(45deg);
-        }
-
-        [data-theme="forest"] .leaf:nth-child(1) { left: 10%; animation-duration: 20s; animation-delay: 0s; }
-        [data-theme="forest"] .leaf:nth-child(2) { left: 30%; animation-duration: 24s; animation-delay: -5s; }
-        [data-theme="forest"] .leaf:nth-child(3) { left: 50%; animation-duration: 22s; animation-delay: -10s; }
-        [data-theme="forest"] .leaf:nth-child(4) { left: 70%; animation-duration: 19s; animation-delay: -3s; }
-        [data-theme="forest"] .leaf:nth-child(5) { left: 85%; animation-duration: 21s; animation-delay: -8s; }
-
-        @keyframes fall {
-            0%   { top: -10%; transform: translateX(0) rotate(0deg); opacity: 0; }
-            10%  { opacity: 0.7; }
-            100% { top: 110%; transform: translateX(40px) rotate(360deg); opacity: 0; }
-        }
-
-        /* Dusk — туман + искры */
-        [data-theme="dusk"] .mist {
-            position: absolute;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(transparent, rgba(243,232,255,0.08), transparent);
-            opacity: 0.4;
-            animation: mistMove 60s linear infinite;
-        }
-
-        [data-theme="dusk"] .spark {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: #f472b6;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #f472b6;
-            animation: sparkFall 12s linear infinite;
-        }
-
-        @keyframes mistMove {
-            0%   { transform: translate(-50%, -50%); }
-            100% { transform: translate(50%, 50%); }
-        }
-
-        @keyframes sparkFall {
-            0%   { top: -10%; opacity: 0.1; }
-            50%  { opacity: 0.9; }
-            100% { top: 110%; opacity: 0; }
-        }
-
-        /* Ocean — пузырьки (как раньше) */
+        /* Ocean — больше пузырьков */
         [data-theme="ocean"] .bubble {
             position: absolute;
             background: rgba(255,255,255,0.3);
@@ -144,17 +65,45 @@
             animation: bubbleFloat 15s infinite ease-in-out;
         }
 
-        [data-theme="ocean"] .bubble:nth-child(1) { width: 24px; height: 24px; left: 8%; animation-duration: 20s; animation-delay: 0s; }
-        [data-theme="ocean"] .bubble:nth-child(2) { width: 38px; height: 38px; left: 22%; animation-duration: 24s; animation-delay: -4s; }
-        [data-theme="ocean"] .bubble:nth-child(3) { width: 16px; height: 16px; left: 38%; animation-duration: 18s; animation-delay: -8s; }
-        [data-theme="ocean"] .bubble:nth-child(4) { width: 32px; height: 32px; left: 55%; animation-duration: 22s; animation-delay: -12s; }
-        [data-theme="ocean"] .bubble:nth-child(5) { width: 45px; height: 45px; left: 72%; animation-duration: 26s; animation-delay: -16s; }
-        [data-theme="ocean"] .bubble:nth-child(6) { width: 20px; height: 20px; left: 88%; animation-duration: 19s; animation-delay: -2s; }
+        [data-theme="ocean"] .bubble:nth-child(1)  { width: 24px; height: 24px; left: 5%;  animation-duration: 20s; animation-delay: 0s; }
+        [data-theme="ocean"] .bubble:nth-child(2)  { width: 38px; height: 38px; left: 18%; animation-duration: 24s; animation-delay: -4s; }
+        [data-theme="ocean"] .bubble:nth-child(3)  { width: 16px; height: 16px; left: 32%; animation-duration: 18s; animation-delay: -8s; }
+        [data-theme="ocean"] .bubble:nth-child(4)  { width: 32px; height: 32px; left: 48%; animation-duration: 22s; animation-delay: -12s; }
+        [data-theme="ocean"] .bubble:nth-child(5)  { width: 45px; height: 45px; left: 62%; animation-duration: 26s; animation-delay: -16s; }
+        [data-theme="ocean"] .bubble:nth-child(6)  { width: 20px; height: 20px; left: 78%; animation-duration: 19s; animation-delay: -2s; }
+        [data-theme="ocean"] .bubble:nth-child(7)  { width: 30px; height: 30px; left: 85%; animation-duration: 21s; animation-delay: -10s; }
+        [data-theme="ocean"] .bubble:nth-child(8)  { width: 18px; height: 18px; left: 92%; animation-duration: 17s; animation-delay: -6s; }
 
         @keyframes bubbleFloat {
             0%   { bottom: -10%; transform: translateX(0) rotate(0deg); opacity: 0.1; }
             50%  { transform: translateX(20px) rotate(10deg); opacity: 0.8; }
             100% { bottom: 110%; transform: translateX(-15px) rotate(-10deg); opacity: 0; }
+        }
+
+        /* Dusk — больше огоньков/искр */
+        [data-theme="dusk"] .spark {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background: #f472b6;
+            border-radius: 50%;
+            box-shadow: 0 0 12px #f472b6, 0 0 20px #fb923c;
+            animation: sparkFall 10s linear infinite;
+        }
+
+        [data-theme="dusk"] .spark:nth-child(1)  { left: 10%; animation-duration: 12s; animation-delay: 0s; }
+        [data-theme="dusk"] .spark:nth-child(2)  { left: 20%; animation-duration: 14s; animation-delay: -2s; }
+        [data-theme="dusk"] .spark:nth-child(3)  { left: 35%; animation-duration: 11s; animation-delay: -4s; }
+        [data-theme="dusk"] .spark:nth-child(4)  { left: 45%; animation-duration: 15s; animation-delay: -6s; }
+        [data-theme="dusk"] .spark:nth-child(5)  { left: 55%; animation-duration: 13s; animation-delay: -8s; }
+        [data-theme="dusk"] .spark:nth-child(6)  { left: 70%; animation-duration: 16s; animation-delay: -10s; }
+        [data-theme="dusk"] .spark:nth-child(7)  { left: 80%; animation-duration: 12s; animation-delay: -1s; }
+        [data-theme="dusk"] .spark:nth-child(8)  { left: 90%; animation-duration: 14s; animation-delay: -5s; }
+
+        @keyframes sparkFall {
+            0%   { top: -10%; opacity: 0.2; transform: scale(0.5); }
+            40%  { opacity: 1; transform: scale(1.2); }
+            100% { top: 110%; opacity: 0; transform: scale(0.3); }
         }
 
         /* Остальные стили (без изменений) */
@@ -233,29 +182,25 @@
 
     <!-- Фоновая анимация -->
     <div class="bg-animation">
-        <!-- Neon -->
-        <div class="neon-flicker" style="display:none;"></div>
+        <!-- Ocean пузырьки (8 штук) -->
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
 
-        <!-- Forest листья -->
-        <div class="leaf" style="display:none;"></div>
-        <div class="leaf" style="display:none;"></div>
-        <div class="leaf" style="display:none;"></div>
-        <div class="leaf" style="display:none;"></div>
-        <div class="leaf" style="display:none;"></div>
-
-        <!-- Dusk туман + искры -->
-        <div class="mist" style="display:none;"></div>
-        <div class="spark" style="display:none;"></div>
-        <div class="spark" style="display:none;"></div>
-        <div class="spark" style="display:none;"></div>
-
-        <!-- Ocean пузырьки -->
-        <div class="bubble" style="display:none;"></div>
-        <div class="bubble" style="display:none;"></div>
-        <div class="bubble" style="display:none;"></div>
-        <div class="bubble" style="display:none;"></div>
-        <div class="bubble" style="display:none;"></div>
-        <div class="bubble" style="display:none;"></div>
+        <!-- Dusk искры (8 штук) -->
+        <div class="spark"></div>
+        <div class="spark"></div>
+        <div class="spark"></div>
+        <div class="spark"></div>
+        <div class="spark"></div>
+        <div class="spark"></div>
+        <div class="spark"></div>
+        <div class="spark"></div>
     </div>
 
     <div class="container">
@@ -373,7 +318,8 @@
         window.addEventListener('load', () => {
             const catSelect = document.getElementById('categorySelect');
             const themeSelect = document.getElementById('themeSelect');
-            const bgAnimation = document.querySelector('.bg-animation');
+            const bubbles = document.querySelectorAll('.bubble');
+            const sparks = document.querySelectorAll('.spark');
             const cats = window.categories || {};
 
             Object.keys(cats).forEach(name => {
@@ -393,37 +339,15 @@
 
             themeSelect.addEventListener('change', () => {
                 document.documentElement.dataset.theme = themeSelect.value;
-                updateBackgroundAnimation(themeSelect.value);
+                updateAnimations(themeSelect.value);
             });
 
-            function updateBackgroundAnimation(theme) {
-                const neonFlicker = document.querySelector('.neon-flicker');
-                const leaves = document.querySelectorAll('.leaf');
-                const mist = document.querySelector('.mist');
-                const sparks = document.querySelectorAll('.spark');
-                const bubbles = document.querySelectorAll('.bubble');
-
-                // Скрываем всё
-                if (neonFlicker) neonFlicker.style.display = 'none';
-                leaves.forEach(l => l.style.display = 'none');
-                if (mist) mist.style.display = 'none';
-                sparks.forEach(s => s.style.display = 'none');
-                bubbles.forEach(b => b.style.display = 'none');
-
-                if (theme === 'neon') {
-                    if (neonFlicker) neonFlicker.style.display = 'block';
-                } else if (theme === 'forest') {
-                    leaves.forEach(l => l.style.display = 'block');
-                } else if (theme === 'dusk') {
-                    if (mist) mist.style.display = 'block';
-                    sparks.forEach(s => s.style.display = 'block');
-                } else if (theme === 'ocean') {
-                    bubbles.forEach(b => b.style.display = 'block');
-                }
+            function updateAnimations(theme) {
+                bubbles.forEach(b => b.style.display = (theme === 'ocean') ? 'block' : 'none');
+                sparks.forEach(s => s.style.display = (theme === 'dusk') ? 'block' : 'none');
             }
 
-            // Первоначальное состояние
-            updateBackgroundAnimation(themeSelect.value);
+            updateAnimations(themeSelect.value);
 
             document.getElementById('spinBtn').addEventListener('click', startSpin);
             document.getElementById('copyBtn').addEventListener('click', copyTask);
