@@ -27,21 +27,21 @@
         }
 
         [data-theme="forest"] {
-            --accent:     #a3e635;
-            --button:     #4d7c0f;
-            --bg1:        #052e16;
-            --bg2:        #14532d;
-            --text:       #f0fdf4;
-            --star-speed: 40s;
+            --accent:     #bef264;      /* яркий лайм-зелёный */
+            --button:     #3f6212;      /* оливково-тёмный */
+            --bg1:        #0a2e17;      /* глубокий тёмно-зелёный */
+            --bg2:        #1a472a;      /* светлее, моховой */
+            --text:       #f1fae8;      /* почти белый с салатовым */
+            --star-speed: 38s;
         }
 
         [data-theme="dusk"] {
-            --accent:     #f472b6;
-            --button:     #6d28d9;
-            --bg1:        #1e1238;
-            --bg2:        #312e81;
-            --text:       #f3e8ff;
-            --star-speed: 35s;
+            --accent:     #f472b6;      /* яркий розово-фиолетовый */
+            --button:     #6d28d9;      /* глубокий фиолетовый */
+            --bg1:        #1a0f2e;      /* глубокий фиолетовый */
+            --bg2:        #3b1e5a;      /* тёплый пурпурный */
+            --text:       #f5efff;      /* светлый лавандовый */
+            --star-speed: 32s;
         }
 
         [data-theme="ocean"] {
@@ -86,21 +86,13 @@
         }
 
         /* Пузырьки только для ocean */
-        [data-theme="ocean"]::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            overflow: hidden;
-            z-index: 1;
-        }
-
         [data-theme="ocean"] .bubble {
             position: absolute;
             background: rgba(255,255,255,0.3);
             border-radius: 50%;
             box-shadow: 0 0 12px rgba(255,255,255,0.5);
             animation: bubbleFloat 15s infinite ease-in-out;
+            pointer-events: none;
         }
 
         [data-theme="ocean"] .bubble:nth-child(1) { width: 24px; height: 24px; left: 8%; animation-duration: 20s; animation-delay: 0s; }
@@ -379,7 +371,6 @@
                 bubbles.style.display = (themeSelect.value === 'ocean') ? 'block' : 'none';
             });
 
-            // Первоначальное состояние пузырьков
             bubbles.style.display = (themeSelect.value === 'ocean') ? 'block' : 'none';
 
             document.getElementById('spinBtn').addEventListener('click', startSpin);
@@ -402,4 +393,3 @@
     </script>
 </body>
 </html>
-
