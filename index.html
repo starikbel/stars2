@@ -116,6 +116,63 @@
             100% { bottom: 110%; transform: translateX(-15px) rotate(-10deg); opacity: 0; }
         }
 
+        /* === НОВОЕ: Падающие листья для Forest === */
+        .leaves {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .leaf {
+            position: absolute;
+            font-size: 28px;
+            opacity: 0.82;
+            user-select: none;
+            animation: leafFall linear infinite;
+            filter: drop-shadow(0 0 10px rgba(163, 230, 53, 0.6));
+            z-index: 2;
+        }
+
+        @keyframes leafFall {
+            0% {
+                transform: translateY(-80px) rotate(0deg);
+            }
+            100% {
+                transform: translateY(110vh) rotate(920deg);
+            }
+        }
+
+        /* === НОВОЕ: Пролетающие огоньки для Dusk === */
+        .fireflies {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .firefly {
+            position: absolute;
+            width: 7px;
+            height: 7px;
+            background: #fef08c;
+            border-radius: 50%;
+            box-shadow: 
+                0 0 8px #fef08c,
+                0 0 18px #facc15,
+                0 0 32px #eab308;
+            animation: fireflyMove linear infinite;
+            opacity: 0.75;
+        }
+
+        @keyframes fireflyMove {
+            0%   { transform: translate(0, 0); opacity: 0.4; }
+            50%  { opacity: 0.95; }
+            100% { transform: translate(var(--dx), var(--dy)); opacity: 0.35; }
+        }
+
         #logo { position: absolute; top: 20px; right: 20px; max-height: var(--logo-size,140px); max-width: 180px; object-fit: contain; filter: drop-shadow(0 0 25px var(--accent)); z-index: 20; pointer-events: none; }
 
         .top-bar { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); z-index: 70; display: flex; gap: 12px; }
@@ -241,6 +298,12 @@
         <div class="bubble"></div>
     </div>
 
+    <!-- Листья для Forest (создаются через JS) -->
+    <div class="leaves" id="leavesContainer"></div>
+
+    <!-- Огоньки для Dusk (создаются через JS) -->
+    <div class="fireflies" id="firefliesContainer"></div>
+
     <div class="container">
         <h1>🎲 IT ЧЕЛЛЕНДЖ</h1>
         <div id="result">✅ ГОТОВО! Вот твоё задание:</div>
@@ -300,6 +363,63 @@
             });
         }
 
+        // === НОВОЕ: Создание падающих листьев ===
+        function createLeaves() {
+            const container = document.getElementById('leavesContainer');
+            container.innerHTML = '';
+            const leafTypes = ['🍂', '🍃', '🌿', '🍁'];
+            
+            for (let i = 0; i < 14; i++) {
+                const leaf = document.createElement('div');
+                leaf.className = 'leaf';
+                leaf.textContent = leafTypes[Math.floor(Math.random() * leafTypes.length)];
+                
+                const left = Math.random() * 100;
+                const duration = 12 + Math.random() * 18;
+                const delay = Math.random() * -25;
+                const size = 22 + Math.random() * 18;
+                
+                leaf.style.left = `${left}vw`;
+                leaf.style.fontSize = `${size}px`;
+                leaf.style.animationDuration = `${duration}s`;
+                leaf.style.animationDelay = `${delay}s`;
+                leaf.style.opacity = 0.65 + Math.random() * 0.3;
+                
+                container.appendChild(leaf);
+            }
+        }
+
+        // === НОВОЕ: Создание огоньков ===
+        function createFireflies() {
+            const container = document.getElementById('firefliesContainer');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < 18; i++) {
+                const fly = document.createElement('div');
+                fly.className = 'firefly';
+                
+                const left = Math.random() * 100;
+                const top = Math.random() * 70;
+                const duration = 15 + Math.random() * 25;
+                const delay = Math.random() * -30;
+                const size = 4 + Math.random() * 5;
+                
+                const dx = (Math.random() - 0.5) * 380;
+                const dy = 120 + Math.random() * 280;
+                
+                fly.style.left = `${left}vw`;
+                fly.style.top = `${top}vh`;
+                fly.style.width = `${size}px`;
+                fly.style.height = `${size}px`;
+                fly.style.animationDuration = `${duration}s`;
+                fly.style.animationDelay = `${delay}s`;
+                fly.style.setProperty('--dx', `${dx}px`);
+                fly.style.setProperty('--dy', `${dy}px`);
+                
+                container.appendChild(fly);
+            }
+        }
+
         function startSpin() {
             if (isSpinning) return;
             isSpinning = true;
@@ -357,6 +477,9 @@
             const catSelect = document.getElementById('categorySelect');
             const themeSelect = document.getElementById('themeSelect');
             const bubbles = document.querySelector('.bubbles');
+            const leavesContainer = document.getElementById('leavesContainer');
+            const firefliesContainer = document.getElementById('firefliesContainer');
+            
             const cats = window.categories || {};
 
             Object.keys(cats).forEach(name => {
@@ -374,13 +497,24 @@
 
             catSelect.addEventListener('change', () => currentCategory = catSelect.value);
 
+            // Создаём анимации один раз при загрузке
+            createLeaves();
+            createFireflies();
+
             themeSelect.addEventListener('change', () => {
-                document.documentElement.dataset.theme = themeSelect.value;
-                bubbles.style.display = (themeSelect.value === 'ocean') ? 'block' : 'none';
+                const theme = themeSelect.value;
+                document.documentElement.dataset.theme = theme;
+                
+                bubbles.style.display = (theme === 'ocean') ? 'block' : 'none';
+                leavesContainer.style.display = (theme === 'forest') ? 'block' : 'none';
+                firefliesContainer.style.display = (theme === 'dusk') ? 'block' : 'none';
             });
 
-            // Первоначальное состояние пузырьков
-            bubbles.style.display = (themeSelect.value === 'ocean') ? 'block' : 'none';
+            // Первоначальное состояние
+            const initialTheme = themeSelect.value;
+            bubbles.style.display = (initialTheme === 'ocean') ? 'block' : 'none';
+            leavesContainer.style.display = (initialTheme === 'forest') ? 'block' : 'none';
+            firefliesContainer.style.display = (initialTheme === 'dusk') ? 'block' : 'none';
 
             document.getElementById('spinBtn').addEventListener('click', startSpin);
             document.getElementById('copyBtn').addEventListener('click', copyTask);
