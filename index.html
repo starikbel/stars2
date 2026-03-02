@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🎲 IT Челлендж</title>
+    <title>🎲 Графический Челлендж</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@700&display=swap');
@@ -210,7 +210,7 @@
     </div>
 
     <div class="container">
-        <h1>🎲 IT ЧЕЛЛЕНДЖ</h1>
+        <h1>🎲 ГРАФИЧЕСКИЙ ЧЕЛЛЕНДЖ</h1>
         <div id="result">✅ ГОТОВО! Вот твоё задание:</div>
         <div id="display" class="display">Нажми «КРУТИТЬ!», чтобы получить задание!</div>
         <button id="spinBtn">🚀 КРУТИТЬ ЗАДАНИЕ!</button>
@@ -330,7 +330,7 @@
             const cats = window.categories || {};
 
             // Рандомизация для всех элементов
-            function randomizeElements(elements, startFromBottom = false) {
+            function randomizeElements(elements, startFromBottom = false, type) {
                 elements.forEach(el => {
                     // Рандом left
                     const randomLeft = Math.random() * 90 + 5;
@@ -355,12 +355,37 @@
 
                     const randomX = Math.random() * 2 - 1;
                     el.style.setProperty('--rand-x', randomX);
+
+                    // Тип-специфичные рандомизации
+                    let baseDuration, baseSize;
+                    if (type === 'bubble') {
+                        baseSize = Math.random() * 15 + 5; // 5-20px
+                        el.style.width = `${baseSize}px`;
+                        el.style.height = `${baseSize}px`;
+                        baseDuration = Math.random() * 10 + 10; // 10-20s
+                    } else if (type === 'leaf') {
+                        const scale = Math.random() * 0.5 + 0.75; // 0.75-1.25
+                        el.style.width = `${22 * scale}px`;
+                        el.style.height = `${12 * scale}px`;
+                        el.style.transform = `rotate(${Math.random() * 90 - 45}deg)`;
+                        baseDuration = Math.random() * 10 + 15; // 15-25s
+                    } else if (type === 'spark') {
+                        baseSize = Math.random() * 4 + 4; // 4-8px
+                        el.style.width = `${baseSize}px`;
+                        el.style.height = `${baseSize}px`;
+                        baseDuration = Math.random() * 7 + 8; // 8-15s
+                    }
+
+                    if (baseDuration) {
+                        el.style.animationDuration = `${baseDuration}s`;
+                        el.style.animationDelay = `-${Math.random() * baseDuration}s`; // Для continuous эффекта
+                    }
                 });
             }
 
-            randomizeElements(bubbles, true);  // ocean — снизу
-            randomizeElements(leaves, false);   // forest — сверху
-            randomizeElements(sparks, false);   // dusk — сверху
+            randomizeElements(bubbles, true, 'bubble');  // ocean — снизу
+            randomizeElements(leaves, false, 'leaf');   // forest — сверху
+            randomizeElements(sparks, false, 'spark');   // dusk — сверху
 
             Object.keys(cats).forEach(name => {
                 const opt = document.createElement('option');
