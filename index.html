@@ -213,7 +213,7 @@
         #qrContainer p { max-width: 168px; font-size: 0.82rem; margin: 8px 0 0 0; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* ============================================= */
-        /* СКРЫТАЯ ИГРА ДЛЯ ДЕТЕЙ: БЕЙ БАГИ! (Whac-a-Mole) */
+        /* СКРЫТАЯ ИГРА ДЛЯ ДЕТЕЙ: БЕЙ БАГИ! */
         /* ============================================= */
         #gameTrigger {
             position: absolute;
@@ -226,6 +226,7 @@
             transition: all .3s ease;
             user-select: none;
             filter: drop-shadow(0 0 8px var(--accent));
+            display: none; /* появляется только после 5 прокруток */
         }
         #gameTrigger:hover {
             opacity: 1;
@@ -307,11 +308,43 @@
             font-size: 58px;
             transform: translate(-50%, -50%) scale(0.3);
             transition: transform .12s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            cursor: pointer;
             animation: bugPop 0.25s forwards;
         }
         @keyframes bugPop {
             to { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* === НОВЫЕ АНИМАЦИИ ТОЛЬКО ДЛЯ ИГРЫ === */
+        .explosion {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            font-size: 68px;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 10;
+            animation: explodeAnim 650ms forwards;
+        }
+        @keyframes explodeAnim {
+            0%   { transform: translate(-50%, -50%) scale(0.1); opacity: 1; }
+            40%  { transform: translate(-50%, -50%) scale(1.35); }
+            100% { transform: translate(-50%, -50%) scale(1.85); opacity: 0; }
+        }
+
+        .error-mark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            font-size: 52px;
+            color: #f43f5e;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 10;
+            animation: errorAnim 700ms forwards;
+        }
+        @keyframes errorAnim {
+            0%   { transform: translate(-50%, -50%) scale(0.4); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.65); opacity: 0; }
         }
 
         #startGameBtn {
@@ -377,8 +410,8 @@
     <!-- Огоньки для Dusk -->
     <div class="fireflies" id="firefliesContainer"></div>
 
-    <!-- СКРЫТЫЙ ЗНАЧОК ИГРЫ (незаметный!) -->
-    <div id="gameTrigger" title="🐛 Секретная игра для детей">🐛</div>
+    <!-- СКРЫТЫЙ ЗНАЧОК ИГРЫ (появляется после 5 прокруток) -->
+    <div id="gameTrigger" title="Скрытая игра">🐛</div>
 
     <!-- МОДАЛЬНОЕ ОКНО ИГРЫ -->
     <div id="gameModal" class="game-modal">
@@ -419,6 +452,7 @@
         let isSpinning = false;
         let soundEnabled = true;
         let audioContext;
+        let spinCount = 0; /* счётчик прокруток для появления значка */
 
         const themeSounds = {
             neon:   {tick:[1100,1800], final:[523,659,784]},
@@ -512,7 +546,7 @@
         }
 
         /* ============================================= */
-        /* МИНИ-ИГРА: БЕЙ БАГИ! (Whac-a-Mole) */
+        /* МИНИ-ИГРА: БЕЙ БАГИ! (только эта часть изменена) */
         /* ============================================= */
         let gameScore = 0;
         let gameTimerInterval = null;
@@ -526,6 +560,36 @@
             for (let i = 0; i < 9; i++) {
                 const hole = document.createElement('div');
                 hole.className = 'hole';
+
+                /* Клик по норке (попал или промах) */
+                hole.addEventListener('click', () => {
+                    if (!gameActive) return;
+                    const bug = hole.querySelector('.bug');
+                    if (bug) {
+                        /* === ПОПАДАНИЕ: взрыв 💥 === */
+                        const explosion = document.createElement('div');
+                        explosion.className = 'explosion';
+                        explosion.textContent = '💥';
+                        hole.appendChild(explosion);
+                        setTimeout(() => explosion.remove(), 700);
+
+                        bug.style.transform = 'translate(-50%, -50%) scale(0.1)';
+                        setTimeout(() => bug.remove(), 180);
+                        gameScore += 10;
+                        document.getElementById('gameScore').textContent = gameScore;
+                    } else {
+                        /* === ПРОМАХ: ошибка ❌ + минус 5 === */
+                        const error = document.createElement('div');
+                        error.className = 'error-mark';
+                        error.textContent = '❌';
+                        hole.appendChild(error);
+                        setTimeout(() => error.remove(), 700);
+
+                        gameScore = Math.max(0, gameScore - 5);
+                        document.getElementById('gameScore').textContent = gameScore;
+                    }
+                });
+
                 grid.appendChild(hole);
             }
         }
@@ -540,16 +604,6 @@
             const bug = document.createElement('div');
             bug.className = 'bug';
             bug.textContent = ['🐛','🪲','🐜'][Math.floor(Math.random()*3)];
-
-            bug.addEventListener('click', function handler(e) {
-                e.stopImmediatePropagation();
-                if (!gameActive) return;
-                bug.style.transform = 'translate(-50%, -50%) scale(0.1)';
-                setTimeout(() => { if (bug.parentNode) bug.parentNode.removeChild(bug); }, 180);
-                gameScore += 10;
-                document.getElementById('gameScore').textContent = gameScore;
-            });
-
             hole.appendChild(bug);
 
             // авто-исчезновение через 900 мс
@@ -633,6 +687,12 @@
                     document.getElementById('result').style.display = 'block';
                     document.getElementById('copyBtn').style.display = 'inline-block';
                     playFinalSound();
+
+                    /* === НОВОЕ: считаем прокрутки и показываем значок после 5 === */
+                    spinCount++;
+                    if (spinCount >= 5) {
+                        document.getElementById('gameTrigger').style.display = 'block';
+                    }
                 }
             }
             spinLoop();
@@ -698,7 +758,7 @@
             document.getElementById('copyBtn').addEventListener('click', copyTask);
             document.getElementById('soundBtn').addEventListener('click', toggleSound);
 
-            // === ИНИЦИАЛИЗАЦИЯ ИГРЫ БЕЙ БАГИ! ===
+            // === ИНИЦИАЛИЗАЦИЯ ИГРЫ (только игра изменена) ===
             document.getElementById('gameHighScore').textContent = highScore;
 
             document.getElementById('gameTrigger').addEventListener('click', () => {
