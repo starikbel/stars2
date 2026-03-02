@@ -353,18 +353,18 @@
             color: #a3e635;
         }
 
-        /* МОБИЛЬНЫЕ КНОПКИ УПРАВЛЕНИЯ ЗМЕЙКОЙ */
+        /* МОБИЛЬНЫЕ КНОПКИ УПРАВЛЕНИЯ ЗМЕЙКОЙ — ИСПРАВЛЕНО */
         .snake-controls {
             display: grid;
-            grid-template-columns: repeat(3, 60px);
-            gap: 8px;
+            grid-template-columns: repeat(3, 48px);
+            gap: 6px;
             margin: 18px auto 0;
             justify-content: center;
             touch-action: manipulation;
         }
         .snake-controls button {
-            font-size: 2.2rem;
-            padding: 12px;
+            font-size: 2rem;
+            padding: 10px;
             background: rgba(255,255,255,0.15);
             border: 3px solid var(--accent);
             color: var(--accent);
@@ -395,8 +395,9 @@
             line-height: 1.4;
         }
 
-        /* ==================== ИСПРАВЛЕНАЯ МОБИЛЬНАЯ ВЕРСИЯ ==================== */
+        /* ==================== ИСПРАВЛЕННАЯ МОБИЛЬНАЯ ВЕРСИЯ ==================== */
         @media (max-width:768px){
+            #qrContainer { display: none !important; }
             #gameTrigger { bottom: 18px; right: 18px; font-size: 22px; }
             .modal-content { 
                 padding: 14px 12px !important; 
@@ -408,8 +409,11 @@
             .hole { height: 74px; }
             .bug { font-size: 46px; }
             #snakeCanvas { max-width: 265px; }
-            .snake-controls { grid-template-columns: repeat(3, 52px); }
-            .snake-controls button { font-size: 1.9rem; padding: 10px; }
+            .snake-controls { 
+                grid-template-columns: repeat(3, 46px); 
+                gap: 5px; 
+            }
+            .snake-controls button { font-size: 1.85rem; padding: 9px; }
             .game-info { font-size: 1.05rem; }
             #modalTitle { font-size: 1.3rem; }
         }
@@ -422,7 +426,12 @@
             .game-grid { width: 255px !important; }
             .hole { height: 66px; }
             #snakeCanvas { max-width: 255px; }
-            .snake-controls { margin-top: 8px; }
+            .snake-controls { 
+                grid-template-columns: repeat(3, 40px); 
+                gap: 4px; 
+                margin: 10px auto 0;
+            }
+            .snake-controls button { font-size: 1.7rem; padding: 7px; }
         }
     </style>
 </head>
@@ -569,7 +578,6 @@
             });
         }
 
-        /* ЗВУКИ ДЛЯ ИГРЫ (расширено для змейки) */
         function playGameSound(type) {
             if (!soundEnabled) return;
             const ctx = getAudioContext();
@@ -594,7 +602,6 @@
                 gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.25);
                 osc.stop(ctx.currentTime + 0.35);
             } else if (type === 'over') {
-                // нисходящий звук смерти
                 [620, 480, 340].forEach((f,i) => {
                     setTimeout(() => {
                         const osc = ctx.createOscillator();
@@ -611,7 +618,6 @@
             }
         }
 
-        /* ЛИСТЬЯ И ОГОНЬКИ (без изменений) */
         function createLeaves() {
             const container = document.getElementById('leavesContainer');
             container.innerHTML = '';
@@ -658,7 +664,6 @@
             }
         }
 
-        /* ==================== БЕЙ БАГИ! (без изменений) ==================== */
         let gameScore = 0;
         let gameTimerInterval = null;
         let bugPopInterval = null;
@@ -765,7 +770,6 @@
             }
         }
 
-        /* ==================== ЗМЕЙКА (только эта часть изменена) ==================== */
         let snake = [];
         let dx = 1, dy = 0;
         let foodX, foodY;
@@ -838,10 +842,9 @@
             snakeInterval = setInterval(moveSnake, 140);
         }
 
-        /* ==================== УПРАВЛЕНИЕ ЗМЕЙКОЙ (клавиатура + мобильное) ==================== */
         function changeDirection(newDx, newDy) {
-            if (!gameActive) return;
-            if (newDx === -dx && newDy === 0) return; // нельзя сразу назад
+            if (!gameActive || gameMode !== "snake") return;
+            if (newDx === -dx && newDy === 0) return;
             if (newDx === 0 && newDy === -dy) return;
             dx = newDx;
             dy = newDy;
@@ -851,10 +854,20 @@
             const controls = document.getElementById('snakeControls');
             controls.style.display = 'grid';
 
-            document.getElementById('btnUp').addEventListener('touchstart', (e) => { e.preventDefault(); changeDirection(0, -1); });
-            document.getElementById('btnDown').addEventListener('touchstart', (e) => { e.preventDefault(); changeDirection(0, 1); });
-            document.getElementById('btnLeft').addEventListener('touchstart', (e) => { e.preventDefault(); changeDirection(-1, 0); });
-            document.getElementById('btnRight').addEventListener('touchstart', (e) => { e.preventDefault(); changeDirection(1, 0); });
+            const up = document.getElementById('btnUp');
+            const down = document.getElementById('btnDown');
+            const left = document.getElementById('btnLeft');
+            const right = document.getElementById('btnRight');
+
+            // touch + click для максимальной совместимости
+            up.addEventListener('touchstart', (e) => { e.preventDefault(); changeDirection(0, -1); });
+            up.addEventListener('click', () => changeDirection(0, -1));
+            down.addEventListener('touchstart', (e) => { e.preventDefault(); changeDirection(0, 1); });
+            down.addEventListener('click', () => changeDirection(0, 1));
+            left.addEventListener('touchstart', (e) => { e.preventDefault(); changeDirection(-1, 0); });
+            left.addEventListener('click', () => changeDirection(-1, 0));
+            right.addEventListener('touchstart', (e) => { e.preventDefault(); changeDirection(1, 0); });
+            right.addEventListener('click', () => changeDirection(1, 0));
         }
 
         function addSwipeControls() {
@@ -862,21 +875,21 @@
             snakeCanvas.addEventListener('touchstart', e => {
                 touchStartX = e.changedTouches[0].screenX;
                 touchStartY = e.changedTouches[0].screenY;
-            });
+            }, {passive: true});
             snakeCanvas.addEventListener('touchend', e => {
                 if (!gameActive) return;
                 const touchEndX = e.changedTouches[0].screenX;
                 const touchEndY = e.changedTouches[0].screenY;
                 const deltaX = touchEndX - touchStartX;
                 const deltaY = touchEndY - touchStartY;
-                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (Math.abs(deltaX) > Math.abs(deltaY) + 10) {
                     if (deltaX > 40) changeDirection(1, 0);
                     else if (deltaX < -40) changeDirection(-1, 0);
-                } else {
+                } else if (Math.abs(deltaY) > Math.abs(deltaX) + 10) {
                     if (deltaY > 40) changeDirection(0, 1);
                     else if (deltaY < -40) changeDirection(0, -1);
                 }
-            });
+            }, {passive: true});
         }
 
         function startSpin() {
@@ -984,7 +997,6 @@
             document.getElementById('copyBtn').addEventListener('click', copyTask);
             document.getElementById('soundBtn').addEventListener('click', toggleSound);
 
-            // ИНИЦИАЛИЗАЦИЯ ИГРЫ
             document.getElementById('gameHighScore').textContent = highScore;
 
             document.getElementById('gameTrigger').addEventListener('click', () => {
@@ -1030,7 +1042,6 @@
             document.getElementById('startGameBtn').addEventListener('click', startBugGame);
             document.getElementById('startSnakeBtn').addEventListener('click', startSnakeGame);
 
-            // Клавиатура
             document.addEventListener('keydown', e => {
                 if (gameMode !== "snake" || !gameActive) return;
                 switch (e.key) {
