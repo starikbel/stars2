@@ -353,6 +353,30 @@
             color: #a3e635;
         }
 
+        /* МОБИЛЬНЫЕ КНОПКИ УПРАВЛЕНИЯ ЗМЕЙКОЙ */
+        .snake-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 60px);
+            gap: 8px;
+            margin: 18px auto 0;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+        .snake-controls button {
+            font-size: 2.2rem;
+            padding: 12px;
+            background: rgba(255,255,255,0.15);
+            border: 3px solid var(--accent);
+            color: var(--accent);
+            border-radius: 12px;
+            box-shadow: 0 0 15px var(--accent);
+        }
+        .snake-controls button:active {
+            transform: scale(0.85);
+            background: var(--accent);
+            color: #000;
+        }
+
         #startGameBtn, #startSnakeBtn {
             font-size: 1.35rem;
             padding: 14px 48px;
@@ -371,21 +395,34 @@
             line-height: 1.4;
         }
 
+        /* ==================== ИСПРАВЛЕНАЯ МОБИЛЬНАЯ ВЕРСИЯ ==================== */
         @media (max-width:768px){
             #gameTrigger { bottom: 18px; right: 18px; font-size: 22px; }
-            .modal-content { padding: 18px 15px !important; max-width: 96% !important; }
-            .game-grid { width: 100% !important; gap: 10px; }
-            .hole { height: 78px; }
-            .bug { font-size: 48px; }
-            #snakeCanvas { max-width: 280px; }
+            .modal-content { 
+                padding: 14px 12px !important; 
+                max-width: 98% !important; 
+                max-height: 94vh !important;
+                overflow-y: auto;
+            }
+            .game-grid { width: 100% !important; gap: 9px; }
+            .hole { height: 74px; }
+            .bug { font-size: 46px; }
+            #snakeCanvas { max-width: 265px; }
+            .snake-controls { grid-template-columns: repeat(3, 52px); }
+            .snake-controls button { font-size: 1.9rem; padding: 10px; }
+            .game-info { font-size: 1.05rem; }
+            #modalTitle { font-size: 1.3rem; }
         }
 
         @media (orientation: landscape) and (max-height: 520px){
-            .modal-content { padding: 12px 15px !important; max-height: 92vh; overflow-y: auto; }
-            .game-grid { width: 260px !important; }
-            .hole { height: 68px; }
-            #snakeCanvas { max-width: 260px; }
-            .container { padding-bottom: 60px; }
+            .modal-content { 
+                padding: 10px 12px !important; 
+                max-height: 96vh !important;
+            }
+            .game-grid { width: 255px !important; }
+            .hole { height: 66px; }
+            #snakeCanvas { max-width: 255px; }
+            .snake-controls { margin-top: 8px; }
         }
     </style>
 </head>
@@ -455,6 +492,17 @@
             <div id="snakeContainer">
                 <div id="snakeScoreDisplay">Счёт: <span id="snakeScore">0</span></div>
                 <canvas id="snakeCanvas" width="320" height="320"></canvas>
+                
+                <!-- МОБИЛЬНЫЕ КНОПКИ УПРАВЛЕНИЯ -->
+                <div class="snake-controls" id="snakeControls">
+                    <div></div>
+                    <button id="btnUp">↑</button>
+                    <div></div>
+                    <button id="btnLeft">←</button>
+                    <button id="btnDown">↓</button>
+                    <button id="btnRight">→</button>
+                </div>
+
                 <button id="startSnakeBtn">▶️ НАЧАТЬ ЗМЕЙКУ</button>
             </div>
         </div>
@@ -476,7 +524,7 @@
         let soundEnabled = true;
         let audioContext;
         let spinCount = 0;
-        let gameMode = "whac"; // whac или snake
+        let gameMode = "whac";
 
         const themeSounds = {
             neon:   {tick:[1100,1800], final:[523,659,784]},
@@ -521,27 +569,46 @@
             });
         }
 
-        /* ЗВУКИ ДЛЯ ИГРЫ */
+        /* ЗВУКИ ДЛЯ ИГРЫ (расширено для змейки) */
         function playGameSound(type) {
             if (!soundEnabled) return;
             const ctx = getAudioContext();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = 'sine';
-            if (type === 'good') {
-                osc.frequency.value = 920;
+            if (type === 'good' || type === 'eat') {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = type === 'eat' ? 1380 : 920;
                 gain.gain.value = 0.28;
-            } else if (type === 'bad') {
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.start();
+                gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.18);
+                osc.stop(ctx.currentTime + 0.25);
+            } else if (type === 'bad' || type === 'miss') {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
                 osc.frequency.value = 180;
                 gain.gain.value = 0.35;
-            } else if (type === 'miss') {
-                osc.frequency.value = 420;
-                gain.gain.value = 0.22;
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.start();
+                gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.25);
+                osc.stop(ctx.currentTime + 0.35);
+            } else if (type === 'over') {
+                // нисходящий звук смерти
+                [620, 480, 340].forEach((f,i) => {
+                    setTimeout(() => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.value = f;
+                        gain.gain.value = 0.3;
+                        osc.connect(gain); gain.connect(ctx.destination);
+                        osc.start();
+                        gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.6);
+                        osc.stop(ctx.currentTime + 0.7);
+                    }, i * 90);
+                });
             }
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.start();
-            gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.25);
-            osc.stop(ctx.currentTime + 0.35);
         }
 
         /* ЛИСТЬЯ И ОГОНЬКИ (без изменений) */
@@ -591,7 +658,7 @@
             }
         }
 
-        /* ==================== БЕЙ БАГИ! ==================== */
+        /* ==================== БЕЙ БАГИ! (без изменений) ==================== */
         let gameScore = 0;
         let gameTimerInterval = null;
         let bugPopInterval = null;
@@ -599,9 +666,9 @@
         let highScore = localStorage.getItem('bugBusterHighScore') || 0;
 
         const bugTypes = [
-            {emoji: '🪲', points: 10},   // жук
-            {emoji: '🐜', points: -20},  // муравей
-            {emoji: '🐛', points: -30}   // гусеница
+            {emoji: '🪲', points: 10},
+            {emoji: '🐜', points: -20},
+            {emoji: '🐛', points: -30}
         ];
 
         function createGameGrid() {
@@ -620,10 +687,8 @@
                         explosion.textContent = '💥';
                         hole.appendChild(explosion);
                         setTimeout(() => explosion.remove(), 700);
-
                         bug.style.transform = 'translate(-50%, -50%) scale(0.1)';
                         setTimeout(() => bug.remove(), 180);
-
                         gameScore = Math.max(0, gameScore + pts);
                         document.getElementById('gameScore').textContent = gameScore;
                         playGameSound(pts > 0 ? 'good' : 'bad');
@@ -700,7 +765,7 @@
             }
         }
 
-        /* ==================== ЗМЕЙКА ==================== */
+        /* ==================== ЗМЕЙКА (только эта часть изменена) ==================== */
         let snake = [];
         let dx = 1, dy = 0;
         let foodX, foodY;
@@ -742,35 +807,28 @@
 
         function moveSnake() {
             const head = {x: snake[0].x + dx, y: snake[0].y + dy};
-            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount || snake.some(s => s.x === head.x && s.y === head.y)) {
                 endSnakeGame();
                 return;
-            }
-            for (let seg of snake) {
-                if (seg.x === head.x && seg.y === head.y) {
-                    endSnakeGame();
-                    return;
-                }
             }
             snake.unshift(head);
             if (head.x === foodX && head.y === foodY) {
                 snakeScore += 10;
                 document.getElementById('snakeScore').textContent = snakeScore;
                 placeFood();
+                playGameSound('eat');
             } else {
                 snake.pop();
             }
             drawSnake();
         }
 
-        function changeDirection(e) {
-            if (!gameActive) return;
-            switch (e.key) {
-                case "ArrowUp":    if (dy !== 1) { dx = 0; dy = -1; } break;
-                case "ArrowDown":  if (dy !== -1) { dx = 0; dy = 1; } break;
-                case "ArrowLeft":  if (dx !== 1) { dx = -1; dy = 0; } break;
-                case "ArrowRight": if (dx !== -1) { dx = 1; dy = 0; } break;
-            }
+        function endSnakeGame() {
+            gameActive = false;
+            clearInterval(snakeInterval);
+            playGameSound('over');
+            alert(`🐍 ИГРА ОКОНЧЕНА!\nТвой счёт: ${snakeScore}`);
+            document.getElementById('startSnakeBtn').style.display = 'block';
         }
 
         function startSnakeGame() {
@@ -780,11 +838,45 @@
             snakeInterval = setInterval(moveSnake, 140);
         }
 
-        function endSnakeGame() {
-            gameActive = false;
-            clearInterval(snakeInterval);
-            alert(`🐍 ИГРА ОКОНЧЕНА!\nТвой счёт: ${snakeScore}`);
-            document.getElementById('startSnakeBtn').style.display = 'block';
+        /* ==================== УПРАВЛЕНИЕ ЗМЕЙКОЙ (клавиатура + мобильное) ==================== */
+        function changeDirection(newDx, newDy) {
+            if (!gameActive) return;
+            if (newDx === -dx && newDy === 0) return; // нельзя сразу назад
+            if (newDx === 0 && newDy === -dy) return;
+            dx = newDx;
+            dy = newDy;
+        }
+
+        function initMobileControls() {
+            const controls = document.getElementById('snakeControls');
+            controls.style.display = 'grid';
+
+            document.getElementById('btnUp').addEventListener('touchstart', (e) => { e.preventDefault(); changeDirection(0, -1); });
+            document.getElementById('btnDown').addEventListener('touchstart', (e) => { e.preventDefault(); changeDirection(0, 1); });
+            document.getElementById('btnLeft').addEventListener('touchstart', (e) => { e.preventDefault(); changeDirection(-1, 0); });
+            document.getElementById('btnRight').addEventListener('touchstart', (e) => { e.preventDefault(); changeDirection(1, 0); });
+        }
+
+        function addSwipeControls() {
+            let touchStartX = 0, touchStartY = 0;
+            snakeCanvas.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+                touchStartY = e.changedTouches[0].screenY;
+            });
+            snakeCanvas.addEventListener('touchend', e => {
+                if (!gameActive) return;
+                const touchEndX = e.changedTouches[0].screenX;
+                const touchEndY = e.changedTouches[0].screenY;
+                const deltaX = touchEndX - touchStartX;
+                const deltaY = touchEndY - touchStartY;
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    if (deltaX > 40) changeDirection(1, 0);
+                    else if (deltaX < -40) changeDirection(-1, 0);
+                } else {
+                    if (deltaY > 40) changeDirection(0, 1);
+                    else if (deltaY < -40) changeDirection(0, -1);
+                }
+            });
         }
 
         function startSpin() {
@@ -905,7 +997,16 @@
                     document.getElementById('modalTitle').textContent = '🐍 ЗМЕЙКА!';
                     snakeCanvas = document.getElementById('snakeCanvas');
                     ctx = snakeCanvas.getContext('2d');
+
+                    // Адаптация размера холста под мобильные
+                    if (window.innerWidth <= 768) {
+                        snakeCanvas.width = 260;
+                        snakeCanvas.height = 260;
+                    }
+
                     document.getElementById('startSnakeBtn').style.display = 'block';
+                    initMobileControls();
+                    addSwipeControls();
                 } else {
                     document.getElementById('snakeContainer').style.display = 'none';
                     document.getElementById('whacContainer').style.display = 'block';
@@ -929,10 +1030,17 @@
             document.getElementById('startGameBtn').addEventListener('click', startBugGame);
             document.getElementById('startSnakeBtn').addEventListener('click', startSnakeGame);
 
-            // Управление змейкой клавишами
-            document.addEventListener('keydown', changeDirection);
+            // Клавиатура
+            document.addEventListener('keydown', e => {
+                if (gameMode !== "snake" || !gameActive) return;
+                switch (e.key) {
+                    case "ArrowUp":    changeDirection(0, -1); break;
+                    case "ArrowDown":  changeDirection(0, 1); break;
+                    case "ArrowLeft":  changeDirection(-1, 0); break;
+                    case "ArrowRight": changeDirection(1, 0); break;
+                }
+            });
 
-            // QR
             if (window.innerWidth > 768) {
                 new QRCode(document.getElementById("qrcode"), {
                     text: window.location.href,
