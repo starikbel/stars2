@@ -13,7 +13,7 @@
         }
 
         html, body {
-            height: 100dvh; /* критично для Samsung в landscape */
+            height: 100vh;
             margin: 0;
             padding: 0;
             overflow: hidden;
@@ -55,18 +55,26 @@
 
         @keyframes finalGlow { from { box-shadow: 0 0 60px rgba(0, 255, 234, 0.7); } to { box-shadow: 0 0 130px #ff00aa, 0 0 180px #00ffea; } }
 
-        button { font-family: 'Press Start 2P', cursive; font-size: 1.65rem; padding: 22px 65px; background: #ff00aa; color: white; border: none; border-radius: 15px; cursor: pointer; box-shadow: 0 0 35px #ff00aa; transition: all 0.3s; margin-bottom: 20px; }
+        button, .copy-btn {
+            font-family: 'Press Start 2P', cursive;
+            cursor: pointer;
+            transition: all 0.3s;
+            touch-action: manipulation;
+            z-index: 50;
+        }
+
+        button { font-size: 1.65rem; padding: 22px 65px; background: #ff00aa; color: white; border: none; border-radius: 15px; box-shadow: 0 0 35px #ff00aa; margin-bottom: 20px; }
 
         button:hover { transform: scale(1.08); box-shadow: 0 0 70px #ff00aa; }
 
         .copy-btn { padding: 14px 35px; font-size: 1.2rem; background: #00ffea; color: #000; }
 
-        #soundBtn { position: absolute; top: 20px; left: 20px; background: rgba(255,255,255,0.15); border: 2px solid #00ffea; color: #00ffea; padding: 8px 16px; font-size: 1rem; border-radius: 8px; cursor: pointer; z-index: 30; }
+        #soundBtn { position: absolute; top: 20px; left: 20px; background: rgba(255,255,255,0.15); border: 2px solid #00ffea; color: #00ffea; padding: 8px 16px; font-size: 1rem; border-radius: 8px; cursor: pointer; z-index: 60; }
 
-        #qrContainer { position: absolute; bottom: 25px; left: 25px; z-index: 25; background: #ffffff; padding: 12px; border-radius: 12px; box-shadow: 0 0 25px rgba(0, 255, 234, 0.5); text-align: center; display: none; } /* скрыт на мобильных */
+        #qrContainer { position: absolute; bottom: 25px; left: 25px; z-index: 25; background: #ffffff; padding: 12px; border-radius: 12px; box-shadow: 0 0 25px rgba(0, 255, 234, 0.5); text-align: center; }
 
-        /* ====================== СПЕЦИАЛЬНО ДЛЯ SAMSUNG S23 ULTRA И БОЛЬШИХ ТЕЛЕФОНОВ ====================== */
-        @media (orientation: landscape) and (min-width: 800px) {
+        /* ====================== ТОЛЬКО ДЛЯ МОБИЛЬНЫХ В ГОРИЗОНТАЛИ (S23 Ultra и т.п.) ====================== */
+        @media (max-width: 1024px) and (orientation: landscape) {
             :root { --logo-size: 72px; }
             #logo { max-width: 80px; top: 10px; right: 10px; }
             h1 { font-size: 1.65rem; margin: 5px 0 15px; }
@@ -79,7 +87,7 @@
             #qrContainer { display: none !important; }
         }
 
-        /* остальные медиа-запросы (вертикальная мобильная) остаются как раньше */
+        /* Вертикальная мобильная */
         @media (max-width: 768px) and (orientation: portrait) {
             :root { --logo-size: 95px; }
             #logo { max-width: 105px; top: 15px; right: 15px; }
@@ -91,6 +99,7 @@
 </head>
 <body>
     <img id="logo" src="logo.png" alt="Твой логотип">
+    
     <button id="soundBtn" onclick="toggleSound()">🔊 Звук включён</button>
 
     <div id="qrContainer">
@@ -108,8 +117,104 @@
 
     <script src="tasks.js"></script>
     <script>
-        // (весь твой текущий JS с звуками и спином остаётся без изменений — просто вставь сюда свой старый скрипт из предыдущей версии)
-        // ... (я не стал повторять весь скрипт, чтобы не удлинять, но он полностью совместим)
+        let currentTask = "";
+        let isSpinning = false;
+        let soundEnabled = true;
+        let audioContext;
+
+        const resultDiv = document.getElementById('result');
+        const display = document.getElementById('display');
+        const copyBtn = document.getElementById('copyBtn');
+        const soundBtn = document.getElementById('soundBtn');
+
+        function getAudioContext() {
+            if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            return audioContext;
+        }
+
+        function playSpinTick() {
+            if (!soundEnabled) return;
+            const ctx = getAudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1100 + Math.random() * 700, ctx.currentTime);
+            gain.gain.value = 0.12;
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start();
+            setTimeout(() => { gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.03); osc.stop(ctx.currentTime + 0.05); }, 10);
+        }
+
+        function playFinalSound() {
+            if (!soundEnabled) return;
+            const ctx = getAudioContext();
+            const notes = [523.25, 659.25, 783.99];
+            notes.forEach((freq, i) => {
+                setTimeout(() => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine'; osc.frequency.value = freq; gain.gain.value = 0.25;
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.start();
+                    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.4);
+                    osc.stop(ctx.currentTime + 1.6);
+                }, i * 70);
+            });
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            soundBtn.textContent = soundEnabled ? '🔊 Звук включён' : '🔇 Звук выключен';
+        }
+
+        function startSpin() {
+            if (isSpinning) return;
+            isSpinning = true;
+            resultDiv.style.display = 'none';
+            copyBtn.style.display = 'none';
+            display.classList.remove('glow');
+
+            let delay = 18;
+            const totalSteps = 68;
+            let step = 0;
+
+            function spinLoop() {
+                currentTask = window.tasks[Math.floor(Math.random() * window.tasks.length)];
+                display.textContent = currentTask;
+                playSpinTick();
+                step++;
+                if (step > 45) delay = 45 + (step - 45) * 11;
+                if (step > 58) delay = 120 + (step - 58) * 28;
+
+                if (step < totalSteps) setTimeout(spinLoop, delay);
+                else {
+                    isSpinning = false;
+                    display.classList.add('glow');
+                    resultDiv.style.display = 'block';
+                    copyBtn.style.display = 'inline-block';
+                    playFinalSound();
+                }
+            }
+            spinLoop();
+        }
+
+        function copyTask() {
+            if (!currentTask) return;
+            navigator.clipboard.writeText(currentTask).then(() => {
+                const old = copyBtn.textContent;
+                copyBtn.textContent = "✅ СКОПИРОВАНО!";
+                setTimeout(() => copyBtn.textContent = old, 1800);
+            });
+        }
+
+        window.onload = () => {
+            new QRCode(document.getElementById("qrcode"), {
+                text: window.location.href,
+                width: 148, height: 148,
+                colorDark: "#000000", colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        };
     </script>
 </body>
 </html>
