@@ -56,69 +56,45 @@
         }
 
         /* ────────────────────────────────────────────────
-           OCEAN — исправленная версия (2025–2026)
+           Только OCEAN — пузырьки со дна океана
         ──────────────────────────────────────────────── */
-     [data-theme="ocean"] {
-        --accent:     #06b6d4;       /* яркий бирюзово-голубой */
-        --button:     #0c4a6e;
-        --bg1:        #0e2b3d;       /* глубокий океан */
-        --bg2:        #0f5e7a;       /* средний бирюзовый */
-        --text:       #e0f7ff;       /* очень светлый голубовато-белый */
-        --star-speed: 22s;           /* чуть быстрее звёздочки для ощущения движения воды */
-    }
+        [data-theme="ocean"] .bubble {
+            position: absolute;
+            background: radial-gradient(circle at 30% 30%, rgba(220,255,255,0.65), rgba(120,220,255,0.35) 55%, transparent 80%);
+            border-radius: 45% 55% 50% 50% / 60% 45% 55% 40%; /* слегка неправильная форма */
+            box-shadow: 
+                0 0 20px rgba(200,255,255,0.7),
+                inset 0 0 14px rgba(180,240,255,0.5),
+                0 0 45px rgba(6,182,212,0.25);
+            animation: bubbleFromBottom linear infinite;
+            will-change: transform, opacity, left;
+            pointer-events: none;
+        }
 
-        /* Плавающие пузырьки — только для ocean */
-    [data-theme="ocean"] body::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        overflow: hidden;
-        z-index: 1;
-    }
-
-        [data-theme="ocean"] body::after::before,
-    [data-theme="ocean"] body::after::after,
-    [data-theme="ocean"] .bubble {
-        content: "";
-        position: absolute;
-        background: rgba(255,255,255,0.25);
-        border-radius: 50%;
-        box-shadow: 0 0 10px rgba(255,255,255,0.4);
-        animation: float 12s infinite linear;
-    }
-
-    [data-theme="ocean"] .bubble:nth-child(1) { width: 20px; height: 20px; left: 10%; animation-duration: 18s; animation-delay: 0s; }
-    [data-theme="ocean"] .bubble:nth-child(2) { width: 35px; height: 35px; left: 25%; animation-duration: 22s; animation-delay: 3s; }
-    [data-theme="ocean"] .bubble:nth-child(3) { width: 15px; height: 15px; left: 40%; animation-duration: 15s; animation-delay: 6s; }
-    [data-theme="ocean"] .bubble:nth-child(4) { width: 28px; height: 28px; left: 60%; animation-duration: 20s; animation-delay: 9s; }
-    [data-theme="ocean"] .bubble:nth-child(5) { width: 40px; height: 40px; left: 75%; animation-duration: 25s; animation-delay: 12s; }
-    [data-theme="ocean"] .bubble:nth-child(6) { width: 18px; height: 18px; left: 85%; animation-duration: 16s; animation-delay: 2s; }
-
-    @keyframes float {
-        0%   { bottom: -10%; opacity: 0.1; transform: translateX(0); }
-        50%  { opacity: 0.7; transform: translateX(15px); }
-        100% { bottom: 110%; opacity: 0; transform: translateX(-10px); }
-    }
-
-        @keyframes bubbleRise {
+        @keyframes bubbleFromBottom {
             0% {
-                transform: translateY(0) scale(var(--scale, 1));
+                bottom: var(--start-bottom, -20%);
+                transform: translateX(0) scale(var(--scale, 1)) translateY(0);
                 opacity: 0;
             }
-            10% {
-                opacity: 0.9;
+            5% {
+                opacity: 0.7;
             }
-            90% {
-                opacity: 0.85;
+            50% {
+                opacity: 0.95;
+                transform: translateX(calc(40px * sin(var(--wobble)))) scale(calc(var(--scale) * 1.08));
+            }
+            95% {
+                opacity: 0.75;
             }
             100% {
-                transform: translateY(-120vh) scale(calc(var(--scale, 1) * 1.25));
+                bottom: 105%;
+                transform: translateX(calc(80px * sin(var(--wobble) + 3))) scale(calc(var(--scale) * 1.25)) translateY(-10vh);
                 opacity: 0;
             }
         }
 
-        /* Forest и Dusk оставляем без изменений */
+        /* Forest и Dusk — без изменений */
         [data-theme="forest"] .leaf {
             position: absolute;
             width: 24px;
@@ -150,6 +126,10 @@
             15%  { opacity: 1; }
             100% { transform: translateY(110vh) scale(calc(var(--scale,1) * 0.4)); opacity: 0; }
         }
+
+        /* ────────────────────────────────────────────────
+           Всё остальное без изменений
+        ──────────────────────────────────────────────── */
 
         #logo { position: absolute; top: 20px; right: 20px; max-height: var(--logo-size,140px); max-width: 180px; object-fit: contain; filter: drop-shadow(0 0 25px var(--accent)); z-index: 20; pointer-events: none; }
 
@@ -226,10 +206,11 @@
 
     <!-- Фоновая анимация -->
     <div class="bg-animation">
-        <!-- Ocean: 12 пузырьков — больше шансов увидеть движение -->
+        <!-- Ocean: 12–16 пузырьков выглядит естественнее -->
         <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
         <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
         <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+        <div class="bubble"></div><div class="bubble"></div>
 
         <!-- Forest: 8 листьев -->
         <div class="leaf"></div><div class="leaf"></div><div class="leaf"></div><div class="leaf"></div>
@@ -363,29 +344,25 @@
 
             function randomizeElements(elements, startFromBottom = false, type) {
                 elements.forEach(el => {
-                    const randomLeft = Math.random() * 96 + 2;
+                    const randomLeft = Math.random() * 92 + 4; // 4% – 96%
                     el.style.left = `${randomLeft}%`;
 
-                    if (startFromBottom) {
-                        // Ocean — более надёжный старт снизу
-                        const randomBottom = -15 - Math.random() * 50;  // от -15% до -65%
-                        el.style.bottom = `${randomBottom}%`;
-                        el.style.top = 'auto';
-                    } else {
-                        const randomTop = -8 - Math.random() * 40;
-                        el.style.top = `${randomTop}%`;
-                        el.style.bottom = 'auto';
-                    }
-
-                    const randomOsc = Math.random() * Math.PI * 2;
-                    el.style.setProperty('--osc', randomOsc);
-
-                    let duration, scale, size;
+                    let duration, scale;
 
                     if (type === 'bubble') {
-                        scale = Math.random() * 3.2 + 1.4;           // 1.4 – 4.6×
-                        duration = Math.random() * 10 + 12;          // 12–22 сек
+                        // ─── Только для ocean ───────────────────────────────
+                        scale = Math.random() * 3.5 + 1.2;           // от маленьких до довольно крупных
+                        duration = Math.random() * 14 + 16;          // 16–30 секунд — медленно, как со дна
+                        const wobble = Math.random() * 0.9 + 0.4;    // амплитуда покачивания
+                        const startBottom = -5 - Math.random() * 25; // от -5% до -30% → почти со дна
+
                         el.style.setProperty('--scale', scale);
+                        el.style.setProperty('--wobble', wobble);
+                        el.style.setProperty('--start-bottom', `${startBottom}%`);
+
+                        el.style.bottom = `${startBottom}%`;
+                        el.style.top = 'auto';
+                        // ──────────────────────────────────────────────────────
                     }
                     else if (type === 'leaf') {
                         scale = Math.random() * 0.7 + 0.7;
@@ -394,17 +371,25 @@
                         el.style.setProperty('--start-rotate', `${startRotate}deg`);
                         el.style.width  = `${24 * scale}px`;
                         el.style.height = `${14 * scale}px`;
+
+                        const randomTop = -8 - Math.random() * 40;
+                        el.style.top = `${randomTop}%`;
+                        el.style.bottom = 'auto';
                     }
                     else if (type === 'spark') {
                         scale = Math.random() * 1.8 + 0.8;
                         duration = Math.random() * 8 + 9;
                         el.style.setProperty('--scale', scale);
-                        size = 5 + Math.random() * 5;
+                        const size = 5 + Math.random() * 5;
                         el.style.width = el.style.height = `${size}px`;
+
+                        const randomTop = -8 - Math.random() * 40;
+                        el.style.top = `${randomTop}%`;
+                        el.style.bottom = 'auto';
                     }
 
                     el.style.animationDuration = `${duration}s`;
-                    el.style.animationDelay = `-${Math.random() * duration * 0.85}s`;
+                    el.style.animationDelay = `-${Math.random() * duration * 0.9}s`;
                 });
             }
 
@@ -460,4 +445,3 @@
     </script>
 </body>
 </html>
-
