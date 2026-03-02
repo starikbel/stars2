@@ -79,7 +79,7 @@
             100% { bottom: 110%; transform: translateX(-15px) rotate(-10deg); opacity: 0; }
         }
 
-        /* Forest листья — теперь рандомно */
+        /* Forest листья — рандомно по ширине и стартовой высоте */
         [data-theme="forest"] .leaf {
             position: absolute;
             width: 20px;
@@ -92,12 +92,12 @@
         }
 
         @keyframes fall {
-            0%   { top: -10%; opacity: 0; transform: translateX(0) rotate(0deg); }
+            0%   { top: var(--rand-top); transform: translateX(0) rotate(0deg); opacity: 0; }
             10%  { opacity: 0.7; }
-            100% { top: 110%; transform: translateX(calc(50px * (var(--rand-x, 0) - 0.5))) rotate(720deg); opacity: 0; }
+            100% { top: 110%; transform: translateX(calc(80px * (var(--rand-x, 0) - 0.5))) rotate(720deg); opacity: 0; }
         }
 
-        /* Dusk огоньки — рандомно */
+        /* Dusk огоньки — рандомно по ширине и стартовой высоте */
         [data-theme="dusk"] .spark {
             position: absolute;
             width: 5px;
@@ -109,7 +109,7 @@
         }
 
         @keyframes sparkFall {
-            0%   { top: -10%; opacity: 0.2; transform: scale(0.5); }
+            0%   { top: var(--rand-top); opacity: 0.2; transform: scale(0.5); }
             40%  { opacity: 1; transform: scale(1.2); }
             100% { top: 110%; opacity: 0; transform: scale(0.3); }
         }
@@ -337,18 +337,25 @@
             const sparks = document.querySelectorAll('.spark');
             const cats = window.categories || {};
 
-            // Рандомизация позиции для forest и dusk
-            function randomizePosition(elements) {
+            // Рандомизация позиции для forest (листья) и dusk (огоньки)
+            function randomizeElements(elements) {
                 elements.forEach(el => {
+                    // Случайная горизонтальная позиция (left)
                     const randomLeft = Math.random() * 90 + 5; // 5% – 95%
                     el.style.left = `${randomLeft}%`;
-                    const randomX = Math.random(); // для небольшого смещения по X в полёте
+
+                    // Случайная стартовая вертикальная позиция (top, выше экрана)
+                    const randomTop = - (Math.random() * 40 + 10); // от -10% до -50%
+                    el.style.top = `${randomTop}%`;
+
+                    // Небольшое случайное смещение по X во время полёта
+                    const randomX = Math.random() * 2 - 1; // от -1 до 1
                     el.style.setProperty('--rand-x', randomX);
                 });
             }
 
-            randomizePosition(leaves);
-            randomizePosition(sparks);
+            randomizeElements(leaves);
+            randomizeElements(sparks);
 
             Object.keys(cats).forEach(name => {
                 const opt = document.createElement('option');
