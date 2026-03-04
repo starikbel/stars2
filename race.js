@@ -44,6 +44,28 @@ let audioUnlocked = false;
 let leftPressed = false;
 let rightPressed = false;
 
+let lastMoveTime = 0;
+const MOVE_THROTTLE = 50; // мс
+
+function updateRaceMovement() {
+    if (!gameState.gameActive) return;
+    let moved = false;
+    const now = performance.now();
+    if (leftPressed) {
+        myX = Math.max(10, myX - 3);
+        moved = true;
+    }
+    if (rightPressed) {
+        myX = Math.min(gameState.width - 40, myX + 3);
+        moved = true;
+    }
+    if (moved && now - lastMoveTime > MOVE_THROTTLE) {
+        socket.emit('move', myX);
+        playRaceSound(collisionSound);
+        lastMoveTime = now;
+    }
+}
+
 // --- Разблокировка аудио (вызывается при первом взаимодействии) ---
 function unlockAudio() {
     if (audioUnlocked) return;
