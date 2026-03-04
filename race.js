@@ -1,6 +1,6 @@
-// race.js – клиент для многопользовательской гонки (полная версия)
+// race.js – клиент для многопользовательской гонки (исправленная версия)
 
-const socket = io('https://race-server-o3u6.onrender.com/', {
+const socket = io('https://race-server.onrender.com', {
   transports: ['websocket'],
   reconnectionAttempts: 5,
   timeout: 10000
@@ -38,7 +38,7 @@ let isHost = false;
 let musicEnabled = true;
 let audioUnlocked = false;
 let leaderboards = { race: [], whac: [], snake: [] };
-let collisionFlash = {}; // для эффекта столкновения
+let collisionFlash = {};
 
 // --- Флаги управления ---
 let leftPressed = false;
@@ -62,7 +62,7 @@ function saveProfileName(name) {
 // --- Обновление таблицы лидеров в лобби ---
 function updateLeaderboardDisplay() {
   if (!racePlayersList) return;
-  let html = '<h4>Игроки:</h4>';
+  let html = '<h4>Игроки в комнате:</h4>';
   gameState.players.forEach(p => {
     html += `<div>${p.name} ${p.id === hostId ? '👑' : ''} ${p.active ? '' : '💀'}</div>`;
   });
@@ -178,7 +178,6 @@ socket.on('playerMoved', ({ id, x }) => {
 });
 
 socket.on('playerCollision', ({ id1, id2 }) => {
-  // Эффект вспышки при столкновении
   collisionFlash[id1] = 5;
   collisionFlash[id2] = 5;
   playRaceSound(collisionSound);
@@ -221,16 +220,14 @@ socket.on('gameOver', ({ winner, score }) => {
     bgMusic.currentTime = 0;
   }
   alert(`🏆 Победитель: ${winner || 'никто'}!\n💰 Очки: ${score}`);
-  raceGameArea.style.display = 'none';
-  raceLobby.style.display = 'block';
-  ctx.clearRect(0, 0, raceCanvas.width, raceCanvas.height);
+  // Не переключаем интерфейс, даём серверу обновить список игроков
 });
 
 // --- Интерфейс лобби ---
 if (raceJoinBtn) {
   raceJoinBtn.addEventListener('click', () => {
     const name = racePlayerName.value.trim() || 'Гонщик';
-    saveProfileName(name); // сохраняем в профиль
+    saveProfileName(name);
     socket.emit('join', { name, isAdmin: false, password: '' });
     unlockAudio();
   });
@@ -325,7 +322,6 @@ function drawRaceCar(x, y, color, flash = false) {
   const left = x - w/2;
   const top = y - h/2;
 
-  // Если есть вспышка, рисуем красным
   ctx.fillStyle = flash ? '#f00' : color;
   ctx.fillRect(left, top, w, h);
 
@@ -346,7 +342,6 @@ function drawRaceCar(x, y, color, flash = false) {
 function raceGameLoop() {
   if (!gameState.gameActive) return;
   
-  // Уменьшаем счётчики вспышек
   Object.keys(collisionFlash).forEach(id => {
     collisionFlash[id]--;
     if (collisionFlash[id] <= 0) delete collisionFlash[id];
@@ -360,7 +355,6 @@ function raceGameLoop() {
 function drawRace() {
   ctx.clearRect(0, 0, raceCanvas.width, raceCanvas.height);
 
-  // Дорога
   ctx.fillStyle = '#222';
   ctx.fillRect(0, 0, raceCanvas.width, raceCanvas.height);
 
@@ -373,11 +367,9 @@ function drawRace() {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Препятствия
   ctx.fillStyle = '#f00';
   gameState.obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h));
 
-  // Игроки
   gameState.players.forEach(p => {
     if (!p.active) return;
     let drawX = p.x;
@@ -387,7 +379,6 @@ function drawRace() {
     const color = `hsl(${p.hue}, 100%, 50%)`;
     drawRaceCar(drawX, raceCanvas.height - 40, color, flash);
 
-    // Ник
     ctx.fillStyle = '#fff';
     ctx.font = '12px monospace';
     ctx.fillText(p.name.substring(0, 3), drawX - 15, raceCanvas.height - 70);
@@ -396,10 +387,3 @@ function drawRace() {
 
 // --- Загружаем имя из профиля при старте ---
 loadProfileName();
-
-// --- Слушаем изменения имени в профиле (если есть) ---
-window.addEventListener('storage', (e) => {
-  if (e.key === 'profileName') {
-    if (racePlayerName) racePlayerName.value = e.newValue;
-  }
-});
