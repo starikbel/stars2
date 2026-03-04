@@ -1696,6 +1696,16 @@ if (racePlayerNameInput) {
                     localStorage.clear();
                     location.reload();
                 }
+
+            // Кнопка очистки всей статистики на сервере
+const clearAllStatsBtn = document.createElement('button');
+clearAllStatsBtn.textContent = 'Очистить ВСЮ статистику (сервер)';
+clearAllStatsBtn.onclick = () => {
+  if (confirm('Очистить все таблицы лидеров на сервере?')) {
+    socket.emit('adminClearStats', 'admin'); // пароль админа
+  }
+};
+container.appendChild(clearAllStatsBtn);
             }
 
             // -------------------- АНИМАЦИИ ФОНА --------------------
