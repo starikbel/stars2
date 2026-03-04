@@ -1,8 +1,8 @@
-// race.js – клиент для многопользовательской гонки (исправленная версия)
+// race.js – клиент для многопользовательской гонки (оптимизированная версия)
 
 console.log('race.js loaded');
 
-const socket = io('https://race-server-o3u6.onrender.com', {
+const socket = io('https://race-server.onrender.com', {
   transports: ['websocket'],
   reconnectionAttempts: 5,
   timeout: 10000
@@ -24,9 +24,9 @@ const raceJoinBtn = document.getElementById('raceJoinBtn');
 const raceAdminPass = document.getElementById('raceAdminPass');
 const raceAdminJoinBtn = document.getElementById('raceAdminJoinBtn');
 const raceToggleMusic = document.getElementById('raceToggleMusic');
-const closeGameBtn = document.getElementById('closeGameBtn'); // кнопка закрытия модалки
+const closeGameBtn = document.getElementById('closeGameBtn');
 
-// --- Аудио (если отсутствуют, просто игнорируем) ---
+// --- Аудио ---
 const bgMusic = document.getElementById('bgMusic');
 const collisionSound = document.getElementById('collisionSound');
 const crashSound = document.getElementById('crashSound');
@@ -44,29 +44,11 @@ let audioUnlocked = false;
 let leftPressed = false;
 let rightPressed = false;
 
+// --- Троттлинг отправки move ---
 let lastMoveTime = 0;
 const MOVE_THROTTLE = 50; // мс
 
-function updateRaceMovement() {
-    if (!gameState.gameActive) return;
-    let moved = false;
-    const now = performance.now();
-    if (leftPressed) {
-        myX = Math.max(10, myX - 3);
-        moved = true;
-    }
-    if (rightPressed) {
-        myX = Math.min(gameState.width - 40, myX + 3);
-        moved = true;
-    }
-    if (moved && now - lastMoveTime > MOVE_THROTTLE) {
-        socket.emit('move', myX);
-        playRaceSound(collisionSound);
-        lastMoveTime = now;
-    }
-}
-
-// --- Разблокировка аудио (вызывается при первом взаимодействии) ---
+// --- Разблокировка аудио ---
 function unlockAudio() {
     if (audioUnlocked) return;
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -115,10 +97,13 @@ function exitRace() {
     raceLobby.style.display = 'block';
     gameState.gameActive = false;
     ctx.clearRect(0, 0, raceCanvas.width, raceCanvas.height);
-    // Сбрасываем флаги
     leftPressed = false;
     rightPressed = false;
-    myId = null; // сбрасываем, чтобы при повторном входе не было конфликтов
+    myId = null;
+}
+
+if (closeGameBtn) {
+    closeGameBtn.addEventListener('click', exitRace);
 }
 
 // --- Сокет-обработчики ---
@@ -287,10 +272,11 @@ if (raceMoveRight) {
     raceMoveRight.addEventListener('mouseleave', () => { rightPressed = false; });
 }
 
-// --- Обновление движения ---
+// --- Обновление движения с троттлингом ---
 function updateRaceMovement() {
     if (!gameState.gameActive) return;
     let moved = false;
+    const now = performance.now();
     if (leftPressed) {
         myX = Math.max(10, myX - 3);
         moved = true;
@@ -299,9 +285,10 @@ function updateRaceMovement() {
         myX = Math.min(gameState.width - 40, myX + 3);
         moved = true;
     }
-    if (moved) {
+    if (moved && now - lastMoveTime > MOVE_THROTTLE) {
         socket.emit('move', myX);
         playRaceSound(collisionSound);
+        lastMoveTime = now;
     }
 }
 
