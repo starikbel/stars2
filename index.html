@@ -529,6 +529,7 @@
         }
     }
      /* ===== Адаптация гонки для мобильных ===== */
+/* ===== Адаптация гонки для мобильных ===== */
 #raceCanvas {
     width: 100%;
     height: auto;
@@ -538,6 +539,7 @@
     background: #000;
     display: block;
     margin: 0 auto;
+    touch-action: none; /* отключаем прокрутку на canvas */
 }
 
 #raceMobileControls {
@@ -583,6 +585,7 @@
     border-radius: 50%;
     cursor: pointer;
     display: inline-block;
+    margin-top: 10px;
 }
 
 @media (max-width: 600px) {
