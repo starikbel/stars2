@@ -700,9 +700,11 @@
                 <div class="tab-bar">
                     <div class="tab active" data-leader="whac">🐛 Бей баги</div>
                     <div class="tab" data-leader="snake">🐍 Змейка</div>
+                    <div class="tab" data-leader="race">🏁 Гонка</div>
                 </div>
                 <div id="leaderboardWhac" class="leaderboard-list"></div>
                 <div id="leaderboardSnake" class="leaderboard-list" style="display:none;"></div>
+                <div id="leaderboardRace" class="leaderboard-list" style="display:none;"></div>
             </div>
 
             <!-- Гонка -->
@@ -903,7 +905,8 @@
                 },
                 leaders: {
                     whac: JSON.parse(localStorage.getItem('leaderboardWhac') || '[]'),
-                    snake: JSON.parse(localStorage.getItem('leaderboardSnake') || '[]')
+                    snake: JSON.parse(localStorage.getItem('leaderboardSnake') || '[]'),
+                    race: JSON.parse(localStorage.getItem('leaderboardRace') || '[]')
                 },
                 timerInterval: null,
                 timerSeconds: 0,
@@ -925,6 +928,36 @@
                 ocean:  { tick: 800,  final: 500,  good: 1200, bad: 250,  wave: 'square' }
             };
 
+            // Глобальный сокет для отправки результатов в PostgreSQL
+            const mainSocket = io('https://race-server.onrender.com', { 
+                transports: ['websocket'],
+                reconnectionAttempts: 3
+            });
+
+            mainSocket.on('connect', () => console.log('✅ mainSocket connected'));
+            mainSocket.on('connect_error', (err) => console.error('❌ mainSocket error:', err));
+
+            // Обновление лидеров из базы данных
+            mainSocket.on('leaderboards', (data) => {
+                console.log('📊 leaderboards from DB:', data);
+                if (data.race) {
+                    app.leaders.race = data.race;
+                    renderLeaderboard('race');
+                    if (data.race.length > 0) {
+                        app.profile.raceHigh = data.race[0].score;
+                        document.getElementById('statRaceHigh').textContent = app.profile.raceHigh;
+                    }
+                }
+                if (data.whac) {
+                    app.leaders.whac = data.whac;
+                    renderLeaderboard('whac');
+                }
+                if (data.snake) {
+                    app.leaders.snake = data.snake;
+                    renderLeaderboard('snake');
+                }
+            });
+
             function init() {
                 const catSelect = document.getElementById('categorySelect');
                 Object.keys(app.categories).forEach(name => {
@@ -942,6 +975,8 @@
                 updateStatsUI();
                 renderAchievements();
                 renderLeaderboard('whac');
+                renderLeaderboard('snake');
+                renderLeaderboard('race');
                 renderDiary();
 
                 if (window.innerWidth > 768) {
@@ -989,6 +1024,7 @@
                         const leader = e.target.dataset.leader;
                         document.getElementById('leaderboardWhac').style.display = leader === 'whac' ? 'block' : 'none';
                         document.getElementById('leaderboardSnake').style.display = leader === 'snake' ? 'block' : 'none';
+                        document.getElementById('leaderboardRace').style.display = leader === 'race' ? 'block' : 'none';
                         document.querySelectorAll('[data-leader]').forEach(t => t.classList.remove('active'));
                         e.target.classList.add('active');
                     });
@@ -1063,8 +1099,7 @@
                 // Кнопка очистки статистики на сервере
                 document.getElementById('adminClearStats').addEventListener('click', () => {
                     if (confirm('Очистить все таблицы лидеров на сервере?')) {
-                        const socket = io('https://race-server.onrender.com'); // тот же сервер
-                        socket.emit('adminClearStats', 'admin');
+                        mainSocket.emit('adminClearStats', 'admin');
                     }
                 });
 
@@ -1280,18 +1315,18 @@
             }
 
             function addLeaderboard(game, score) {
-                const name = app.profile.name || 'Аноним';
-                const list = app.leaders[game];
-                list.push({ name, score, date: new Date().toLocaleDateString() });
-                list.sort((a,b) => b.score - a.score);
-                if (list.length > 10) list.pop();
-                app.leaders[game] = list;
-                localStorage.setItem(`leaderboard${game.charAt(0).toUpperCase()+game.slice(1)}`, JSON.stringify(list));
-                renderLeaderboard(game);
+                // Отправляем на сервер вместо локального хранения
+                if (score > 0) {
+                    mainSocket.emit('submitScore', { 
+                        game: game, 
+                        name: app.profile.name, 
+                        score: score 
+                    });
+                }
             }
 
             function renderLeaderboard(game) {
-                const list = app.leaders[game];
+                const list = app.leaders[game] || [];
                 const container = document.getElementById(`leaderboard${game.charAt(0).toUpperCase()+game.slice(1)}`);
                 if (!container) return;
                 container.innerHTML = list.map((item, i) => `
@@ -1497,7 +1532,6 @@
             function saveProfileName() {
                 app.profile.name = document.getElementById('profileName').value || 'Игрок';
                 localStorage.setItem('profileName', app.profile.name);
-                // Обновляем поле в гонке, если оно есть
                 const raceNameInput = document.getElementById('racePlayerName');
                 if (raceNameInput) raceNameInput.value = app.profile.name;
             }
@@ -1643,6 +1677,7 @@
                 resetLeadersBtn.onclick = () => {
                     localStorage.removeItem('leaderboardWhac');
                     localStorage.removeItem('leaderboardSnake');
+                    localStorage.removeItem('leaderboardRace');
                     alert('Таблицы лидеров очищены');
                     location.reload();
                 };
