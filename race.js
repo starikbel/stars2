@@ -104,9 +104,8 @@ function playRaceSound(sound) {
 
 // --- Выход из игры при закрытии модалки ---
 function exitRace() {
-    if (gameState.gameActive) {
-        socket.disconnect();
-        socket.connect();
+    if (myId) {
+        socket.emit('leave'); // уведомляем сервер
     }
     if (bgMusic) {
         bgMusic.pause();
@@ -116,10 +115,10 @@ function exitRace() {
     raceLobby.style.display = 'block';
     gameState.gameActive = false;
     ctx.clearRect(0, 0, raceCanvas.width, raceCanvas.height);
-}
-
-if (closeGameBtn) {
-    closeGameBtn.addEventListener('click', exitRace);
+    // Сбрасываем флаги
+    leftPressed = false;
+    rightPressed = false;
+    myId = null; // сбрасываем, чтобы при повторном входе не было конфликтов
 }
 
 // --- Сокет-обработчики ---
