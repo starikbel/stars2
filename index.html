@@ -947,14 +947,7 @@
                 renderDiary();
 
                 // QR-код для десктопа
-                if (window.innerWidth > 768) {
-                    new QRCode(document.getElementById('qrcode'), {
-                        text: window.location.href,
-                        width: 168, height: 168,
-                        correctLevel: QRCode.CorrectLevel.H
-                    });
-                }
-                if (window.innerWidth > 768) {
+    if (window.innerWidth > 768) {
     try {
         new QRCode(document.getElementById("qrcode"), {
             text: window.location.href,
