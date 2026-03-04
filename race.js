@@ -1,6 +1,6 @@
 // race.js – клиент для многопользовательской гонки
 
-const socket = io('https://race-server.onrender.com'); // замените на адрес вашего сервера
+const socket = io('https://race-server-o3u6.onrender.com'); // замените на адрес вашего сервера
 
 // Элементы DOM
 const raceContainer = document.getElementById('raceContainer');
