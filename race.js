@@ -1,12 +1,12 @@
-// race.js – клиент для многопользовательской гонки (исправленная версия)
+// race.js – клиент для многопользовательской гонки (оптимизированная версия)
 
-const socket = io('https://race-server-o3u6.onrender.com/', {
+const socket = io('https://race-server-o3u6.onrender.com', {
   transports: ['websocket'],
   reconnectionAttempts: 5,
   timeout: 10000
 });
 
-// --- DOM элементы ---
+// DOM элементы
 const raceLobby = document.getElementById('raceLobby');
 const raceGameArea = document.getElementById('raceGameArea');
 const raceCanvas = document.getElementById('raceCanvas');
@@ -23,14 +23,23 @@ const raceAdminPass = document.getElementById('raceAdminPass');
 const raceAdminJoinBtn = document.getElementById('raceAdminJoinBtn');
 const raceToggleMusic = document.getElementById('raceToggleMusic');
 const closeGameBtn = document.getElementById('closeGameBtn');
+const raceExitBtn = document.getElementById('raceExitBtn');
+const raceSpeedDisplay = document.getElementById('raceSpeedDisplay');
 
-// --- Аудио ---
+// Аудио
 const bgMusic = document.getElementById('bgMusic');
 const collisionSound = document.getElementById('collisionSound');
 const crashSound = document.getElementById('crashSound');
 
-// --- Состояние игры ---
-let gameState = { players: [], obstacles: [], gameActive: false, width: 600, height: 800 };
+// Состояние игры
+let gameState = { 
+  players: [], 
+  obstacles: [], 
+  gameActive: false, 
+  width: 600, 
+  height: 800,
+  currentSpeed: 2
+};
 let myId = null;
 let myX = 300;
 let hostId = null;
@@ -39,44 +48,23 @@ let musicEnabled = true;
 let audioUnlocked = false;
 let leaderboards = { race: [], whac: [], snake: [] };
 let collisionFlash = {};
+let isInGame = false; // Флаг, что игрок в игровой комнате
 
-// --- Флаги управления ---
+// Флаги управления
 let leftPressed = false;
 let rightPressed = false;
 
-// --- Троттлинг отправки move ---
+// Троттлинг
 let lastMoveTime = 0;
 const MOVE_THROTTLE = 50;
 
-// --- Загрузка имени из профиля ---
+// Загрузка имени из профиля
 function loadProfileName() {
   const profileName = localStorage.getItem('profileName') || 'Игрок';
   if (racePlayerName) racePlayerName.value = profileName;
 }
 
-// --- Сохранение имени в профиль ---
-function saveProfileName(name) {
-  localStorage.setItem('profileName', name);
-}
-
-// --- Обновление таблицы лидеров в лобби ---
-function updateLeaderboardDisplay() {
-  if (!racePlayersList) return;
-  let html = '<h4>Игроки в комнате:</h4>';
-  gameState.players.forEach(p => {
-    html += `<div>${p.name} ${p.id === hostId ? '👑' : ''} ${p.active ? '' : '💀'}</div>`;
-  });
-  
-  if (leaderboards.race && leaderboards.race.length > 0) {
-    html += '<h4 style="margin-top:15px;">🏆 Лучшие гонщики:</h4>';
-    leaderboards.race.slice(0, 5).forEach((entry, i) => {
-      html += `<div>${i+1}. ${entry.name} — ${entry.score} очков</div>`;
-    });
-  }
-  racePlayersList.innerHTML = html;
-}
-
-// --- Разблокировка аудио ---
+// Разблокировка аудио
 function unlockAudio() {
   if (audioUnlocked) return;
   const actx = new (window.AudioContext || window.webkitAudioContext)();
@@ -90,32 +78,45 @@ function unlockAudio() {
   audioUnlocked = true;
 }
 
-// --- Управление музыкой ---
+// Управление музыкой (только если игрок в игре)
+function updateMusic() {
+  if (!isInGame) {
+    if (bgMusic) {
+      bgMusic.pause();
+      bgMusic.currentTime = 0;
+    }
+    return;
+  }
+  
+  if (musicEnabled && gameState.gameActive && bgMusic) {
+    bgMusic.play().catch(e => console.log('Не удалось запустить музыку:', e));
+  } else if (bgMusic) {
+    bgMusic.pause();
+  }
+}
+
 if (raceToggleMusic) {
   raceToggleMusic.addEventListener('click', () => {
     musicEnabled = !musicEnabled;
     raceToggleMusic.textContent = musicEnabled ? '🔊' : '🔇';
-    if (musicEnabled && gameState.gameActive && bgMusic) {
-      bgMusic.play().catch(e => console.log('Не удалось запустить музыку:', e));
-    } else if (!musicEnabled && bgMusic) {
-      bgMusic.pause();
-    }
+    updateMusic();
     unlockAudio();
   });
 }
 
-// --- Безопасное воспроизведение звуков ---
+// Безопасное воспроизведение звуков
 function playRaceSound(sound) {
-  if (!musicEnabled || !sound) return;
+  if (!musicEnabled || !sound || !isInGame) return;
   sound.currentTime = 0;
   sound.play().catch(e => console.log('Ошибка звука:', e));
 }
 
-// --- Выход из игры при закрытии модалки ---
+// Выход из игры
 function exitRace() {
   if (myId) {
     socket.emit('leave');
   }
+  isInGame = false;
   if (bgMusic) {
     bgMusic.pause();
     bgMusic.currentTime = 0;
@@ -133,7 +134,33 @@ if (closeGameBtn) {
   closeGameBtn.addEventListener('click', exitRace);
 }
 
-// --- Сокет-обработчики ---
+if (raceExitBtn) {
+  raceExitBtn.addEventListener('click', exitRace);
+}
+
+// Обновление таблицы лидеров
+function updateLeaderboardDisplay() {
+  if (!racePlayersList) return;
+  let html = '<h4>Игроки в комнате:</h4>';
+  gameState.players.forEach(p => {
+    html += `<div>${p.name} ${p.id === hostId ? '👑' : ''} ${p.active ? '' : '💀'}</div>`;
+  });
+  
+  if (leaderboards.race && leaderboards.race.length > 0) {
+    html += '<h4 style="margin-top:15px;">🏆 Лучшие гонщики:</h4>';
+    leaderboards.race.slice(0, 5).forEach((entry, i) => {
+      html += `<div>${i+1}. ${entry.name} — ${entry.score} очков</div>`;
+    });
+  }
+  
+  if (raceSpeedDisplay && gameState.gameActive) {
+    html += `<div style="margin-top:10px; color:#ff0;">⚡ Скорость: ${gameState.currentSpeed.toFixed(1)}</div>`;
+  }
+  
+  racePlayersList.innerHTML = html;
+}
+
+// Сокет-обработчики
 socket.on('connect', () => console.log('✅ race connect', socket.id));
 socket.on('disconnect', () => console.log('❌ race disconnect'));
 socket.on('error', (msg) => { console.error('❌ race error:', msg); alert(msg); });
@@ -143,11 +170,24 @@ socket.on('leaderboards', (data) => {
   updateLeaderboardDisplay();
 });
 
+socket.on('speedUpdate', (speed) => {
+  gameState.currentSpeed = speed;
+  updateLeaderboardDisplay();
+});
+
+socket.on('gameClosed', (reason) => {
+  if (isInGame) {
+    alert(reason || 'Игра завершена');
+    exitRace();
+  }
+});
+
 socket.on('init', (data) => {
   gameState = data;
   myId = socket.id;
   hostId = data.hostId;
   isHost = (hostId === myId);
+  isInGame = true;
 
   const me = gameState.players.find(p => p.id === myId);
   if (me) myX = me.x;
@@ -156,6 +196,7 @@ socket.on('init', (data) => {
   raceGameArea.style.display = 'none';
   updateLeaderboardDisplay();
   raceHostPanel.style.display = isHost ? 'block' : 'none';
+  updateMusic();
 });
 
 socket.on('playersUpdate', (players) => {
@@ -177,9 +218,9 @@ socket.on('playerMoved', ({ id, x }) => {
   if (p) p.x = x;
 });
 
-socket.on('playerCollision', ({ id1, id2 }) => {
-  collisionFlash[id1] = 5;
-  collisionFlash[id2] = 5;
+socket.on('playerCollision', ({ id1, id2, force }) => {
+  collisionFlash[id1] = 8;
+  collisionFlash[id2] = 8;
   playRaceSound(collisionSound);
 });
 
@@ -207,27 +248,24 @@ socket.on('countdown', (sec) => {
 socket.on('gameStarted', () => {
   gameState.gameActive = true;
   unlockAudio();
-  if (musicEnabled && bgMusic) {
-    bgMusic.play().catch(e => console.log('Не удалось воспроизвести музыку:', e));
-  }
+  updateMusic();
   requestAnimationFrame(raceGameLoop);
 });
 
 socket.on('gameOver', ({ winner, score }) => {
   gameState.gameActive = false;
-  if (bgMusic) {
-    bgMusic.pause();
-    bgMusic.currentTime = 0;
+  if (isInGame) {
+    updateMusic();
+    alert(`🏆 Победитель: ${winner || 'никто'}!\n💰 Очки: ${score}`);
   }
-  alert(`🏆 Победитель: ${winner || 'никто'}!\n💰 Очки: ${score}`);
-  // Не переключаем интерфейс, даём серверу обновить список игроков
+  exitRace();
 });
 
-// --- Интерфейс лобби ---
+// Интерфейс лобби
 if (raceJoinBtn) {
   raceJoinBtn.addEventListener('click', () => {
     const name = racePlayerName.value.trim() || 'Гонщик';
-    saveProfileName(name);
+    localStorage.setItem('profileName', name);
     socket.emit('join', { name, isAdmin: false, password: '' });
     unlockAudio();
   });
@@ -249,9 +287,9 @@ if (raceStartBtn) {
   });
 }
 
-// --- Управление с клавиатуры ---
+// Управление
 window.addEventListener('keydown', (e) => {
-  if (!gameState.gameActive) return;
+  if (!gameState.gameActive || !isInGame) return;
   if (e.key === 'a' || e.key === 'ArrowLeft') {
     leftPressed = true;
     e.preventDefault();
@@ -266,7 +304,7 @@ window.addEventListener('keyup', (e) => {
   if (e.key === 'd' || e.key === 'ArrowRight') rightPressed = false;
 });
 
-// --- Мобильные кнопки ---
+// Мобильные кнопки
 function handleTouchStart(e, direction) {
   e.preventDefault();
   if (direction === 'left') leftPressed = true;
@@ -297,17 +335,17 @@ if (raceMoveRight) {
   raceMoveRight.addEventListener('mouseleave', () => { rightPressed = false; });
 }
 
-// --- Обновление движения с троттлингом ---
+// Обновление движения
 function updateRaceMovement() {
-  if (!gameState.gameActive) return;
+  if (!gameState.gameActive || !isInGame) return;
   let moved = false;
   const now = performance.now();
   if (leftPressed) {
-    myX = Math.max(10, myX - 3);
+    myX = Math.max(10, myX - 4);
     moved = true;
   }
   if (rightPressed) {
-    myX = Math.min(gameState.width - 40, myX + 3);
+    myX = Math.min(gameState.width - 40, myX + 4);
     moved = true;
   }
   if (moved && now - lastMoveTime > MOVE_THROTTLE) {
@@ -316,7 +354,7 @@ function updateRaceMovement() {
   }
 }
 
-// --- Отрисовка ---
+// Отрисовка
 function drawRaceCar(x, y, color, flash = false) {
   const w = 30, h = 40;
   const left = x - w/2;
@@ -340,7 +378,7 @@ function drawRaceCar(x, y, color, flash = false) {
 }
 
 function raceGameLoop() {
-  if (!gameState.gameActive) return;
+  if (!gameState.gameActive || !isInGame) return;
   
   Object.keys(collisionFlash).forEach(id => {
     collisionFlash[id]--;
@@ -355,6 +393,7 @@ function raceGameLoop() {
 function drawRace() {
   ctx.clearRect(0, 0, raceCanvas.width, raceCanvas.height);
 
+  // Дорога
   ctx.fillStyle = '#222';
   ctx.fillRect(0, 0, raceCanvas.width, raceCanvas.height);
 
@@ -367,9 +406,11 @@ function drawRace() {
   ctx.stroke();
   ctx.setLineDash([]);
 
+  // Препятствия
   ctx.fillStyle = '#f00';
   gameState.obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h));
 
+  // Игроки
   gameState.players.forEach(p => {
     if (!p.active) return;
     let drawX = p.x;
@@ -379,11 +420,12 @@ function drawRace() {
     const color = `hsl(${p.hue}, 100%, 50%)`;
     drawRaceCar(drawX, raceCanvas.height - 40, color, flash);
 
+    // Ник
     ctx.fillStyle = '#fff';
     ctx.font = '12px monospace';
     ctx.fillText(p.name.substring(0, 3), drawX - 15, raceCanvas.height - 70);
   });
 }
 
-// --- Загружаем имя из профиля при старте ---
+// Загружаем имя из профиля при старте
 loadProfileName();
