@@ -1,10 +1,10 @@
 // race.js – клиент для многопользовательской гонки (исправленная версия)
 
-const socket = io('https://race-server-o3u6.onrender.com/');{
-  transports: ['websocket'], // только WebSocket, без polling
+const socket = io('https://race-server.onrender.com', {
+  transports: ['websocket'],
   reconnectionAttempts: 5,
   timeout: 10000
-}); // ЗАМЕНИТЕ НА АДРЕС ВАШЕГО СЕРВЕРА
+});
 
 // --- DOM элементы ---
 const raceLobby = document.getElementById('raceLobby');
@@ -22,6 +22,7 @@ const raceJoinBtn = document.getElementById('raceJoinBtn');
 const raceAdminPass = document.getElementById('raceAdminPass');
 const raceAdminJoinBtn = document.getElementById('raceAdminJoinBtn');
 const raceToggleMusic = document.getElementById('raceToggleMusic');
+const closeGameBtn = document.getElementById('closeGameBtn'); // кнопка закрытия модалки
 
 // --- Аудио ---
 const bgMusic = document.getElementById('bgMusic');
@@ -35,39 +36,65 @@ let myX = 300;
 let hostId = null;
 let isHost = false;
 let musicEnabled = true;
+let audioUnlocked = false; // флаг разблокировки аудио
 
 // --- Флаги управления ---
 let leftPressed = false;
 let rightPressed = false;
 
-// --- Проверка аудио (чтобы избежать ошибок в консоли) ---
-if (!bgMusic) console.warn('bgMusic не найден. Проверьте id="bgMusic" в HTML.');
-if (!collisionSound) console.warn('collisionSound не найден.');
-if (!crashSound) console.warn('crashSound не найден.');
+// --- Разблокировка аудио (вызывается при первом касании) ---
+function unlockAudio() {
+    if (audioUnlocked) return;
+    // Создаём тихий звук и воспроизводим
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    gain.gain.value = 0.01; // почти беззвучно
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.01);
+    audioUnlocked = true;
+    console.log('Аудио разблокировано');
+}
 
 // --- Управление музыкой ---
 raceToggleMusic.addEventListener('click', () => {
     musicEnabled = !musicEnabled;
     raceToggleMusic.textContent = musicEnabled ? '🔊' : '🔇';
-    if (musicEnabled) {
-        // Если игра активна, запускаем музыку
-        if (gameState.gameActive && bgMusic) {
-            bgMusic.play().catch(e => console.log('Не удалось запустить музыку:', e));
-        }
-    } else {
-        if (bgMusic) {
-            bgMusic.pause();
-        }
+    if (musicEnabled && gameState.gameActive && bgMusic) {
+        bgMusic.play().catch(e => console.log('Не удалось запустить музыку:', e));
+    } else if (!musicEnabled && bgMusic) {
+        bgMusic.pause();
     }
-    console.log('Музыка:', musicEnabled ? 'включена' : 'выключена');
+    unlockAudio(); // на всякий случай
 });
 
-// --- Функция безопасного воспроизведения звуков ---
+// --- Безопасное воспроизведение звуков ---
 function playRaceSound(sound) {
-    if (!musicEnabled || !sound) return; // звуки тоже зависят от глобальной настройки
+    if (!musicEnabled || !sound) return;
     sound.currentTime = 0;
-    sound.play().catch(e => console.log('Ошибка воспроизведения звука:', e));
+    sound.play().catch(e => console.log('Ошибка звука:', e));
 }
+
+// --- Выход из игры при закрытии модалки ---
+function exitRace() {
+    if (gameState.gameActive) {
+        // Отключаем сокет (сервер сам обработает disconnect)
+        socket.disconnect();
+        socket.connect(); // переподключаем для следующих игр
+    }
+    if (bgMusic) {
+        bgMusic.pause();
+        bgMusic.currentTime = 0;
+    }
+    raceGameArea.style.display = 'none';
+    raceLobby.style.display = 'block';
+    gameState.gameActive = false;
+    ctx.clearRect(0, 0, raceCanvas.width, raceCanvas.height);
+}
+
+closeGameBtn.addEventListener('click', exitRace);
 
 // --- Сокет-обработчики ---
 socket.on('connect', () => console.log('✅ race connect', socket.id));
@@ -134,6 +161,7 @@ socket.on('countdown', (sec) => {
 socket.on('gameStarted', () => {
     console.log('🎮 race gameStarted');
     gameState.gameActive = true;
+    unlockAudio(); // разблокируем аудио при старте
     if (musicEnabled && bgMusic) {
         bgMusic.play().catch(e => console.log('Не удалось воспроизвести музыку:', e));
     }
@@ -157,16 +185,19 @@ socket.on('gameOver', ({ winner }) => {
 raceJoinBtn.addEventListener('click', () => {
     const name = racePlayerName.value.trim() || 'Гонщик';
     socket.emit('join', { name, isAdmin: false, password: '' });
+    unlockAudio();
 });
 
 raceAdminJoinBtn.addEventListener('click', () => {
     const name = racePlayerName.value.trim() || 'Админ';
     const pass = raceAdminPass.value;
     socket.emit('join', { name, isAdmin: true, password: pass });
+    unlockAudio();
 });
 
 raceStartBtn.addEventListener('click', () => {
     socket.emit('startGame');
+    unlockAudio();
 });
 
 function updateRacePlayersList() {
