@@ -954,6 +954,21 @@
                         correctLevel: QRCode.CorrectLevel.H
                     });
                 }
+                if (window.innerWidth > 768) {
+    try {
+        new QRCode(document.getElementById("qrcode"), {
+            text: window.location.href,
+            width: 168, height: 168,
+            correctLevel: QRCode.CorrectLevel.H
+        });
+        console.log('QR-код создан');
+    } catch (e) {
+        console.error('Ошибка создания QR-кода:', e);
+    }
+} else {
+    console.log('Мобильное устройство – QR не создаём');
+}
+                
 
                 // Подписки
                 document.getElementById('categorySelect').addEventListener('change', (e) => app.currentCategory = e.target.value);
