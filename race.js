@@ -1,6 +1,8 @@
 // race.js – клиент для многопользовательской гонки (исправленная версия)
 
-const socket = io('https://race-server-o3u6.onrender.com/', {
+console.log('race.js loaded');
+
+const socket = io('https://race-server-o3u6.onrender.com', {
   transports: ['websocket'],
   reconnectionAttempts: 5,
   timeout: 10000
@@ -24,7 +26,7 @@ const raceAdminJoinBtn = document.getElementById('raceAdminJoinBtn');
 const raceToggleMusic = document.getElementById('raceToggleMusic');
 const closeGameBtn = document.getElementById('closeGameBtn'); // кнопка закрытия модалки
 
-// --- Аудио ---
+// --- Аудио (если отсутствуют, просто игнорируем) ---
 const bgMusic = document.getElementById('bgMusic');
 const collisionSound = document.getElementById('collisionSound');
 const crashSound = document.getElementById('crashSound');
@@ -36,20 +38,19 @@ let myX = 300;
 let hostId = null;
 let isHost = false;
 let musicEnabled = true;
-let audioUnlocked = false; // флаг разблокировки аудио
+let audioUnlocked = false;
 
 // --- Флаги управления ---
 let leftPressed = false;
 let rightPressed = false;
 
-// --- Разблокировка аудио (вызывается при первом касании) ---
+// --- Разблокировка аудио (вызывается при первом взаимодействии) ---
 function unlockAudio() {
     if (audioUnlocked) return;
-    // Создаём тихий звук и воспроизводим
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    gain.gain.value = 0.01; // почти беззвучно
+    gain.gain.value = 0.01;
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start();
@@ -59,16 +60,18 @@ function unlockAudio() {
 }
 
 // --- Управление музыкой ---
-raceToggleMusic.addEventListener('click', () => {
-    musicEnabled = !musicEnabled;
-    raceToggleMusic.textContent = musicEnabled ? '🔊' : '🔇';
-    if (musicEnabled && gameState.gameActive && bgMusic) {
-        bgMusic.play().catch(e => console.log('Не удалось запустить музыку:', e));
-    } else if (!musicEnabled && bgMusic) {
-        bgMusic.pause();
-    }
-    unlockAudio(); // на всякий случай
-});
+if (raceToggleMusic) {
+    raceToggleMusic.addEventListener('click', () => {
+        musicEnabled = !musicEnabled;
+        raceToggleMusic.textContent = musicEnabled ? '🔊' : '🔇';
+        if (musicEnabled && gameState.gameActive && bgMusic) {
+            bgMusic.play().catch(e => console.log('Не удалось запустить музыку:', e));
+        } else if (!musicEnabled && bgMusic) {
+            bgMusic.pause();
+        }
+        unlockAudio();
+    });
+}
 
 // --- Безопасное воспроизведение звуков ---
 function playRaceSound(sound) {
@@ -80,9 +83,8 @@ function playRaceSound(sound) {
 // --- Выход из игры при закрытии модалки ---
 function exitRace() {
     if (gameState.gameActive) {
-        // Отключаем сокет (сервер сам обработает disconnect)
         socket.disconnect();
-        socket.connect(); // переподключаем для следующих игр
+        socket.connect();
     }
     if (bgMusic) {
         bgMusic.pause();
@@ -94,7 +96,9 @@ function exitRace() {
     ctx.clearRect(0, 0, raceCanvas.width, raceCanvas.height);
 }
 
-closeGameBtn.addEventListener('click', exitRace);
+if (closeGameBtn) {
+    closeGameBtn.addEventListener('click', exitRace);
+}
 
 // --- Сокет-обработчики ---
 socket.on('connect', () => console.log('✅ race connect', socket.id));
@@ -161,7 +165,7 @@ socket.on('countdown', (sec) => {
 socket.on('gameStarted', () => {
     console.log('🎮 race gameStarted');
     gameState.gameActive = true;
-    unlockAudio(); // разблокируем аудио при старте
+    unlockAudio();
     if (musicEnabled && bgMusic) {
         bgMusic.play().catch(e => console.log('Не удалось воспроизвести музыку:', e));
     }
@@ -182,25 +186,32 @@ socket.on('gameOver', ({ winner }) => {
 });
 
 // --- Интерфейс лобби ---
-raceJoinBtn.addEventListener('click', () => {
-    const name = racePlayerName.value.trim() || 'Гонщик';
-    socket.emit('join', { name, isAdmin: false, password: '' });
-    unlockAudio();
-});
+if (raceJoinBtn) {
+    raceJoinBtn.addEventListener('click', () => {
+        const name = racePlayerName.value.trim() || 'Гонщик';
+        socket.emit('join', { name, isAdmin: false, password: '' });
+        unlockAudio();
+    });
+}
 
-raceAdminJoinBtn.addEventListener('click', () => {
-    const name = racePlayerName.value.trim() || 'Админ';
-    const pass = raceAdminPass.value;
-    socket.emit('join', { name, isAdmin: true, password: pass });
-    unlockAudio();
-});
+if (raceAdminJoinBtn) {
+    raceAdminJoinBtn.addEventListener('click', () => {
+        const name = racePlayerName.value.trim() || 'Админ';
+        const pass = raceAdminPass.value;
+        socket.emit('join', { name, isAdmin: true, password: pass });
+        unlockAudio();
+    });
+}
 
-raceStartBtn.addEventListener('click', () => {
-    socket.emit('startGame');
-    unlockAudio();
-});
+if (raceStartBtn) {
+    raceStartBtn.addEventListener('click', () => {
+        socket.emit('startGame');
+        unlockAudio();
+    });
+}
 
 function updateRacePlayersList() {
+    if (!racePlayersList) return;
     racePlayersList.innerHTML = '<h4>Игроки:</h4>';
     gameState.players.forEach(p => {
         racePlayersList.innerHTML += `<div>${p.name} ${p.id === hostId ? '👑' : ''} ${p.active ? '' : '💀'}</div>`;
@@ -225,17 +236,35 @@ window.addEventListener('keyup', (e) => {
 });
 
 // --- Мобильные кнопки ---
-raceMoveLeft.addEventListener('touchstart', (e) => { e.preventDefault(); leftPressed = true; });
-raceMoveLeft.addEventListener('touchend', () => { leftPressed = false; });
-raceMoveLeft.addEventListener('mousedown', (e) => { e.preventDefault(); leftPressed = true; });
-raceMoveLeft.addEventListener('mouseup', () => { leftPressed = false; });
-raceMoveLeft.addEventListener('mouseleave', () => { leftPressed = false; });
+function handleTouchStart(e, direction) {
+    e.preventDefault();
+    if (direction === 'left') leftPressed = true;
+    else rightPressed = true;
+}
 
-raceMoveRight.addEventListener('touchstart', (e) => { e.preventDefault(); rightPressed = true; });
-raceMoveRight.addEventListener('touchend', () => { rightPressed = false; });
-raceMoveRight.addEventListener('mousedown', (e) => { e.preventDefault(); rightPressed = true; });
-raceMoveRight.addEventListener('mouseup', () => { rightPressed = false; });
-raceMoveRight.addEventListener('mouseleave', () => { rightPressed = false; });
+function handleTouchEnd(e, direction) {
+    e.preventDefault();
+    if (direction === 'left') leftPressed = false;
+    else rightPressed = false;
+}
+
+if (raceMoveLeft) {
+    raceMoveLeft.addEventListener('touchstart', (e) => handleTouchStart(e, 'left'));
+    raceMoveLeft.addEventListener('touchend', (e) => handleTouchEnd(e, 'left'));
+    raceMoveLeft.addEventListener('touchcancel', (e) => handleTouchEnd(e, 'left'));
+    raceMoveLeft.addEventListener('mousedown', (e) => { e.preventDefault(); leftPressed = true; });
+    raceMoveLeft.addEventListener('mouseup', () => { leftPressed = false; });
+    raceMoveLeft.addEventListener('mouseleave', () => { leftPressed = false; });
+}
+
+if (raceMoveRight) {
+    raceMoveRight.addEventListener('touchstart', (e) => handleTouchStart(e, 'right'));
+    raceMoveRight.addEventListener('touchend', (e) => handleTouchEnd(e, 'right'));
+    raceMoveRight.addEventListener('touchcancel', (e) => handleTouchEnd(e, 'right'));
+    raceMoveRight.addEventListener('mousedown', (e) => { e.preventDefault(); rightPressed = true; });
+    raceMoveRight.addEventListener('mouseup', () => { rightPressed = false; });
+    raceMoveRight.addEventListener('mouseleave', () => { rightPressed = false; });
+}
 
 // --- Обновление движения ---
 function updateRaceMovement() {
