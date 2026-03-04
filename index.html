@@ -528,6 +528,37 @@
             display: none !important;
         }
     }
+      #raceCountdown {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 100px;
+    color: #ff0;
+    text-shadow: 0 0 20px #f00;
+    z-index: 100;
+    display: none;
+}
+#raceMobileControls {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 10px;
+}
+#raceMobileControls button {
+    width: 70px;
+    height: 70px;
+    font-size: 30px;
+    background: #333;
+    color: #0f0;
+    border: 2px solid #0f0;
+    border-radius: 10px;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+#raceLobby {
+    text-align: left;
+}
 </style>
 </head>
 <body>
