@@ -1523,6 +1523,21 @@
                 app.profile.name = document.getElementById('profileName').value || 'Игрок';
                 localStorage.setItem('profileName', app.profile.name);
             }
+
+            // Синхронизация имени с игрой гонка
+const racePlayerNameInput = document.getElementById('racePlayerName');
+if (racePlayerNameInput) {
+  // При загрузке страницы имя уже подхватится через loadProfileName в race.js
+  // Но если имя меняется в профиле, обновляем поле
+  const originalSaveProfileName = saveProfileName;
+  window.saveProfileName = function(name) {
+    originalSaveProfileName(name);
+    if (racePlayerNameInput) racePlayerNameInput.value = name;
+  };
+}
+
+
+            
             function updateStatsUI() {
                 document.getElementById('statSpins').textContent = app.profile.spins;
                 document.getElementById('statTasksDone').textContent = app.profile.tasksDone;
