@@ -380,9 +380,26 @@
 
         #raceLobby input,
         #raceLobby button {
-            width: 100%;
             box-sizing: border-box;
             margin: 5px 0;
+            border-radius: 5px;
+        }
+
+        #raceJoinBtn, #raceAdminJoinBtn {
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        #raceExitBtn {
+            background: #f00;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
         }
 
         #raceToggleMusic {
@@ -395,7 +412,34 @@
             border-radius: 50%;
             cursor: pointer;
             display: inline-block;
+        }
+
+        #raceStartBtn {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        #racePlayersList {
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
             margin-top: 10px;
+        }
+
+        #raceSpeedDisplay {
+            color: #ff0;
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: center;
         }
 
         @media (max-width: 600px) {
@@ -707,37 +751,39 @@
                 <div id="leaderboardRace" class="leaderboard-list" style="display:none;"></div>
             </div>
 
-           <!-- Гонка -->
-<div id="raceContainer" class="game-container" style="display:none;">
-    <div id="raceLobby">
-        <h3>🏁 Пиксельные гонки</h3>
-        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <input type="text" id="racePlayerName" placeholder="Ваш ник" value="Гонщик" style="flex: 2;">
-            <button id="raceJoinBtn" style="flex: 1; padding: 10px;">Присоединиться</button>
+            <!-- Гонка -->
+            <div id="raceContainer" class="game-container" style="display:none;">
+                <div id="raceLobby">
+                    <h3>🏁 Пиксельные гонки</h3>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" id="racePlayerName" placeholder="Ваш ник" value="Гонщик" style="flex: 2;">
+                        <button id="raceJoinBtn" style="flex: 1; padding: 10px;">Присоединиться</button>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="password" id="raceAdminPass" placeholder="Пароль админа" style="flex: 2;">
+                        <button id="raceAdminJoinBtn" style="flex: 1; padding: 10px;">Админ</button>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <button id="raceExitBtn" style="flex: 1; padding: 10px; background: #f00;">Выйти</button>
+                        <button id="raceToggleMusic" style="width: 50px; height: 50px; font-size: 24px;">🔊</button>
+                    </div>
+                    <div id="racePlayersList" style="max-height: 200px; overflow-y: auto;"></div>
+                    <div id="raceHostPanel" style="display:none; margin-top: 10px;">
+                        <button id="raceStartBtn" style="width: 100%; padding: 15px; background: #0f0; color: #000;">СТАРТ</button>
+                    </div>
+                    <div id="raceSpeedDisplay" style="margin-top: 10px; color: #ff0;"></div>
+                </div>
+                <div id="raceGameArea" style="display:none; position:relative;">
+                    <canvas id="raceCanvas" width="600" height="800"></canvas>
+                    <div id="raceCountdown"></div>
+                    <div id="raceMobileControls">
+                        <button id="raceMoveLeft">←</button>
+                        <button id="raceMoveRight">→</button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <input type="password" id="raceAdminPass" placeholder="Пароль админа" style="flex: 2;">
-            <button id="raceAdminJoinBtn" style="flex: 1; padding: 10px;">Админ</button>
-        </div>
-        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <button id="raceExitBtn" style="flex: 1; padding: 10px; background: #f00;">Выйти</button>
-            <button id="raceToggleMusic" style="width: 50px; height: 50px; font-size: 24px;">🔊</button>
-        </div>
-        <div id="racePlayersList" style="max-height: 200px; overflow-y: auto;"></div>
-        <div id="raceHostPanel" style="display:none; margin-top: 10px;">
-            <button id="raceStartBtn" style="width: 100%; padding: 15px; background: #0f0; color: #000;">СТАРТ</button>
-        </div>
-        <div id="raceSpeedDisplay" style="margin-top: 10px; color: #ff0;"></div>
     </div>
-    <div id="raceGameArea" style="display:none; position:relative;">
-        <canvas id="raceCanvas" width="600" height="800"></canvas>
-        <div id="raceCountdown"></div>
-        <div id="raceMobileControls">
-            <button id="raceMoveLeft">←</button>
-            <button id="raceMoveRight">→</button>
-        </div>
-    </div>
-  </div>
 
     <!-- МОДАЛЬНОЕ ОКНО ПРОФИЛЯ -->
     <div id="profileModal" class="modal">
@@ -929,13 +975,19 @@
             };
 
             // Глобальный сокет для отправки результатов в PostgreSQL
-            const mainSocket = io('https://race-server-o3u6.onrender.com/', { 
+            const mainSocket = io('https://race-server.onrender.com', { 
                 transports: ['websocket'],
-                reconnectionAttempts: 3
+                reconnectionAttempts: 3,
+                timeout: 10000
             });
 
-            mainSocket.on('connect', () => console.log('✅ mainSocket connected'));
-            mainSocket.on('connect_error', (err) => console.error('❌ mainSocket error:', err));
+            mainSocket.on('connect', () => {
+                console.log('✅ mainSocket connected, id:', mainSocket.id);
+            });
+
+            mainSocket.on('connect_error', (err) => {
+                console.error('❌ mainSocket connection error:', err.message);
+            });
 
             // Обновление лидеров из базы данных
             mainSocket.on('leaderboards', (data) => {
