@@ -528,23 +528,25 @@
             display: none !important;
         }
     }
-      #raceCountdown {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 100px;
-    color: #ff0;
-    text-shadow: 0 0 20px #f00;
-    z-index: 100;
-    display: none;
+     /* ===== Адаптация гонки для мобильных ===== */
+#raceCanvas {
+    width: 100%;
+    height: auto;
+    max-width: 600px;
+    max-height: 80vh;
+    border: 2px solid #0f0;
+    background: #000;
+    display: block;
+    margin: 0 auto;
 }
+
 #raceMobileControls {
     display: flex;
     justify-content: center;
-    gap: 20px;
+    gap: 15px;
     margin-top: 10px;
 }
+
 #raceMobileControls button {
     width: 70px;
     height: 70px;
@@ -555,10 +557,45 @@
     border-radius: 10px;
     cursor: pointer;
     touch-action: manipulation;
+    user-select: none;
 }
+
 #raceLobby {
-    text-align: left;
+    max-width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
 }
+
+#raceLobby input,
+#raceLobby button {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 5px 0;
+}
+
+#raceToggleMusic {
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    background: #333;
+    border: 2px solid #0f0;
+    color: #0f0;
+    border-radius: 50%;
+    cursor: pointer;
+    display: inline-block;
+}
+
+@media (max-width: 600px) {
+    #raceCanvas {
+        max-height: 70vh;
+    }
+    #raceMobileControls button {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+    }
+}
+
 </style>
 </head>
 <body>
