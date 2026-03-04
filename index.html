@@ -707,37 +707,37 @@
                 <div id="leaderboardRace" class="leaderboard-list" style="display:none;"></div>
             </div>
 
-            <!-- Гонка -->
-            <div id="raceContainer" class="game-container" style="display:none;">
-                <div id="raceLobby">
-                    <h3>🏁 Пиксельные гонки</h3>
-                    <div>
-                        <input type="text" id="racePlayerName" placeholder="Ваш ник" value="Гонщик">
-                        <button id="raceJoinBtn">Присоединиться</button>
-                    </div>
-                    <div>
-                        <input type="password" id="raceAdminPass" placeholder="Пароль админа">
-                        <button id="raceAdminJoinBtn">Войти как админ</button>
-                    </div>
-                    <div id="racePlayersList"></div>
-                    <div id="raceHostPanel" style="display:none;">
-                        <button id="raceStartBtn">Старт</button>
-                    </div>
-                    <div id="raceMusicControl" style="margin-top:10px;">
-                        <button id="raceToggleMusic">🔊</button>
-                    </div>
-                </div>
-                <div id="raceGameArea" style="display:none; position:relative;">
-                    <canvas id="raceCanvas" width="600" height="800"></canvas>
-                    <div id="raceCountdown"></div>
-                    <div id="raceMobileControls">
-                        <button id="raceMoveLeft">←</button>
-                        <button id="raceMoveRight">→</button>
-                    </div>
-                </div>
-            </div>
+           <!-- Гонка -->
+<div id="raceContainer" class="game-container" style="display:none;">
+    <div id="raceLobby">
+        <h3>🏁 Пиксельные гонки</h3>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <input type="text" id="racePlayerName" placeholder="Ваш ник" value="Гонщик" style="flex: 2;">
+            <button id="raceJoinBtn" style="flex: 1; padding: 10px;">Присоединиться</button>
+        </div>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <input type="password" id="raceAdminPass" placeholder="Пароль админа" style="flex: 2;">
+            <button id="raceAdminJoinBtn" style="flex: 1; padding: 10px;">Админ</button>
+        </div>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <button id="raceExitBtn" style="flex: 1; padding: 10px; background: #f00;">Выйти</button>
+            <button id="raceToggleMusic" style="width: 50px; height: 50px; font-size: 24px;">🔊</button>
+        </div>
+        <div id="racePlayersList" style="max-height: 200px; overflow-y: auto;"></div>
+        <div id="raceHostPanel" style="display:none; margin-top: 10px;">
+            <button id="raceStartBtn" style="width: 100%; padding: 15px; background: #0f0; color: #000;">СТАРТ</button>
+        </div>
+        <div id="raceSpeedDisplay" style="margin-top: 10px; color: #ff0;"></div>
+    </div>
+    <div id="raceGameArea" style="display:none; position:relative;">
+        <canvas id="raceCanvas" width="600" height="800"></canvas>
+        <div id="raceCountdown"></div>
+        <div id="raceMobileControls">
+            <button id="raceMoveLeft">←</button>
+            <button id="raceMoveRight">→</button>
         </div>
     </div>
+  </div>
 
     <!-- МОДАЛЬНОЕ ОКНО ПРОФИЛЯ -->
     <div id="profileModal" class="modal">
