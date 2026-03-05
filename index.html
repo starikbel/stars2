@@ -214,12 +214,78 @@
             font-size: 1rem; border-radius: 8px; cursor: pointer; z-index: 60; 
         }
 
-        #qrContainer { 
-            position: absolute; bottom: 25px; left: 25px; z-index: 25; background: #fff; 
-            padding: 12px; border-radius: 14px; box-shadow: 0 0 30px rgba(0,255,234,0.5); 
-            text-align: center; max-width: 178px; 
+        /* ===== Сворачиваемый QR-код ===== */
+        #qrContainer {
+            position: absolute;
+            bottom: 25px;
+            left: 25px;
+            z-index: 25;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 0 30px rgba(0,255,234,0.5);
+            text-align: center;
+            max-width: 200px;
+            transition: all 0.3s ease;
+            overflow: hidden;
         }
-        #qrContainer p { max-width: 168px; font-size: 0.82rem; margin: 8px 0 0; color: #111; }
+
+        .qr-collapsed {
+            width: 140px;
+            height: 40px;
+        }
+
+        .qr-expanded {
+            width: 200px;
+            height: auto;
+            padding: 12px;
+        }
+
+        .qr-header {
+            background: var(--accent);
+            color: #000;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.7rem;
+            text-align: center;
+            border-radius: 14px 14px 0 0;
+            transition: background 0.3s;
+        }
+
+        .qr-header:hover {
+            background: var(--button);
+            color: white;
+        }
+
+        .qr-content {
+            padding: 12px;
+            display: block;
+        }
+
+        .qr-collapsed .qr-content {
+            display: none;
+        }
+
+        .qr-expanded .qr-content {
+            display: block;
+        }
+
+        #qrContainer p {
+            max-width: 168px;
+            font-size: 0.7rem;
+            margin: 8px 0 0 0;
+            color: #111;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        #qrcode {
+            display: flex;
+            justify-content: center;
+        }
+
+        #qrcode img {
+            margin: 0 auto;
+        }
 
         #gameTrigger {
             position: absolute; bottom: 28px; right: 28px; font-size: 26px; opacity: 0.22;
@@ -455,7 +521,6 @@
 
         /* ========== МОБИЛЬНАЯ ВЕРТИКАЛЬНАЯ ОРИЕНТАЦИЯ ========== */
         @media (max-width: 768px) {
-            #qrContainer { display: none !important; }
             html, body {
                 height: auto !important;
                 min-height: 100vh;
@@ -572,6 +637,26 @@
             .timer-display {
                 font-size: 1.3rem;
             }
+
+            /* Адаптация QR-кода для мобильных */
+            #qrContainer {
+                bottom: 10px;
+                left: 10px;
+            }
+            
+            .qr-collapsed {
+                width: 120px;
+                height: 36px;
+            }
+            
+            .qr-expanded {
+                width: 180px;
+            }
+            
+            .qr-header {
+                font-size: 0.6rem;
+                padding: 6px 10px;
+            }
         }
 
         /* ========== ЛАНДШАФТНАЯ ОРИЕНТАЦИЯ ========== */
@@ -634,9 +719,8 @@
             .game-info {
                 font-size: 0.7rem;
             }
-        }
-
-        @media (orientation: landscape) {
+            
+            /* Скрываем QR в ландшафте на маленьких экранах */
             #qrContainer {
                 display: none !important;
             }
@@ -662,9 +746,15 @@
         </div>
     </div>
 
-    <div id="qrContainer">
-        <div id="qrcode"></div>
-        <p>Сканируй для открытия</p>
+    <!-- QR-код (сворачиваемый) -->
+    <div id="qrContainer" class="qr-collapsed">
+        <div id="qrHeader" class="qr-header">
+            <span id="qrToggle">📱 QR-код ▼</span>
+        </div>
+        <div id="qrContent" class="qr-content">
+            <div id="qrcode"></div>
+            <p>Сканируй для открытия</p>
+        </div>
     </div>
 
     <!-- Фоновые анимации -->
@@ -975,7 +1065,7 @@
             };
 
             // Глобальный сокет для отправки результатов в PostgreSQL
-            const mainSocket = io('https://race-server-o3u6.onrender.com', { 
+            const mainSocket = io('https://race-server.onrender.com', { 
                 transports: ['websocket'],
                 reconnectionAttempts: 3,
                 timeout: 10000
@@ -1031,17 +1121,35 @@
                 renderLeaderboard('race');
                 renderDiary();
 
-                if (window.innerWidth > 768) {
-                    try {
-                        new QRCode(document.getElementById('qrcode'), {
-                            text: window.location.href,
-                            width: 168, height: 168,
-                            correctLevel: QRCode.CorrectLevel.H
-                        });
-                        console.log('QR-код создан');
-                    } catch (e) {
-                        console.error('Ошибка создания QR-кода:', e);
-                    }
+                // Создание QR-кода
+                try {
+                    new QRCode(document.getElementById('qrcode'), {
+                        text: window.location.href,
+                        width: 168, height: 168,
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                    console.log('QR-код создан');
+                } catch (e) {
+                    console.error('Ошибка создания QR-кода:', e);
+                }
+
+                // Интерактивный QR-код (сворачивание/разворачивание)
+                const qrContainer = document.getElementById('qrContainer');
+                const qrHeader = document.getElementById('qrHeader');
+                const qrToggle = document.getElementById('qrToggle');
+
+                if (qrHeader && qrContainer) {
+                    qrHeader.addEventListener('click', () => {
+                        if (qrContainer.classList.contains('qr-collapsed')) {
+                            qrContainer.classList.remove('qr-collapsed');
+                            qrContainer.classList.add('qr-expanded');
+                            qrToggle.textContent = '📱 QR-код ▲';
+                        } else {
+                            qrContainer.classList.remove('qr-expanded');
+                            qrContainer.classList.add('qr-collapsed');
+                            qrToggle.textContent = '📱 QR-код ▼';
+                        }
+                    });
                 }
 
                 document.getElementById('categorySelect').addEventListener('change', (e) => app.currentCategory = e.target.value);
@@ -1367,7 +1475,6 @@
             }
 
             function addLeaderboard(game, score) {
-                // Отправляем на сервер вместо локального хранения
                 if (score > 0) {
                     mainSocket.emit('submitScore', { 
                         game: game, 
