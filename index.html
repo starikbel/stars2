@@ -1065,7 +1065,7 @@
             };
 
             // Глобальный сокет для отправки результатов в PostgreSQL
-            const mainSocket = io('https://race-server-o3u6.onrender.com', { 
+            const mainSocket = io('https://race-server.onrender.com', { 
                 transports: ['websocket'],
                 reconnectionAttempts: 3,
                 timeout: 10000
@@ -1358,6 +1358,12 @@
                         playSound('final');
                         app.spinCount++;
                         app.profile.spins++;
+                        
+                        // ✅ Сохраняем прокрученное задание в дневник
+                        if (app.currentTask) {
+                            addDiaryEntry(app.currentTask, 'Прокрутка');
+                        }
+                        
                         localStorage.setItem('statSpins', app.profile.spins);
                         updateStatsUI();
                         checkAchievement('firstSpin');
