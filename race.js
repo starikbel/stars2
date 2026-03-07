@@ -1,6 +1,6 @@
-// race.js – клиент для многопользовательской гонки (оптимизированная версия)
+// race.js – клиент для многопользовательской гонки (улучшенная визуализация)
 
-const socket = io('https://race-server-o3u6.onrender.com', {
+const socket = io('https://race-server.onrender.com', {
   transports: ['websocket'],
   reconnectionAttempts: 5,
   timeout: 10000
@@ -47,8 +47,9 @@ let isHost = false;
 let musicEnabled = true;
 let audioUnlocked = false;
 let leaderboards = { race: [], whac: [], snake: [] };
-let collisionFlash = {};
-let isInGame = false; // Флаг, что игрок в игровой комнате
+
+// ===== УЛУЧШЕННАЯ ВИЗУАЛИЗАЦИЯ СТОЛКНОВЕНИЙ =====
+let collisionEffects = {}; // { playerId: { flash: 5, direction: 'left/right', strength: 0.5 } }
 
 // Флаги управления
 let leftPressed = false;
@@ -78,7 +79,7 @@ function unlockAudio() {
   audioUnlocked = true;
 }
 
-// Управление музыкой (только если игрок в игре)
+// Управление музыкой
 function updateMusic() {
   if (!isInGame) {
     if (bgMusic) {
@@ -110,6 +111,8 @@ function playRaceSound(sound) {
   sound.currentTime = 0;
   sound.play().catch(e => console.log('Ошибка звука:', e));
 }
+
+let isInGame = false;
 
 // Выход из игры
 function exitRace() {
@@ -218,10 +221,30 @@ socket.on('playerMoved', ({ id, x }) => {
   if (p) p.x = x;
 });
 
+// ===== УЛУЧШЕННАЯ ОБРАБОТКА СТОЛКНОВЕНИЙ =====
 socket.on('playerCollision', ({ id1, id2, force }) => {
-  collisionFlash[id1] = 8;
-  collisionFlash[id2] = 8;
-  playRaceSound(collisionSound);
+  const p1 = gameState.players.find(p => p.id === id1);
+  const p2 = gameState.players.find(p => p.id === id2);
+  
+  if (p1 && p2) {
+    // Определяем направление отталкивания
+    const direction = p1.x < p2.x ? 'right' : 'left';
+    
+    // Создаём визуальные эффекты для обоих игроков
+    collisionEffects[id1] = {
+      flash: 12,
+      direction: direction === 'right' ? 'right' : 'left',
+      strength: Math.min(force / 10, 1)
+    };
+    
+    collisionEffects[id2] = {
+      flash: 12,
+      direction: direction === 'right' ? 'left' : 'right',
+      strength: Math.min(force / 10, 1)
+    };
+    
+    playRaceSound(collisionSound);
+  }
 });
 
 socket.on('playerCrashed', () => {
@@ -354,25 +377,72 @@ function updateRaceMovement() {
   }
 }
 
-// Отрисовка
-function drawRaceCar(x, y, color, flash = false) {
+// ===== УЛУЧШЕННАЯ ОТРИСОВКА С ЭФФЕКТАМИ СТОЛКНОВЕНИЙ =====
+function drawRaceCar(x, y, color, effect = null) {
   const w = 30, h = 40;
   const left = x - w/2;
   const top = y - h/2;
 
-  ctx.fillStyle = flash ? '#f00' : color;
-  ctx.fillRect(left, top, w, h);
+  // Эффект отталкивания - рисуем "след" в направлении удара
+  if (effect) {
+    // Красная вспышка
+    ctx.fillStyle = '#f00';
+    ctx.fillRect(left, top, w, h);
+    
+    // Рисуем направленные полосы
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    
+    if (effect.direction === 'left') {
+      // Полосы влево
+      for (let i = 0; i < 3; i++) {
+        const offset = i * 8;
+        ctx.beginPath();
+        ctx.moveTo(left - 10 - offset, top + 10);
+        ctx.lineTo(left - 20 - offset, top + 30);
+        ctx.strokeStyle = `rgba(255, 255, 255, ${0.7 - i * 0.2})`;
+        ctx.stroke();
+      }
+    } else {
+      // Полосы вправо
+      for (let i = 0; i < 3; i++) {
+        const offset = i * 8;
+        ctx.beginPath();
+        ctx.moveTo(left + w + 10 + offset, top + 10);
+        ctx.lineTo(left + w + 20 + offset, top + 30);
+        ctx.strokeStyle = `rgba(255, 255, 255, ${0.7 - i * 0.2})`;
+        ctx.stroke();
+      }
+    }
+    
+    // Добавляем искры
+    for (let i = 0; i < 5; i++) {
+      const sparkX = effect.direction === 'left' ? left - 10 - Math.random() * 20 : left + w + 10 + Math.random() * 20;
+      const sparkY = top + 10 + Math.random() * 20;
+      ctx.fillStyle = `rgba(255, ${Math.random() * 255}, 0, 0.8)`;
+      ctx.beginPath();
+      ctx.arc(sparkX, sparkY, 2 + Math.random() * 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else {
+    // Обычная отрисовка
+    ctx.fillStyle = color;
+    ctx.fillRect(left, top, w, h);
+  }
 
-  ctx.fillStyle = flash ? '#fff' : '#aaf';
+  // Окно (всегда видно)
+  ctx.fillStyle = effect ? '#fff' : '#aaf';
   ctx.fillRect(left + 5, top + 5, w - 10, 12);
 
+  // Колёса
   ctx.fillStyle = '#333';
   ctx.fillRect(left - 2, top + 5, 4, 8);
   ctx.fillRect(left - 2, top + h - 13, 4, 8);
   ctx.fillRect(left + w - 2, top + 5, 4, 8);
   ctx.fillRect(left + w - 2, top + h - 13, 4, 8);
 
-  ctx.fillStyle = '#ff0';
+  // Фары (мигают при столкновении)
+  ctx.fillStyle = effect ? '#f00' : '#ff0';
   ctx.fillRect(left - 1, top + 15, 2, 5);
   ctx.fillRect(left + w - 1, top + 15, 2, 5);
 }
@@ -380,9 +450,12 @@ function drawRaceCar(x, y, color, flash = false) {
 function raceGameLoop() {
   if (!gameState.gameActive || !isInGame) return;
   
-  Object.keys(collisionFlash).forEach(id => {
-    collisionFlash[id]--;
-    if (collisionFlash[id] <= 0) delete collisionFlash[id];
+  // Обновляем эффекты столкновений
+  Object.keys(collisionEffects).forEach(id => {
+    collisionEffects[id].flash--;
+    if (collisionEffects[id].flash <= 0) {
+      delete collisionEffects[id];
+    }
   });
   
   updateRaceMovement();
@@ -397,6 +470,7 @@ function drawRace() {
   ctx.fillStyle = '#222';
   ctx.fillRect(0, 0, raceCanvas.width, raceCanvas.height);
 
+  // Разметка (динамическая, создаёт иллюзию движения)
   ctx.strokeStyle = '#0f0';
   ctx.lineWidth = 2;
   ctx.setLineDash([20, 20]);
@@ -410,21 +484,40 @@ function drawRace() {
   ctx.fillStyle = '#f00';
   gameState.obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h));
 
-  // Игроки
-  gameState.players.forEach(p => {
+  // Игроки (рисуем в порядке от дальних к ближним, чтобы эффекты не перекрывались)
+  const sortedPlayers = [...gameState.players].sort((a, b) => {
+    // Сначала рисуем тех, у кого нет эффектов
+    const aHasEffect = collisionEffects[a.id] ? 1 : 0;
+    const bHasEffect = collisionEffects[b.id] ? 1 : 0;
+    return aHasEffect - bHasEffect;
+  });
+
+  sortedPlayers.forEach(p => {
     if (!p.active) return;
     let drawX = p.x;
     if (p.id === myId) drawX = myX;
 
-    const flash = !!collisionFlash[p.id];
+    const effect = collisionEffects[p.id];
     const color = `hsl(${p.hue}, 100%, 50%)`;
-    drawRaceCar(drawX, raceCanvas.height - 40, color, flash);
+    drawRaceCar(drawX, raceCanvas.height - 40, color, effect);
 
-    // Ник
-    ctx.fillStyle = '#fff';
-    ctx.font = '12px monospace';
+    // Ник (с подсветкой при столкновении)
+    ctx.fillStyle = effect ? '#ff0' : '#fff';
+    ctx.font = effect ? 'bold 12px monospace' : '12px monospace';
     ctx.fillText(p.name.substring(0, 3), drawX - 15, raceCanvas.height - 70);
+    
+    // Добавляем стрелочку направления при столкновении
+    if (effect) {
+      ctx.fillStyle = '#fff';
+      ctx.font = '16px monospace';
+      ctx.fillText(effect.direction === 'left' ? '←' : '→', drawX - 5, raceCanvas.height - 90);
+    }
   });
+
+  // Дополнительная информация о скорости
+  ctx.fillStyle = '#ff0';
+  ctx.font = '12px monospace';
+  ctx.fillText(`⚡ ${gameState.currentSpeed.toFixed(1)}`, 10, 30);
 }
 
 // Загружаем имя из профиля при старте
