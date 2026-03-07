@@ -1,6 +1,6 @@
-// race.js – клиент для многопользовательской гонки (улучшенная визуализация)
+// race.js – клиент для многопользовательской гонки (со стрельбой)
 
-const socket = io('https://race-server-o3u6.onrender.com/', {
+const socket = io('https://race-server.onrender.com', {
   transports: ['websocket'],
   reconnectionAttempts: 5,
   timeout: 10000
@@ -17,6 +17,7 @@ const raceHostPanel = document.getElementById('raceHostPanel');
 const raceStartBtn = document.getElementById('raceStartBtn');
 const raceMoveLeft = document.getElementById('raceMoveLeft');
 const raceMoveRight = document.getElementById('raceMoveRight');
+const raceShootBtn = document.getElementById('raceShootBtn');
 const racePlayerName = document.getElementById('racePlayerName');
 const raceJoinBtn = document.getElementById('raceJoinBtn');
 const raceAdminPass = document.getElementById('raceAdminPass');
@@ -30,6 +31,7 @@ const raceSpeedDisplay = document.getElementById('raceSpeedDisplay');
 const bgMusic = document.getElementById('bgMusic');
 const collisionSound = document.getElementById('collisionSound');
 const crashSound = document.getElementById('crashSound');
+const shootSound = document.getElementById('shootSound'); // Новый звук для стрельбы
 
 // Состояние игры
 let gameState = { 
@@ -48,12 +50,21 @@ let musicEnabled = true;
 let audioUnlocked = false;
 let leaderboards = { race: [], whac: [], snake: [] };
 
-// ===== УЛУЧШЕННАЯ ВИЗУАЛИЗАЦИЯ СТОЛКНОВЕНИЙ =====
+// ===== НОВЫЕ ПЕРЕМЕННЫЕ ДЛЯ СТРЕЛЬБЫ =====
+let bullets = []; // массив пуль { x, y, active, ownerId, id }
+let bulletSpeed = 8;
+let shootCooldown = 0;
+const SHOOT_COOLDOWN_MAX = 15; // кадров между выстрелами
+let lastShootTime = 0;
+const SHOOT_DELAY = 300; // миллисекунд между выстрелами
+
+// Визуальные эффекты
 let collisionEffects = {}; // { playerId: { flash: 5, direction: 'left/right', strength: 0.5 } }
 
 // Флаги управления
 let leftPressed = false;
 let rightPressed = false;
+let shootPressed = false; // для мобильной кнопки стрельбы
 
 // Троттлинг
 let lastMoveTime = 0;
@@ -130,6 +141,8 @@ function exitRace() {
   ctx.clearRect(0, 0, raceCanvas.width, raceCanvas.height);
   leftPressed = false;
   rightPressed = false;
+  shootPressed = false;
+  bullets = [];
   myId = null;
 }
 
@@ -221,16 +234,32 @@ socket.on('playerMoved', ({ id, x }) => {
   if (p) p.x = x;
 });
 
-// ===== УЛУЧШЕННАЯ ОБРАБОТКА СТОЛКНОВЕНИЙ =====
+// ===== ОБРАБОТКА ПУЛЬ ОТ ДРУГИХ ИГРОКОВ =====
+socket.on('bulletFired', ({ x, y, ownerId, bulletId }) => {
+  bullets.push({
+    id: bulletId,
+    x: x,
+    y: y,
+    ownerId: ownerId,
+    active: true
+  });
+});
+
+socket.on('bulletHit', ({ bulletId, obstacleId }) => {
+  // Удаляем пулю
+  bullets = bullets.filter(b => b.id !== bulletId);
+  
+  // Удаляем препятствие (если есть)
+  gameState.obstacles = gameState.obstacles.filter(o => o.id !== obstacleId);
+});
+
 socket.on('playerCollision', ({ id1, id2, force }) => {
   const p1 = gameState.players.find(p => p.id === id1);
   const p2 = gameState.players.find(p => p.id === id2);
   
   if (p1 && p2) {
-    // Определяем направление отталкивания
     const direction = p1.x < p2.x ? 'right' : 'left';
     
-    // Создаём визуальные эффекты для обоих игроков
     collisionEffects[id1] = {
       flash: 12,
       direction: direction === 'right' ? 'right' : 'left',
@@ -272,6 +301,7 @@ socket.on('gameStarted', () => {
   gameState.gameActive = true;
   unlockAudio();
   updateMusic();
+  bullets = []; // очищаем пули при старте
   requestAnimationFrame(raceGameLoop);
 });
 
@@ -310,34 +340,102 @@ if (raceStartBtn) {
   });
 }
 
-// Управление
+// ===== ФУНКЦИЯ СТРЕЛЬБЫ =====
+function shoot() {
+  if (!gameState.gameActive || !isInGame) return;
+  
+  const now = Date.now();
+  if (now - lastShootTime < SHOOT_DELAY) return;
+  
+  lastShootTime = now;
+  
+  // Создаём пулю
+  const bulletId = Math.random().toString(36).substring(2, 10);
+  const bulletX = myX;
+  const bulletY = raceCanvas.height - 70; // чуть выше машины
+  
+  // Добавляем локально
+  bullets.push({
+    id: bulletId,
+    x: bulletX,
+    y: bulletY,
+    ownerId: myId,
+    active: true
+  });
+  
+  // Отправляем на сервер
+  socket.emit('shoot', {
+    x: bulletX,
+    y: bulletY,
+    bulletId: bulletId
+  });
+  
+  // Звук выстрела
+  playRaceSound(shootSound);
+}
+
+// Управление с клавиатуры (добавляем пробел)
 window.addEventListener('keydown', (e) => {
   if (!gameState.gameActive || !isInGame) return;
-  if (e.key === 'a' || e.key === 'ArrowLeft') {
-    leftPressed = true;
-    e.preventDefault();
-  } else if (e.key === 'd' || e.key === 'ArrowRight') {
-    rightPressed = true;
-    e.preventDefault();
+  
+  switch(e.key) {
+    case 'a':
+    case 'ArrowLeft':
+      leftPressed = true;
+      e.preventDefault();
+      break;
+    case 'd':
+    case 'ArrowRight':
+      rightPressed = true;
+      e.preventDefault();
+      break;
+    case ' ':
+    case 'Space':
+      shoot();
+      e.preventDefault();
+      break;
   }
 });
 
 window.addEventListener('keyup', (e) => {
-  if (e.key === 'a' || e.key === 'ArrowLeft') leftPressed = false;
-  if (e.key === 'd' || e.key === 'ArrowRight') rightPressed = false;
+  switch(e.key) {
+    case 'a':
+    case 'ArrowLeft':
+      leftPressed = false;
+      break;
+    case 'd':
+    case 'ArrowRight':
+      rightPressed = false;
+      break;
+  }
 });
 
 // Мобильные кнопки
-function handleTouchStart(e, direction) {
+function handleTouchStart(e, action) {
   e.preventDefault();
-  if (direction === 'left') leftPressed = true;
-  else rightPressed = true;
+  switch(action) {
+    case 'left':
+      leftPressed = true;
+      break;
+    case 'right':
+      rightPressed = true;
+      break;
+    case 'shoot':
+      shoot();
+      break;
+  }
 }
 
-function handleTouchEnd(e, direction) {
+function handleTouchEnd(e, action) {
   e.preventDefault();
-  if (direction === 'left') leftPressed = false;
-  else rightPressed = false;
+  switch(action) {
+    case 'left':
+      leftPressed = false;
+      break;
+    case 'right':
+      rightPressed = false;
+      break;
+  }
 }
 
 if (raceMoveLeft) {
@@ -356,6 +454,11 @@ if (raceMoveRight) {
   raceMoveRight.addEventListener('mousedown', (e) => { e.preventDefault(); rightPressed = true; });
   raceMoveRight.addEventListener('mouseup', () => { rightPressed = false; });
   raceMoveRight.addEventListener('mouseleave', () => { rightPressed = false; });
+}
+
+if (raceShootBtn) {
+  raceShootBtn.addEventListener('touchstart', (e) => handleTouchStart(e, 'shoot'));
+  raceShootBtn.addEventListener('mousedown', (e) => { e.preventDefault(); shoot(); });
 }
 
 // Обновление движения
@@ -377,24 +480,56 @@ function updateRaceMovement() {
   }
 }
 
-// ===== УЛУЧШЕННАЯ ОТРИСОВКА С ЭФФЕКТАМИ СТОЛКНОВЕНИЙ =====
+// ===== ОБНОВЛЕНИЕ ПОЛОЖЕНИЯ ПУЛЬ =====
+function updateBullets() {
+  if (!gameState.gameActive) return;
+  
+  // Двигаем пули вверх
+  bullets.forEach(bullet => {
+    bullet.y -= bulletSpeed;
+  });
+  
+  // Удаляем пули, улетевшие за экран
+  bullets = bullets.filter(b => b.y > 0);
+  
+  // Проверяем попадания в препятствия
+  bullets.forEach(bullet => {
+    gameState.obstacles.forEach(obstacle => {
+      if (bullet.active && 
+          bullet.x > obstacle.x - 10 && 
+          bullet.x < obstacle.x + obstacle.w + 10 &&
+          bullet.y > obstacle.y - 10 &&
+          bullet.y < obstacle.y + obstacle.h + 10) {
+        
+        bullet.active = false;
+        
+        // Отправляем на сервер информацию о попадании
+        socket.emit('bulletHit', {
+          bulletId: bullet.id,
+          obstacleId: obstacle.id
+        });
+      }
+    });
+  });
+  
+  // Удаляем неактивные пули
+  bullets = bullets.filter(b => b.active);
+}
+
+// Отрисовка с эффектами
 function drawRaceCar(x, y, color, effect = null) {
   const w = 30, h = 40;
   const left = x - w/2;
   const top = y - h/2;
 
-  // Эффект отталкивания - рисуем "след" в направлении удара
   if (effect) {
-    // Красная вспышка
     ctx.fillStyle = '#f00';
     ctx.fillRect(left, top, w, h);
     
-    // Рисуем направленные полосы
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 3;
     
     if (effect.direction === 'left') {
-      // Полосы влево
       for (let i = 0; i < 3; i++) {
         const offset = i * 8;
         ctx.beginPath();
@@ -404,7 +539,6 @@ function drawRaceCar(x, y, color, effect = null) {
         ctx.stroke();
       }
     } else {
-      // Полосы вправо
       for (let i = 0; i < 3; i++) {
         const offset = i * 8;
         ctx.beginPath();
@@ -415,7 +549,6 @@ function drawRaceCar(x, y, color, effect = null) {
       }
     }
     
-    // Добавляем искры
     for (let i = 0; i < 5; i++) {
       const sparkX = effect.direction === 'left' ? left - 10 - Math.random() * 20 : left + w + 10 + Math.random() * 20;
       const sparkY = top + 10 + Math.random() * 20;
@@ -425,23 +558,19 @@ function drawRaceCar(x, y, color, effect = null) {
       ctx.fill();
     }
   } else {
-    // Обычная отрисовка
     ctx.fillStyle = color;
     ctx.fillRect(left, top, w, h);
   }
 
-  // Окно (всегда видно)
   ctx.fillStyle = effect ? '#fff' : '#aaf';
   ctx.fillRect(left + 5, top + 5, w - 10, 12);
 
-  // Колёса
   ctx.fillStyle = '#333';
   ctx.fillRect(left - 2, top + 5, 4, 8);
   ctx.fillRect(left - 2, top + h - 13, 4, 8);
   ctx.fillRect(left + w - 2, top + 5, 4, 8);
   ctx.fillRect(left + w - 2, top + h - 13, 4, 8);
 
-  // Фары (мигают при столкновении)
   ctx.fillStyle = effect ? '#f00' : '#ff0';
   ctx.fillRect(left - 1, top + 15, 2, 5);
   ctx.fillRect(left + w - 1, top + 15, 2, 5);
@@ -450,7 +579,7 @@ function drawRaceCar(x, y, color, effect = null) {
 function raceGameLoop() {
   if (!gameState.gameActive || !isInGame) return;
   
-  // Обновляем эффекты столкновений
+  // Обновляем эффекты
   Object.keys(collisionEffects).forEach(id => {
     collisionEffects[id].flash--;
     if (collisionEffects[id].flash <= 0) {
@@ -459,6 +588,7 @@ function raceGameLoop() {
   });
   
   updateRaceMovement();
+  updateBullets(); // Обновляем пули
   drawRace();
   requestAnimationFrame(raceGameLoop);
 }
@@ -470,7 +600,7 @@ function drawRace() {
   ctx.fillStyle = '#222';
   ctx.fillRect(0, 0, raceCanvas.width, raceCanvas.height);
 
-  // Разметка (динамическая, создаёт иллюзию движения)
+  // Разметка
   ctx.strokeStyle = '#0f0';
   ctx.lineWidth = 2;
   ctx.setLineDash([20, 20]);
@@ -484,9 +614,24 @@ function drawRace() {
   ctx.fillStyle = '#f00';
   gameState.obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h));
 
-  // Игроки (рисуем в порядке от дальних к ближним, чтобы эффекты не перекрывались)
+  // ===== РИСУЕМ ПУЛИ =====
+  bullets.forEach(b => {
+    ctx.fillStyle = '#ff0';
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, 5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Добавляем "хвост" для пули
+    ctx.strokeStyle = '#ff0';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(b.x, b.y);
+    ctx.lineTo(b.x, b.y + 15);
+    ctx.stroke();
+  });
+
+  // Игроки
   const sortedPlayers = [...gameState.players].sort((a, b) => {
-    // Сначала рисуем тех, у кого нет эффектов
     const aHasEffect = collisionEffects[a.id] ? 1 : 0;
     const bHasEffect = collisionEffects[b.id] ? 1 : 0;
     return aHasEffect - bHasEffect;
@@ -501,12 +646,10 @@ function drawRace() {
     const color = `hsl(${p.hue}, 100%, 50%)`;
     drawRaceCar(drawX, raceCanvas.height - 40, color, effect);
 
-    // Ник (с подсветкой при столкновении)
     ctx.fillStyle = effect ? '#ff0' : '#fff';
     ctx.font = effect ? 'bold 12px monospace' : '12px monospace';
     ctx.fillText(p.name.substring(0, 3), drawX - 15, raceCanvas.height - 70);
     
-    // Добавляем стрелочку направления при столкновении
     if (effect) {
       ctx.fillStyle = '#fff';
       ctx.font = '16px monospace';
@@ -514,11 +657,12 @@ function drawRace() {
     }
   });
 
-  // Дополнительная информация о скорости
+  // Информация
   ctx.fillStyle = '#ff0';
   ctx.font = '12px monospace';
   ctx.fillText(`⚡ ${gameState.currentSpeed.toFixed(1)}`, 10, 30);
+  ctx.fillText(`🔫 ${Math.floor((Date.now() - lastShootTime) / 100)}/3`, 10, 50);
 }
 
-// Загружаем имя из профиля при старте
+// Загружаем имя из профиля
 loadProfileName();
