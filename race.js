@@ -1,6 +1,6 @@
 // race.js – клиент для многопользовательской гонки (со стрельбой)
 
-const socket = io('https://race-server.onrender.com', {
+const socket = io('https://race-server-o3u6.onrender.com/', {
   transports: ['websocket'],
   reconnectionAttempts: 5,
   timeout: 10000
@@ -31,7 +31,7 @@ const raceSpeedDisplay = document.getElementById('raceSpeedDisplay');
 const bgMusic = document.getElementById('bgMusic');
 const collisionSound = document.getElementById('collisionSound');
 const crashSound = document.getElementById('crashSound');
-const shootSound = document.getElementById('shootSound'); // Новый звук для стрельбы
+const shootSound = document.getElementById('shootSound'); // Звук для стрельбы
 
 // Состояние игры
 let gameState = { 
@@ -50,11 +50,9 @@ let musicEnabled = true;
 let audioUnlocked = false;
 let leaderboards = { race: [], whac: [], snake: [] };
 
-// ===== НОВЫЕ ПЕРЕМЕННЫЕ ДЛЯ СТРЕЛЬБЫ =====
+// ===== ПЕРЕМЕННЫЕ ДЛЯ СТРЕЛЬБЫ =====
 let bullets = []; // массив пуль { x, y, active, ownerId, id }
 let bulletSpeed = 8;
-let shootCooldown = 0;
-const SHOOT_COOLDOWN_MAX = 15; // кадров между выстрелами
 let lastShootTime = 0;
 const SHOOT_DELAY = 300; // миллисекунд между выстрелами
 
@@ -234,7 +232,7 @@ socket.on('playerMoved', ({ id, x }) => {
   if (p) p.x = x;
 });
 
-// ===== ОБРАБОТКА ПУЛЬ ОТ ДРУГИХ ИГРОКОВ =====
+// ===== ОБРАБОТКА ПУЛЬ =====
 socket.on('bulletFired', ({ x, y, ownerId, bulletId }) => {
   bullets.push({
     id: bulletId,
@@ -249,7 +247,7 @@ socket.on('bulletHit', ({ bulletId, obstacleId }) => {
   // Удаляем пулю
   bullets = bullets.filter(b => b.id !== bulletId);
   
-  // Удаляем препятствие (если есть)
+  // Удаляем препятствие
   gameState.obstacles = gameState.obstacles.filter(o => o.id !== obstacleId);
 });
 
@@ -374,7 +372,7 @@ function shoot() {
   playRaceSound(shootSound);
 }
 
-// Управление с клавиатуры (добавляем пробел)
+// Управление с клавиатуры
 window.addEventListener('keydown', (e) => {
   if (!gameState.gameActive || !isInGame) return;
   
