@@ -1,6 +1,6 @@
-// race.js – клиент для многопользовательской гонки (со стрельбой)
+// race.js – клиент для многопользовательской гонки
 
-const socket = io('https://race-server-o3u6.onrender.com/', {
+const socket = io('https://race-server.onrender.com', {
   transports: ['websocket'],
   reconnectionAttempts: 5,
   timeout: 10000
@@ -31,7 +31,7 @@ const raceSpeedDisplay = document.getElementById('raceSpeedDisplay');
 const bgMusic = document.getElementById('bgMusic');
 const collisionSound = document.getElementById('collisionSound');
 const crashSound = document.getElementById('crashSound');
-const shootSound = document.getElementById('shootSound'); // Звук для стрельбы
+const shootSound = document.getElementById('shootSound');
 
 // Состояние игры
 let gameState = { 
@@ -48,21 +48,21 @@ let hostId = null;
 let isHost = false;
 let musicEnabled = true;
 let audioUnlocked = false;
-let leaderboards = { race: [], whac: [], snake: [] };
+let leaderboards = { race: [], whac: [], snake: [], guess: [] };
 
-// ===== ПЕРЕМЕННЫЕ ДЛЯ СТРЕЛЬБЫ =====
-let bullets = []; // массив пуль { x, y, active, ownerId, id }
+// Переменные для стрельбы
+let bullets = [];
 let bulletSpeed = 8;
 let lastShootTime = 0;
-const SHOOT_DELAY = 300; // миллисекунд между выстрелами
+const SHOOT_DELAY = 300;
 
 // Визуальные эффекты
-let collisionEffects = {}; // { playerId: { flash: 5, direction: 'left/right', strength: 0.5 } }
+let collisionEffects = {};
 
 // Флаги управления
 let leftPressed = false;
 let rightPressed = false;
-let shootPressed = false; // для мобильной кнопки стрельбы
+let shootPressed = false;
 
 // Троттлинг
 let lastMoveTime = 0;
@@ -232,7 +232,7 @@ socket.on('playerMoved', ({ id, x }) => {
   if (p) p.x = x;
 });
 
-// ===== ОБРАБОТКА ПУЛЬ =====
+// Обработка пуль
 socket.on('bulletFired', ({ x, y, ownerId, bulletId }) => {
   bullets.push({
     id: bulletId,
@@ -244,10 +244,7 @@ socket.on('bulletFired', ({ x, y, ownerId, bulletId }) => {
 });
 
 socket.on('bulletHit', ({ bulletId, obstacleId }) => {
-  // Удаляем пулю
   bullets = bullets.filter(b => b.id !== bulletId);
-  
-  // Удаляем препятствие
   gameState.obstacles = gameState.obstacles.filter(o => o.id !== obstacleId);
 });
 
@@ -299,15 +296,22 @@ socket.on('gameStarted', () => {
   gameState.gameActive = true;
   unlockAudio();
   updateMusic();
-  bullets = []; // очищаем пули при старте
+  bullets = [];
   requestAnimationFrame(raceGameLoop);
 });
 
-socket.on('gameOver', ({ winner, score }) => {
+// ===== ИЗМЕНЕНО: показываем очки в сообщении =====
+socket.on('gameOver', ({ winner, score, reason }) => {
   gameState.gameActive = false;
   if (isInGame) {
     updateMusic();
-    alert(`🏆 Победитель: ${winner || 'никто'}!\n💰 Очки: ${score}`);
+    let message = `🏁 Игра окончена!\n💰 Очки: ${score}`;
+    if (winner) {
+      message = `🏆 Победитель: ${winner}!\n💰 Очки: ${score}`;
+    } else if (reason) {
+      message = `📉 Игра окончена: ${reason}\n💰 Очки: ${score}`;
+    }
+    alert(message);
   }
   exitRace();
 });
@@ -338,7 +342,7 @@ if (raceStartBtn) {
   });
 }
 
-// ===== ФУНКЦИЯ СТРЕЛЬБЫ =====
+// Функция стрельбы
 function shoot() {
   if (!gameState.gameActive || !isInGame) return;
   
@@ -347,12 +351,10 @@ function shoot() {
   
   lastShootTime = now;
   
-  // Создаём пулю
   const bulletId = Math.random().toString(36).substring(2, 10);
   const bulletX = myX;
-  const bulletY = raceCanvas.height - 70; // чуть выше машины
+  const bulletY = raceCanvas.height - 70;
   
-  // Добавляем локально
   bullets.push({
     id: bulletId,
     x: bulletX,
@@ -361,14 +363,12 @@ function shoot() {
     active: true
   });
   
-  // Отправляем на сервер
   socket.emit('shoot', {
     x: bulletX,
     y: bulletY,
     bulletId: bulletId
   });
   
-  // Звук выстрела
   playRaceSound(shootSound);
 }
 
@@ -478,19 +478,16 @@ function updateRaceMovement() {
   }
 }
 
-// ===== ОБНОВЛЕНИЕ ПОЛОЖЕНИЯ ПУЛЬ =====
+// Обновление положения пуль
 function updateBullets() {
   if (!gameState.gameActive) return;
   
-  // Двигаем пули вверх
   bullets.forEach(bullet => {
     bullet.y -= bulletSpeed;
   });
   
-  // Удаляем пули, улетевшие за экран
   bullets = bullets.filter(b => b.y > 0);
   
-  // Проверяем попадания в препятствия
   bullets.forEach(bullet => {
     gameState.obstacles.forEach(obstacle => {
       if (bullet.active && 
@@ -501,7 +498,6 @@ function updateBullets() {
         
         bullet.active = false;
         
-        // Отправляем на сервер информацию о попадании
         socket.emit('bulletHit', {
           bulletId: bullet.id,
           obstacleId: obstacle.id
@@ -510,7 +506,6 @@ function updateBullets() {
     });
   });
   
-  // Удаляем неактивные пули
   bullets = bullets.filter(b => b.active);
 }
 
@@ -577,7 +572,6 @@ function drawRaceCar(x, y, color, effect = null) {
 function raceGameLoop() {
   if (!gameState.gameActive || !isInGame) return;
   
-  // Обновляем эффекты
   Object.keys(collisionEffects).forEach(id => {
     collisionEffects[id].flash--;
     if (collisionEffects[id].flash <= 0) {
@@ -586,7 +580,7 @@ function raceGameLoop() {
   });
   
   updateRaceMovement();
-  updateBullets(); // Обновляем пули
+  updateBullets();
   drawRace();
   requestAnimationFrame(raceGameLoop);
 }
@@ -594,11 +588,9 @@ function raceGameLoop() {
 function drawRace() {
   ctx.clearRect(0, 0, raceCanvas.width, raceCanvas.height);
 
-  // Дорога
   ctx.fillStyle = '#222';
   ctx.fillRect(0, 0, raceCanvas.width, raceCanvas.height);
 
-  // Разметка
   ctx.strokeStyle = '#0f0';
   ctx.lineWidth = 2;
   ctx.setLineDash([20, 20]);
@@ -608,18 +600,15 @@ function drawRace() {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Препятствия
   ctx.fillStyle = '#f00';
   gameState.obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h));
 
-  // ===== РИСУЕМ ПУЛИ =====
   bullets.forEach(b => {
     ctx.fillStyle = '#ff0';
     ctx.beginPath();
     ctx.arc(b.x, b.y, 5, 0, Math.PI * 2);
     ctx.fill();
     
-    // Добавляем "хвост" для пули
     ctx.strokeStyle = '#ff0';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -628,7 +617,6 @@ function drawRace() {
     ctx.stroke();
   });
 
-  // Игроки
   const sortedPlayers = [...gameState.players].sort((a, b) => {
     const aHasEffect = collisionEffects[a.id] ? 1 : 0;
     const bHasEffect = collisionEffects[b.id] ? 1 : 0;
@@ -655,12 +643,10 @@ function drawRace() {
     }
   });
 
-  // Информация
   ctx.fillStyle = '#ff0';
   ctx.font = '12px monospace';
   ctx.fillText(`⚡ ${gameState.currentSpeed.toFixed(1)}`, 10, 30);
   ctx.fillText(`🔫 ${Math.floor((Date.now() - lastShootTime) / 100)}/3`, 10, 50);
 }
 
-// Загружаем имя из профиля
 loadProfileName();
