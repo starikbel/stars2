@@ -307,7 +307,7 @@
         @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         .modal-content {
             background: var(--bg2); border: 7px solid var(--accent); border-radius: 22px;
-            padding: 25px 30px; max-width: 600px; width: 92%; max-height: 90vh; overflow-y: auto;
+            padding: 25px 30px; max-width: 700px; width: 92%; max-height: 90vh; overflow-y: auto;
             text-align: center; box-shadow: 0 0 70px var(--accent);
         }
         .modal-header {
@@ -970,9 +970,9 @@
         <button id="stopTimerBtn">Стоп</button>
     </div>
 
-    <!-- МОДАЛЬНОЕ ОКНО АДМИНКИ -->
+    <!-- МОДАЛЬНОЕ ОКНО АДМИНКИ (УЛУЧШЕННАЯ) -->
     <div id="adminModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header">
                 <h2>🔐 Админ-панель</h2>
                 <button id="closeAdminBtn">✕</button>
@@ -983,10 +983,47 @@
                 <button id="adminLoginBtn">Войти</button>
             </div>
             <div id="adminPanel" style="display:none;">
-                <h3>Пользователи (из localStorage)</h3>
-                <div id="adminUserList"></div>
-                <button id="adminResetAll">Сбросить ВСЕ данные</button>
-                <button id="adminClearStats" style="margin-top:10px;">Очистить всю статистику (сервер)</button>
+                <div class="tab-bar">
+                    <div class="tab active" data-admin="users">👥 Пользователи</div>
+                    <div class="tab" data-admin="banned">🚫 Бан-лист</div>
+                    <div class="tab" data-admin="logs">📋 Логи</div>
+                    <div class="tab" data-admin="settings">⚙️ Настройки</div>
+                </div>
+                
+                <!-- Вкладка Пользователи -->
+                <div id="adminUsers" style="display:block;">
+                    <h3>Текущие пользователи</h3>
+                    <div id="adminUserList"></div>
+                    <button id="adminResetAll">Сбросить ВСЕ данные</button>
+                    <button id="adminClearStats">Очистить всю статистику (сервер)</button>
+                </div>
+                
+                <!-- Вкладка Бан-лист -->
+                <div id="adminBanned" style="display:none;">
+                    <h3>Забаненные пользователи</h3>
+                    <div id="adminBannedList"></div>
+                </div>
+                
+                <!-- Вкладка Логи -->
+                <div id="adminLogs" style="display:none;">
+                    <h3>Логи действий</h3>
+                    <div id="adminLogEntries" style="max-height: 300px; overflow-y: auto; text-align: left;"></div>
+                    <button id="adminRefreshLogs">Обновить логи</button>
+                </div>
+                
+                <!-- Вкладка Настройки -->
+                <div id="adminSettings" style="display:none;">
+                    <h3>Настройки</h3>
+                    <div>
+                        <label>Максимум игроков: <input type="number" id="adminMaxPlayers" value="17" min="2" max="30"></label>
+                        <button id="adminApplySettings">Применить</button>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <h4>Фильтр плохих слов</h4>
+                        <textarea id="adminBadWords" rows="5" style="width: 100%;"></textarea>
+                        <button id="adminSaveBadWords">Сохранить</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1295,6 +1332,34 @@
                     }
                 });
 
+                // Табы в админке
+                document.querySelectorAll('[data-admin]').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        const adminTab = e.target.dataset.admin;
+                        document.querySelectorAll('[data-admin]').forEach(t => t.classList.remove('active'));
+                        e.target.classList.add('active');
+                        
+                        document.getElementById('adminUsers').style.display = adminTab === 'users' ? 'block' : 'none';
+                        document.getElementById('adminBanned').style.display = adminTab === 'banned' ? 'block' : 'none';
+                        document.getElementById('adminLogs').style.display = adminTab === 'logs' ? 'block' : 'none';
+                        document.getElementById('adminSettings').style.display = adminTab === 'settings' ? 'block' : 'none';
+                        
+                        if (adminTab === 'logs') refreshAdminLogs();
+                        if (adminTab === 'banned') refreshBannedList();
+                    });
+                });
+
+                document.getElementById('adminRefreshLogs')?.addEventListener('click', refreshAdminLogs);
+                document.getElementById('adminSaveBadWords')?.addEventListener('click', () => {
+                    const words = document.getElementById('adminBadWords').value.split('\n').filter(w => w.trim());
+                    alert('Список сохранён локально (серверная часть требует доработки)');
+                });
+
+                document.getElementById('adminApplySettings')?.addEventListener('click', () => {
+                    const maxPlayers = document.getElementById('adminMaxPlayers').value;
+                    alert(`Максимум игроков установлен: ${maxPlayers}`);
+                });
+
                 createLeaves();
                 createFireflies();
                 changeTheme();
@@ -1303,6 +1368,7 @@
                 checkAchievement('spinMaster');
                 checkAchievement('bugHunter');
                 checkAchievement('snakeCharmer');
+                checkAchievement('guessMaster');
                 checkAchievement('themeMaster');
             }
 
@@ -1451,7 +1517,6 @@
                         playSound('final');
                         alert('Время вышло!');
                     } else {
-                        // Тихонько пикаем каждую секунду
                         playSound('tick');
                     }
                 }, 1000);
@@ -1729,10 +1794,9 @@
                     playSound('final');
                     
                     // Сохраняем результат в таблицу лидеров
-                    const score = Math.max(10, 100 - attempts * 5); // Чем меньше попыток, тем больше очков
+                    const score = Math.max(10, 100 - attempts * 5);
                     addLeaderboard('guess', score);
                     
-                    // Обновляем лучший результат
                     if (score > app.profile.guessHigh) {
                         app.profile.guessHigh = score;
                         localStorage.setItem('guessHighScore', score);
@@ -1879,10 +1943,12 @@
             function renderAdminUserList() {
                 const container = document.getElementById('adminUserList');
                 container.innerHTML = '';
+                
+                // Текущий пользователь
                 const userDiv = document.createElement('div');
                 userDiv.className = 'admin-user';
                 userDiv.innerHTML = `
-                    <strong>Текущий пользователь</strong><br>
+                    <strong>👤 Текущий пользователь</strong><br>
                     Имя: ${app.profile.name}<br>
                     Вращений: ${app.profile.spins}<br>
                     Бей баги: ${app.profile.bugHigh}<br>
@@ -1893,6 +1959,27 @@
                     <button onclick="localStorage.removeItem('profileName'); alert('Профиль сброшен'); location.reload();">Сбросить профиль</button>
                 `;
                 container.appendChild(userDiv);
+                
+                // Список игроков в комнате (если есть)
+                if (gameState && gameState.players && gameState.players.length > 0) {
+                    const playersDiv = document.createElement('div');
+                    playersDiv.className = 'admin-user';
+                    playersDiv.innerHTML = '<strong>🎮 Игроки в комнате:</strong><br>';
+                    gameState.players.forEach(p => {
+                        playersDiv.innerHTML += `
+                            <div style="margin:10px 0; border-left:2px solid #0f0; padding-left:10px;">
+                                <span style="color:hsl(${p.hue},100%,50%)">${p.name}</span> 
+                                ${p.id === hostId ? '👑' : ''} 
+                                ${p.active ? '✅' : '💀'}
+                                <button onclick="kickPlayer('${p.id}')">Кик</button>
+                                <button onclick="banPlayer('${p.id}')">Бан</button>
+                                <button onclick="transferHost('${p.id}')">Сделать хостом</button>
+                            </div>
+                        `;
+                    });
+                    container.appendChild(playersDiv);
+                }
+                
                 const resetLeadersBtn = document.createElement('button');
                 resetLeadersBtn.textContent = 'Сбросить таблицы лидеров (локально)';
                 resetLeadersBtn.onclick = () => {
@@ -1905,6 +1992,75 @@
                 };
                 container.appendChild(resetLeadersBtn);
             }
+
+            function kickPlayer(id) {
+                const reason = prompt('Причина кика (необязательно):');
+                mainSocket.emit('adminKick', { 
+                    targetId: id, 
+                    reason: reason || undefined, 
+                    adminName: app.profile.name 
+                });
+            }
+
+            function banPlayer(id) {
+                const reason = prompt('Причина бана:');
+                if (reason) {
+                    mainSocket.emit('adminBan', { 
+                        targetId: id, 
+                        reason: reason, 
+                        adminName: app.profile.name 
+                    });
+                }
+            }
+
+            function transferHost(id) {
+                if (confirm('Передать права хоста этому игроку?')) {
+                    mainSocket.emit('adminTransferHost', { 
+                        targetId: id, 
+                        adminName: app.profile.name 
+                    });
+                }
+            }
+
+            function refreshAdminLogs() {
+                mainSocket.emit('adminGetLogs', { adminName: app.profile.name });
+            }
+
+            function refreshBannedList() {
+                mainSocket.emit('adminGetBanned', { adminName: app.profile.name });
+            }
+
+            mainSocket.on('adminLogs', (logs) => {
+                const container = document.getElementById('adminLogEntries');
+                container.innerHTML = logs.map(log => 
+                    `<div style="border-bottom:1px solid #333; padding:5px;">
+                        <span style="color:#888;">${new Date(log.time).toLocaleTimeString()}</span> 
+                        <span style="color:#0f0;">${log.admin}</span> 
+                        <span>${log.action}</span> 
+                        <span style="color:#ff0;">${log.target}</span>
+                        ${log.reason ? `<span style="color:#f00;"> (${log.reason})</span>` : ''}
+                    </div>`
+                ).join('') || 'Логов нет';
+            });
+
+            mainSocket.on('adminBannedList', (banned) => {
+                const container = document.getElementById('adminBannedList');
+                container.innerHTML = banned.map(b => 
+                    `<div style="border-bottom:1px solid #333; padding:10px;">
+                        <div><strong>ID:</strong> ${b.id.substring(0,8)}...</div>
+                        <div><strong>Имя:</strong> ${b.name || 'Неизвестно'}</div>
+                        <div><strong>Причина:</strong> ${b.reason || 'Без причины'}</div>
+                        <div><strong>Админ:</strong> ${b.admin || 'SYSTEM'}</div>
+                        <div><strong>Время:</strong> ${new Date(b.time).toLocaleString()}</div>
+                        <button onclick="unbanUser('${b.id}')">Разбанить</button>
+                    </div>
+                `).join('') || 'Нет забаненных пользователей';
+            });
+
+            window.unbanUser = function(id) {
+                mainSocket.emit('adminUnban', { targetId: id, adminName: app.profile.name });
+                setTimeout(refreshBannedList, 500);
+            };
 
             function adminResetAll() {
                 if (confirm('Сбросить ВСЕ данные (всех пользователей)?')) {
