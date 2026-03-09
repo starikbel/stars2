@@ -829,7 +829,7 @@
             <div id="guessContainer" class="game-container" style="display:none;">
                 <div>Загадано число от 1 до 100</div>
                 <div>Попыток: <span id="guessAttempts">0</span></div>
-                <input type="number" id="guessInput" min="1" max="100" placeholder="Ваш вариант">
+                <input type="number" id="guessInput" min="1" max="100" placeholder="Ваш вариант" style="width: 200px; padding: 15px; font-size: 18px; margin: 10px auto; display: block;">
                 <button id="guessSubmit" class="main-btn" style="font-size:1.2rem; padding:8px 20px;">Проверить</button>
                 <div id="guessMessage"></div>
                 <button id="guessNewGame" class="main-btn" style="font-size:1.2rem; padding:8px 20px;">Новая игра</button>
@@ -840,10 +840,12 @@
                 <div class="tab-bar">
                     <div class="tab active" data-leader="whac">🐛 Бей баги</div>
                     <div class="tab" data-leader="snake">🐍 Змейка</div>
+                    <div class="tab" data-leader="guess">🔢 Угадай число</div>
                     <div class="tab" data-leader="race">🏁 Гонка</div>
                 </div>
                 <div id="leaderboardWhac" class="leaderboard-list"></div>
                 <div id="leaderboardSnake" class="leaderboard-list" style="display:none;"></div>
+                <div id="leaderboardGuess" class="leaderboard-list" style="display:none;"></div>
                 <div id="leaderboardRace" class="leaderboard-list" style="display:none;"></div>
             </div>
 
@@ -903,6 +905,7 @@
                 <p>Выполнено заданий: <span id="statTasksDone">0</span></p>
                 <p>Лучший счёт (Бей баги): <span id="statBugHigh">0</span></p>
                 <p>Лучший счёт (Змейка): <span id="statSnakeHigh">0</span></p>
+                <p>Лучший счёт (Угадай число): <span id="statGuessHigh">0</span></p>
                 <p>Лучший счёт (Гонка): <span id="statRaceHigh">0</span></p>
                 <button id="resetAllData">Сбросить все данные</button>
             </div>
@@ -951,9 +954,12 @@
         </div>
     </div>
 
-    <!-- ПАНЕЛЬ ТАЙМЕРА -->
+    <!-- ПАНЕЛЬ ТАЙМЕРА (исправленная) -->
     <div id="timerPanel" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--bg2); border:3px solid var(--accent); border-radius:15px; padding:15px; z-index:150;">
-        <div>Таймер задания</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div>Таймер задания</div>
+            <button id="closeTimerPanelBtn" style="background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer;">✕</button>
+        </div>
         <div class="timer-display" id="taskTimerDisplay">05:00</div>
         <select id="timerMinutes">
             <option value="5">5 мин</option>
@@ -962,7 +968,6 @@
         </select>
         <button id="startTimerBtn">Старт</button>
         <button id="stopTimerBtn">Стоп</button>
-        <button id="closeTimerPanel">✕</button>
     </div>
 
     <!-- МОДАЛЬНОЕ ОКНО АДМИНКИ -->
@@ -1045,6 +1050,7 @@
                     tasksDone: parseInt(localStorage.getItem('statTasksDone') || 0),
                     bugHigh: parseInt(localStorage.getItem('bugBusterHighScore') || 0),
                     snakeHigh: parseInt(localStorage.getItem('snakeHighScore') || 0),
+                    guessHigh: parseInt(localStorage.getItem('guessHighScore') || 0),
                     raceHigh: parseInt(localStorage.getItem('raceHighScore') || 0),
                     achievements: JSON.parse(localStorage.getItem('achievements') || '[]'),
                     diary: JSON.parse(localStorage.getItem('diary') || '[]')
@@ -1052,6 +1058,7 @@
                 leaders: {
                     whac: JSON.parse(localStorage.getItem('leaderboardWhac') || '[]'),
                     snake: JSON.parse(localStorage.getItem('leaderboardSnake') || '[]'),
+                    guess: JSON.parse(localStorage.getItem('leaderboardGuess') || '[]'),
                     race: JSON.parse(localStorage.getItem('leaderboardRace') || '[]')
                 },
                 timerInterval: null,
@@ -1075,7 +1082,7 @@
             };
 
             // Глобальный сокет для отправки результатов в PostgreSQL
-            const mainSocket = io('https://race-server-o3u6.onrender.com/', { 
+            const mainSocket = io('https://race-server.onrender.com', { 
                 transports: ['websocket'],
                 reconnectionAttempts: 3,
                 timeout: 10000
@@ -1108,6 +1115,14 @@
                     app.leaders.snake = data.snake;
                     renderLeaderboard('snake');
                 }
+                if (data.guess) {
+                    app.leaders.guess = data.guess;
+                    renderLeaderboard('guess');
+                    if (data.guess.length > 0) {
+                        app.profile.guessHigh = data.guess[0].score;
+                        document.getElementById('statGuessHigh').textContent = app.profile.guessHigh;
+                    }
+                }
             });
 
             function init() {
@@ -1128,6 +1143,7 @@
                 renderAchievements();
                 renderLeaderboard('whac');
                 renderLeaderboard('snake');
+                renderLeaderboard('guess');
                 renderLeaderboard('race');
                 renderDiary();
 
@@ -1174,7 +1190,7 @@
                 document.getElementById('profileBtn').addEventListener('click', () => openModal('profileModal'));
                 document.getElementById('gameTrigger').addEventListener('click', () => openModal('gameModal'));
 
-                document.querySelectorAll('.modal-header button, #closeProfileBtn, #closeMarathonBtn, #closeTimerPanel, #closeAdminBtn').forEach(btn => {
+                document.querySelectorAll('.modal-header button, #closeProfileBtn, #closeMarathonBtn, #closeAdminBtn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const modal = e.target.closest('.modal');
                         if (modal) closeModal(modal.id);
@@ -1194,6 +1210,7 @@
                         const leader = e.target.dataset.leader;
                         document.getElementById('leaderboardWhac').style.display = leader === 'whac' ? 'block' : 'none';
                         document.getElementById('leaderboardSnake').style.display = leader === 'snake' ? 'block' : 'none';
+                        document.getElementById('leaderboardGuess').style.display = leader === 'guess' ? 'block' : 'none';
                         document.getElementById('leaderboardRace').style.display = leader === 'race' ? 'block' : 'none';
                         document.querySelectorAll('[data-leader]').forEach(t => t.classList.remove('active'));
                         e.target.classList.add('active');
@@ -1239,6 +1256,11 @@
 
                 document.getElementById('startTimerBtn').addEventListener('click', startTaskTimer);
                 document.getElementById('stopTimerBtn').addEventListener('click', stopTaskTimer);
+                
+                // Исправленный обработчик для кнопки закрытия таймера
+                document.getElementById('closeTimerPanelBtn').addEventListener('click', () => {
+                    document.getElementById('timerPanel').style.display = 'none';
+                });
 
                 document.getElementById('marathonStart').addEventListener('click', startMarathon);
                 document.getElementById('marathonDone').addEventListener('click', marathonDone);
@@ -1369,7 +1391,7 @@
                         app.spinCount++;
                         app.profile.spins++;
                         
-                        // ✅ Сохраняем прокрученное задание в дневник
+                        // Сохраняем прокрученное задание в дневник
                         if (app.currentTask) {
                             addDiaryEntry(app.currentTask, 'Прокрутка');
                         }
@@ -1428,6 +1450,9 @@
                         stopTaskTimer();
                         playSound('final');
                         alert('Время вышло!');
+                    } else {
+                        // Тихонько пикаем каждую секунду
+                        playSound('tick');
                     }
                 }, 1000);
             }
@@ -1448,6 +1473,7 @@
                 { id: 'spinMaster', name: 'Мастер вращений', desc: 'Крутануть 100 раз' },
                 { id: 'bugHunter', name: 'Охотник на багов', desc: 'Набрать 500 очков в игре' },
                 { id: 'snakeCharmer', name: 'Заклинатель змей', desc: 'Съесть 50 яблок (500 очков)' },
+                { id: 'guessMaster', name: 'Угадайка', desc: 'Угадать число с 3 попыток' },
                 { id: 'themeMaster', name: 'Коллекционер', desc: 'Переключить все темы' }
             ];
 
@@ -1466,6 +1492,9 @@
                         break;
                     case 'snakeCharmer':
                         if (app.profile.snakeHigh >= 500) unlock = true;
+                        break;
+                    case 'guessMaster':
+                        if (app.profile.guessHigh >= 50) unlock = true;
                         break;
                     case 'themeMaster':
                         const themes = ['neon','forest','dusk','ocean'];
@@ -1689,6 +1718,7 @@
                 document.getElementById('guessMessage').innerHTML = '';
                 document.getElementById('guessInput').value = '';
             }
+            
             function guessSubmit() {
                 const val = parseInt(document.getElementById('guessInput').value);
                 if (isNaN(val) || val < 1 || val > 100) return;
@@ -1697,6 +1727,20 @@
                 if (val === secretNumber) {
                     document.getElementById('guessMessage').innerHTML = '🎉 Правильно! Вы угадали!';
                     playSound('final');
+                    
+                    // Сохраняем результат в таблицу лидеров
+                    const score = Math.max(10, 100 - attempts * 5); // Чем меньше попыток, тем больше очков
+                    addLeaderboard('guess', score);
+                    
+                    // Обновляем лучший результат
+                    if (score > app.profile.guessHigh) {
+                        app.profile.guessHigh = score;
+                        localStorage.setItem('guessHighScore', score);
+                        document.getElementById('statGuessHigh').textContent = score;
+                    }
+                    
+                    checkAchievement('guessMaster');
+                    
                 } else if (val < secretNumber) {
                     document.getElementById('guessMessage').innerHTML = '⬆️ Загаданное число больше';
                 } else {
@@ -1716,6 +1760,7 @@
                 document.getElementById('statTasksDone').textContent = app.profile.tasksDone;
                 document.getElementById('statBugHigh').textContent = app.profile.bugHigh;
                 document.getElementById('statSnakeHigh').textContent = app.profile.snakeHigh;
+                document.getElementById('statGuessHigh').textContent = app.profile.guessHigh;
                 document.getElementById('statRaceHigh').textContent = app.profile.raceHigh;
             }
 
@@ -1842,6 +1887,7 @@
                     Вращений: ${app.profile.spins}<br>
                     Бей баги: ${app.profile.bugHigh}<br>
                     Змейка: ${app.profile.snakeHigh}<br>
+                    Угадай число: ${app.profile.guessHigh}<br>
                     Гонка: ${app.profile.raceHigh}<br>
                     Достижений: ${app.profile.achievements.length}<br>
                     <button onclick="localStorage.removeItem('profileName'); alert('Профиль сброшен'); location.reload();">Сбросить профиль</button>
@@ -1852,6 +1898,7 @@
                 resetLeadersBtn.onclick = () => {
                     localStorage.removeItem('leaderboardWhac');
                     localStorage.removeItem('leaderboardSnake');
+                    localStorage.removeItem('leaderboardGuess');
                     localStorage.removeItem('leaderboardRace');
                     alert('Таблицы лидеров очищены');
                     location.reload();
