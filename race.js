@@ -1,10 +1,16 @@
 // race.js – клиент для многопользовательской гонки
+console.log('🚦 race.js загружен');
 
-const socket = io('https://race-server-o3u6.onrender.com', {
+// === ВАШ НОВЫЙ АДРЕС СЕРВЕРА ===
+const SERVER_URL = 'https://race-server-o3u6.onrender.com';
+
+const socket = io(SERVER_URL, {
   transports: ['websocket'],
   reconnectionAttempts: 5,
   timeout: 10000
 });
+
+console.log('🔄 Подключаюсь к серверу:', SERVER_URL);
 
 // DOM элементы
 const raceLobby = document.getElementById('raceLobby');
@@ -62,7 +68,6 @@ let collisionEffects = {};
 // Флаги управления
 let leftPressed = false;
 let rightPressed = false;
-let shootPressed = false;
 
 // Троттлинг
 let lastMoveTime = 0;
@@ -139,7 +144,6 @@ function exitRace() {
   ctx.clearRect(0, 0, raceCanvas.width, raceCanvas.height);
   leftPressed = false;
   rightPressed = false;
-  shootPressed = false;
   bullets = [];
   myId = null;
 }
@@ -300,7 +304,6 @@ socket.on('gameStarted', () => {
   requestAnimationFrame(raceGameLoop);
 });
 
-// ===== ИЗМЕНЕНО: показываем очки в сообщении =====
 socket.on('gameOver', ({ winner, score, reason }) => {
   gameState.gameActive = false;
   if (isInGame) {
