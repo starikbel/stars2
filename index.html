@@ -1119,7 +1119,7 @@
             };
 
             // Глобальный сокет для отправки результатов в PostgreSQL
-            const mainSocket = io('https://race-server-o3u6.onrender.com', { 
+            const mainSocket = io('race-server.railway.internal', { 
                 transports: ['websocket'],
                 reconnectionAttempts: 3,
                 timeout: 10000
