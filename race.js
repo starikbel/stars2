@@ -2,7 +2,7 @@
 console.log('🚦 race.js загружен');
 
 // === ВАШ НОВЫЙ АДРЕС СЕРВЕРА ===
-const SERVER_URL = 'race-server.railway.internal';
+const SERVER_URL = 'race-server-production.up.railway.app';
 
 const socket = io(SERVER_URL, {
   transports: ['websocket'],
