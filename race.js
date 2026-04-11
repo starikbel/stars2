@@ -2,7 +2,7 @@
 console.log('🚦 race.js загружен');
 
 // === ВАШ НОВЫЙ АДРЕС СЕРВЕРА ===
-const SERVER_URL = 'https://race-server-o3u6.onrender.com';
+const SERVER_URL = 'race-server.railway.internal';
 
 const socket = io(SERVER_URL, {
   transports: ['websocket'],
