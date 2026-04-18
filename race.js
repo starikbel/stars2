@@ -2,7 +2,7 @@
 console.log('🚦 race.js загружен');
 
 // === ВАШ НОВЫЙ АДРЕС СЕРВЕРА ===
-const SERVER_URL = 'http://87.106.155.7:11347/';
+const SERVER_URL = 'https://47cf6dfc-e0ca-473a-9ed4-e19a08a9be46-00-1o0g47yzdikzh.kirk.replit.dev/';
 
 const socket = io(SERVER_URL, {
   transports: ['websocket'],
