@@ -1,16 +1,11 @@
-// race.js – клиент для многопользовательской гонки
-console.log('🚦 race.js загружен');
+// race.js – клиент для многопользовательской гонки (с синхронизированными столкновениями)
 
-// === ВАШ НОВЫЙ АДРЕС СЕРВЕРА ===
-const SERVER_URL = 'https://47cf6dfc-e0ca-473a-9ed4-e19a08a9be46-00-1o0g47yzdikzh.kirk.replit.dev/';
-
+const SERVER_URL = 'https://47cf6dfc-e0ca-473a-9ed4-e19a08a9be46-00-1o0g47yzdikzh.kirk.replit.dev';
 const socket = io(SERVER_URL, {
   transports: ['websocket'],
   reconnectionAttempts: 5,
   timeout: 10000
 });
-
-console.log('🔄 Подключаюсь к серверу:', SERVER_URL);
 
 // DOM элементы
 const raceLobby = document.getElementById('raceLobby');
@@ -39,7 +34,7 @@ const collisionSound = document.getElementById('collisionSound');
 const crashSound = document.getElementById('crashSound');
 const shootSound = document.getElementById('shootSound');
 
-// Состояние игры
+// Состояние
 let gameState = { 
   players: [], 
   obstacles: [], 
@@ -62,8 +57,8 @@ let bulletSpeed = 8;
 let lastShootTime = 0;
 const SHOOT_DELAY = 300;
 
-// Визуальные эффекты
-let collisionEffects = {};
+// Визуальные эффекты столкновений
+let collisionEffects = {}; // { playerId: { flash: 8, direction: 'left'/'right', strength: 0.5 } }
 
 // Флаги управления
 let leftPressed = false;
@@ -72,6 +67,8 @@ let rightPressed = false;
 // Троттлинг
 let lastMoveTime = 0;
 const MOVE_THROTTLE = 50;
+
+let isInGame = false;
 
 // Загрузка имени из профиля
 function loadProfileName() {
@@ -102,7 +99,6 @@ function updateMusic() {
     }
     return;
   }
-  
   if (musicEnabled && gameState.gameActive && bgMusic) {
     bgMusic.play().catch(e => console.log('Не удалось запустить музыку:', e));
   } else if (bgMusic) {
@@ -119,20 +115,14 @@ if (raceToggleMusic) {
   });
 }
 
-// Безопасное воспроизведение звуков
 function playRaceSound(sound) {
   if (!musicEnabled || !sound || !isInGame) return;
   sound.currentTime = 0;
   sound.play().catch(e => console.log('Ошибка звука:', e));
 }
 
-let isInGame = false;
-
-// Выход из игры
 function exitRace() {
-  if (myId) {
-    socket.emit('leave');
-  }
+  if (myId) socket.emit('leave');
   isInGame = false;
   if (bgMusic) {
     bgMusic.pause();
@@ -148,37 +138,27 @@ function exitRace() {
   myId = null;
 }
 
-if (closeGameBtn) {
-  closeGameBtn.addEventListener('click', exitRace);
-}
+if (closeGameBtn) closeGameBtn.addEventListener('click', exitRace);
+if (raceExitBtn) raceExitBtn.addEventListener('click', exitRace);
 
-if (raceExitBtn) {
-  raceExitBtn.addEventListener('click', exitRace);
-}
-
-// Обновление таблицы лидеров
 function updateLeaderboardDisplay() {
   if (!racePlayersList) return;
   let html = '<h4>Игроки в комнате:</h4>';
   gameState.players.forEach(p => {
     html += `<div>${p.name} ${p.id === hostId ? '👑' : ''} ${p.active ? '' : '💀'}</div>`;
   });
-  
   if (leaderboards.race && leaderboards.race.length > 0) {
     html += '<h4 style="margin-top:15px;">🏆 Лучшие гонщики:</h4>';
     leaderboards.race.slice(0, 5).forEach((entry, i) => {
       html += `<div>${i+1}. ${entry.name} — ${entry.score} очков</div>`;
     });
   }
-  
   if (raceSpeedDisplay && gameState.gameActive) {
     html += `<div style="margin-top:10px; color:#ff0;">⚡ Скорость: ${gameState.currentSpeed.toFixed(1)}</div>`;
   }
-  
   racePlayersList.innerHTML = html;
 }
 
-// Сокет-обработчики
 socket.on('connect', () => console.log('✅ race connect', socket.id));
 socket.on('disconnect', () => console.log('❌ race disconnect'));
 socket.on('error', (msg) => { console.error('❌ race error:', msg); alert(msg); });
@@ -206,10 +186,8 @@ socket.on('init', (data) => {
   hostId = data.hostId;
   isHost = (hostId === myId);
   isInGame = true;
-
   const me = gameState.players.find(p => p.id === myId);
   if (me) myX = me.x;
-
   raceLobby.style.display = 'block';
   raceGameArea.style.display = 'none';
   updateLeaderboardDisplay();
@@ -236,15 +214,8 @@ socket.on('playerMoved', ({ id, x }) => {
   if (p) p.x = x;
 });
 
-// Обработка пуль
 socket.on('bulletFired', ({ x, y, ownerId, bulletId }) => {
-  bullets.push({
-    id: bulletId,
-    x: x,
-    y: y,
-    ownerId: ownerId,
-    active: true
-  });
+  bullets.push({ id: bulletId, x, y, ownerId, active: true });
 });
 
 socket.on('bulletHit', ({ bulletId, obstacleId }) => {
@@ -252,25 +223,22 @@ socket.on('bulletHit', ({ bulletId, obstacleId }) => {
   gameState.obstacles = gameState.obstacles.filter(o => o.id !== obstacleId);
 });
 
+// ===== ОБРАБОТКА СТОЛКНОВЕНИЙ (синхронизированная) =====
 socket.on('playerCollision', ({ id1, id2, force }) => {
   const p1 = gameState.players.find(p => p.id === id1);
   const p2 = gameState.players.find(p => p.id === id2);
-  
   if (p1 && p2) {
     const direction = p1.x < p2.x ? 'right' : 'left';
-    
     collisionEffects[id1] = {
-      flash: 12,
+      flash: 10,
       direction: direction === 'right' ? 'right' : 'left',
       strength: Math.min(force / 10, 1)
     };
-    
     collisionEffects[id2] = {
-      flash: 12,
+      flash: 10,
       direction: direction === 'right' ? 'left' : 'right',
       strength: Math.min(force / 10, 1)
     };
-    
     playRaceSound(collisionSound);
   }
 });
@@ -309,17 +277,13 @@ socket.on('gameOver', ({ winner, score, reason }) => {
   if (isInGame) {
     updateMusic();
     let message = `🏁 Игра окончена!\n💰 Очки: ${score}`;
-    if (winner) {
-      message = `🏆 Победитель: ${winner}!\n💰 Очки: ${score}`;
-    } else if (reason) {
-      message = `📉 Игра окончена: ${reason}\n💰 Очки: ${score}`;
-    }
+    if (winner) message = `🏆 Победитель: ${winner}!\n💰 Очки: ${score}`;
+    else if (reason) message = `📉 Игра окончена: ${reason}\n💰 Очки: ${score}`;
     alert(message);
   }
   exitRace();
 });
 
-// Интерфейс лобби
 if (raceJoinBtn) {
   raceJoinBtn.addEventListener('click', () => {
     const name = racePlayerName.value.trim() || 'Гонщик';
@@ -328,7 +292,6 @@ if (raceJoinBtn) {
     unlockAudio();
   });
 }
-
 if (raceAdminJoinBtn) {
   raceAdminJoinBtn.addEventListener('click', () => {
     const name = racePlayerName.value.trim() || 'Админ';
@@ -337,7 +300,6 @@ if (raceAdminJoinBtn) {
     unlockAudio();
   });
 }
-
 if (raceStartBtn) {
   raceStartBtn.addEventListener('click', () => {
     socket.emit('startGame');
@@ -345,100 +307,48 @@ if (raceStartBtn) {
   });
 }
 
-// Функция стрельбы
 function shoot() {
   if (!gameState.gameActive || !isInGame) return;
-  
   const now = Date.now();
   if (now - lastShootTime < SHOOT_DELAY) return;
-  
   lastShootTime = now;
-  
   const bulletId = Math.random().toString(36).substring(2, 10);
   const bulletX = myX;
   const bulletY = raceCanvas.height - 70;
-  
-  bullets.push({
-    id: bulletId,
-    x: bulletX,
-    y: bulletY,
-    ownerId: myId,
-    active: true
-  });
-  
-  socket.emit('shoot', {
-    x: bulletX,
-    y: bulletY,
-    bulletId: bulletId
-  });
-  
+  bullets.push({ id: bulletId, x: bulletX, y: bulletY, ownerId: myId, active: true });
+  socket.emit('shoot', { x: bulletX, y: bulletY, bulletId });
   playRaceSound(shootSound);
 }
 
-// Управление с клавиатуры
 window.addEventListener('keydown', (e) => {
   if (!gameState.gameActive || !isInGame) return;
-  
-  switch(e.key) {
-    case 'a':
-    case 'ArrowLeft':
-      leftPressed = true;
-      e.preventDefault();
-      break;
-    case 'd':
-    case 'ArrowRight':
-      rightPressed = true;
-      e.preventDefault();
-      break;
-    case ' ':
-    case 'Space':
-      shoot();
-      e.preventDefault();
-      break;
+  if (e.key === 'a' || e.key === 'ArrowLeft') {
+    leftPressed = true;
+    e.preventDefault();
+  } else if (e.key === 'd' || e.key === 'ArrowRight') {
+    rightPressed = true;
+    e.preventDefault();
+  } else if (e.key === ' ' || e.key === 'Space') {
+    shoot();
+    e.preventDefault();
   }
 });
-
 window.addEventListener('keyup', (e) => {
-  switch(e.key) {
-    case 'a':
-    case 'ArrowLeft':
-      leftPressed = false;
-      break;
-    case 'd':
-    case 'ArrowRight':
-      rightPressed = false;
-      break;
-  }
+  if (e.key === 'a' || e.key === 'ArrowLeft') leftPressed = false;
+  if (e.key === 'd' || e.key === 'ArrowRight') rightPressed = false;
 });
 
-// Мобильные кнопки
 function handleTouchStart(e, action) {
   e.preventDefault();
-  switch(action) {
-    case 'left':
-      leftPressed = true;
-      break;
-    case 'right':
-      rightPressed = true;
-      break;
-    case 'shoot':
-      shoot();
-      break;
-  }
+  if (action === 'left') leftPressed = true;
+  else if (action === 'right') rightPressed = true;
+  else if (action === 'shoot') shoot();
 }
-
 function handleTouchEnd(e, action) {
   e.preventDefault();
-  switch(action) {
-    case 'left':
-      leftPressed = false;
-      break;
-    case 'right':
-      rightPressed = false;
-      break;
-  }
+  if (action === 'left') leftPressed = false;
+  else if (action === 'right') rightPressed = false;
 }
-
 if (raceMoveLeft) {
   raceMoveLeft.addEventListener('touchstart', (e) => handleTouchStart(e, 'left'));
   raceMoveLeft.addEventListener('touchend', (e) => handleTouchEnd(e, 'left'));
@@ -447,7 +357,6 @@ if (raceMoveLeft) {
   raceMoveLeft.addEventListener('mouseup', () => { leftPressed = false; });
   raceMoveLeft.addEventListener('mouseleave', () => { leftPressed = false; });
 }
-
 if (raceMoveRight) {
   raceMoveRight.addEventListener('touchstart', (e) => handleTouchStart(e, 'right'));
   raceMoveRight.addEventListener('touchend', (e) => handleTouchEnd(e, 'right'));
@@ -456,13 +365,11 @@ if (raceMoveRight) {
   raceMoveRight.addEventListener('mouseup', () => { rightPressed = false; });
   raceMoveRight.addEventListener('mouseleave', () => { rightPressed = false; });
 }
-
 if (raceShootBtn) {
   raceShootBtn.addEventListener('touchstart', (e) => handleTouchStart(e, 'shoot'));
   raceShootBtn.addEventListener('mousedown', (e) => { e.preventDefault(); shoot(); });
 }
 
-// Обновление движения
 function updateRaceMovement() {
   if (!gameState.gameActive || !isInGame) return;
   let moved = false;
@@ -481,57 +388,37 @@ function updateRaceMovement() {
   }
 }
 
-// Обновление положения пуль
 function updateBullets() {
   if (!gameState.gameActive) return;
-  
-  bullets.forEach(bullet => {
-    bullet.y -= bulletSpeed;
-  });
-  
+  bullets.forEach(b => b.y -= bulletSpeed);
   bullets = bullets.filter(b => b.y > 0);
-  
-  bullets.forEach(bullet => {
-    gameState.obstacles.forEach(obstacle => {
-      if (bullet.active && 
-          bullet.x > obstacle.x - 10 && 
-          bullet.x < obstacle.x + obstacle.w + 10 &&
-          bullet.y > obstacle.y - 10 &&
-          bullet.y < obstacle.y + obstacle.h + 10) {
-        
-        bullet.active = false;
-        
-        socket.emit('bulletHit', {
-          bulletId: bullet.id,
-          obstacleId: obstacle.id
-        });
+  bullets.forEach(b => {
+    gameState.obstacles.forEach(o => {
+      if (b.active && b.x > o.x - 10 && b.x < o.x + o.w + 10 &&
+          b.y > o.y - 10 && b.y < o.y + o.h + 10) {
+        b.active = false;
+        socket.emit('bulletHit', { bulletId: b.id, obstacleId: o.id });
       }
     });
   });
-  
   bullets = bullets.filter(b => b.active);
 }
 
-// Отрисовка с эффектами
 function drawRaceCar(x, y, color, effect = null) {
   const w = 30, h = 40;
   const left = x - w/2;
   const top = y - h/2;
-
   if (effect) {
     ctx.fillStyle = '#f00';
     ctx.fillRect(left, top, w, h);
-    
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 3;
-    
     if (effect.direction === 'left') {
       for (let i = 0; i < 3; i++) {
         const offset = i * 8;
         ctx.beginPath();
         ctx.moveTo(left - 10 - offset, top + 10);
         ctx.lineTo(left - 20 - offset, top + 30);
-        ctx.strokeStyle = `rgba(255, 255, 255, ${0.7 - i * 0.2})`;
         ctx.stroke();
       }
     } else {
@@ -540,11 +427,9 @@ function drawRaceCar(x, y, color, effect = null) {
         ctx.beginPath();
         ctx.moveTo(left + w + 10 + offset, top + 10);
         ctx.lineTo(left + w + 20 + offset, top + 30);
-        ctx.strokeStyle = `rgba(255, 255, 255, ${0.7 - i * 0.2})`;
         ctx.stroke();
       }
     }
-    
     for (let i = 0; i < 5; i++) {
       const sparkX = effect.direction === 'left' ? left - 10 - Math.random() * 20 : left + w + 10 + Math.random() * 20;
       const sparkY = top + 10 + Math.random() * 20;
@@ -557,16 +442,13 @@ function drawRaceCar(x, y, color, effect = null) {
     ctx.fillStyle = color;
     ctx.fillRect(left, top, w, h);
   }
-
   ctx.fillStyle = effect ? '#fff' : '#aaf';
   ctx.fillRect(left + 5, top + 5, w - 10, 12);
-
   ctx.fillStyle = '#333';
   ctx.fillRect(left - 2, top + 5, 4, 8);
   ctx.fillRect(left - 2, top + h - 13, 4, 8);
   ctx.fillRect(left + w - 2, top + 5, 4, 8);
   ctx.fillRect(left + w - 2, top + h - 13, 4, 8);
-
   ctx.fillStyle = effect ? '#f00' : '#ff0';
   ctx.fillRect(left - 1, top + 15, 2, 5);
   ctx.fillRect(left + w - 1, top + 15, 2, 5);
@@ -574,14 +456,10 @@ function drawRaceCar(x, y, color, effect = null) {
 
 function raceGameLoop() {
   if (!gameState.gameActive || !isInGame) return;
-  
   Object.keys(collisionEffects).forEach(id => {
     collisionEffects[id].flash--;
-    if (collisionEffects[id].flash <= 0) {
-      delete collisionEffects[id];
-    }
+    if (collisionEffects[id].flash <= 0) delete collisionEffects[id];
   });
-  
   updateRaceMovement();
   updateBullets();
   drawRace();
@@ -590,10 +468,8 @@ function raceGameLoop() {
 
 function drawRace() {
   ctx.clearRect(0, 0, raceCanvas.width, raceCanvas.height);
-
   ctx.fillStyle = '#222';
   ctx.fillRect(0, 0, raceCanvas.width, raceCanvas.height);
-
   ctx.strokeStyle = '#0f0';
   ctx.lineWidth = 2;
   ctx.setLineDash([20, 20]);
@@ -602,16 +478,13 @@ function drawRace() {
   ctx.lineTo(raceCanvas.width / 2, raceCanvas.height);
   ctx.stroke();
   ctx.setLineDash([]);
-
   ctx.fillStyle = '#f00';
   gameState.obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h));
-
   bullets.forEach(b => {
     ctx.fillStyle = '#ff0';
     ctx.beginPath();
     ctx.arc(b.x, b.y, 5, 0, Math.PI * 2);
     ctx.fill();
-    
     ctx.strokeStyle = '#ff0';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -619,33 +492,23 @@ function drawRace() {
     ctx.lineTo(b.x, b.y + 15);
     ctx.stroke();
   });
-
-  const sortedPlayers = [...gameState.players].sort((a, b) => {
-    const aHasEffect = collisionEffects[a.id] ? 1 : 0;
-    const bHasEffect = collisionEffects[b.id] ? 1 : 0;
-    return aHasEffect - bHasEffect;
-  });
-
+  const sortedPlayers = [...gameState.players].sort((a, b) => (collisionEffects[a.id] ? 1 : 0) - (collisionEffects[b.id] ? 1 : 0));
   sortedPlayers.forEach(p => {
     if (!p.active) return;
     let drawX = p.x;
     if (p.id === myId) drawX = myX;
-
     const effect = collisionEffects[p.id];
     const color = `hsl(${p.hue}, 100%, 50%)`;
     drawRaceCar(drawX, raceCanvas.height - 40, color, effect);
-
     ctx.fillStyle = effect ? '#ff0' : '#fff';
     ctx.font = effect ? 'bold 12px monospace' : '12px monospace';
     ctx.fillText(p.name.substring(0, 3), drawX - 15, raceCanvas.height - 70);
-    
     if (effect) {
       ctx.fillStyle = '#fff';
       ctx.font = '16px monospace';
       ctx.fillText(effect.direction === 'left' ? '←' : '→', drawX - 5, raceCanvas.height - 90);
     }
   });
-
   ctx.fillStyle = '#ff0';
   ctx.font = '12px monospace';
   ctx.fillText(`⚡ ${gameState.currentSpeed.toFixed(1)}`, 10, 30);
