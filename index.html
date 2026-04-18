@@ -920,7 +920,7 @@
         </div>
     </div>
 
-    <!-- МОДАЛЬНОЕ ОКНО МАРАФОНА -->
+    <!-- МОДАЛЬНОЕ ОКНО МАРАФОНА (ДОБАВЛЕН ВЫБОР КАТЕГОРИИ) -->
     <div id="marathonModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -928,6 +928,11 @@
                 <button id="closeMarathonBtn">✕</button>
             </div>
             <div id="marathonSetup">
+                <label>Категория: 
+                    <select id="marathonCategory">
+                        <option value="all">📚 Все категории</option>
+                    </select>
+                </label>
                 <label>Количество заданий: 
                     <select id="marathonCount">
                         <option value="5">5</option>
@@ -1070,6 +1075,24 @@
                 window.categories = { "По умолчанию": ["Задание не загружено. Проверьте tasks.js"] };
             }
 
+            // ===== ФУНКЦИЯ ПРОВЕРКИ ПЛОХИХ СЛОВ (КЛИЕНТ) =====
+            function validateClientName(name) {
+                if (!name || name.length < 2 || name.length > 20) return false;
+                const badWords = [
+                    'хуй', 'хуя', 'хую', 'хуем', 'хуи', 'пизда', 'пизды', 'пизде', 'пизду', 'пиздой',
+                    'бля', 'блять', 'блядь', 'ебан', 'ебать', 'ебучий', 'уебан', 'мудак', 'пидор',
+                    'сука', 'тварь', 'гнида', 'мразь', 'падла', 'сволочь', 'шлюха', 'проститутка',
+                    'fuck', 'fucking', 'fucker', 'shit', 'shitting', 'asshole', 'bitch', 'cunt', 'dick',
+                    'cock', 'pussy', 'whore', 'slut', 'bastard', 'wanker', 'twat', 'fag', 'retard'
+                ];
+                const lowerName = name.toLowerCase();
+                for (let word of badWords) {
+                    if (lowerName.includes(word)) return false;
+                }
+                const validRegex = /^[a-zA-Zа-яА-ЯёЁ0-9_ ]+$/;
+                return validRegex.test(name);
+            }
+
             const app = {
                 categories: window.categories,
                 currentCategory: '',
@@ -1107,10 +1130,17 @@
                     total: 0,
                     completed: 0,
                     timeElapsed: 0,
-                    timerInterval: null
+                    timerInterval: null,
+                    category: 'all'
                 },
                 themesUsed: JSON.parse(localStorage.getItem('themesUsed') || '[]')
             };
+
+            // Принудительная проверка имени при загрузке
+            if (!validateClientName(app.profile.name)) {
+                app.profile.name = 'Игрок';
+                localStorage.setItem('profileName', app.profile.name);
+            }
 
             const themeSounds = {
                 neon:   { tick: 1200, final: 800,  good: 1600, bad: 300,  wave: 'sine' },
@@ -1163,7 +1193,22 @@
                 }
             });
 
+            // ЗАПОЛНЕНИЕ ВЫБОРА КАТЕГОРИИ В МАРАФОНЕ
+            function fillMarathonCategories() {
+                const select = document.getElementById('marathonCategory');
+                if (!select) return;
+                select.innerHTML = '<option value="all">📚 Все категории</option>';
+                Object.keys(window.categories).forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    option.textContent = cat;
+                    select.appendChild(option);
+                });
+            }
+
             function init() {
+                fillMarathonCategories(); // заполняем категории для марафона
+
                 const catSelect = document.getElementById('categorySelect');
                 Object.keys(app.categories).forEach(name => {
                     const opt = document.createElement('option');
@@ -1270,7 +1315,7 @@
                 document.getElementById('startSnakeBtn').addEventListener('click', startSnakeGame);
                 document.getElementById('guessSubmit').addEventListener('click', guessSubmit);
                 document.getElementById('guessNewGame').addEventListener('click', initGuessGame);
-                document.getElementById('saveProfileName').addEventListener('click', saveProfileName);
+                // saveProfileName переопределяем ниже
                 document.getElementById('resetAllData').addEventListener('click', resetAllData);
                 document.getElementById('clearDiary').addEventListener('click', clearDiary);
 
@@ -1295,7 +1340,6 @@
                 document.getElementById('startTimerBtn').addEventListener('click', startTaskTimer);
                 document.getElementById('stopTimerBtn').addEventListener('click', stopTaskTimer);
                 
-                // Исправленный обработчик для кнопки закрытия таймера
                 document.getElementById('closeTimerPanelBtn').addEventListener('click', () => {
                     document.getElementById('timerPanel').style.display = 'none';
                 });
@@ -1326,14 +1370,12 @@
                 document.getElementById('adminLoginBtn').addEventListener('click', adminLogin);
                 document.getElementById('adminResetAll').addEventListener('click', adminResetAll);
                 
-                // Кнопка очистки статистики на сервере
                 document.getElementById('adminClearStats').addEventListener('click', () => {
                     if (confirm('Очистить все таблицы лидеров на сервере?')) {
                         mainSocket.emit('adminClearStats', 'admin');
                     }
                 });
 
-                // Табы в админке
                 document.querySelectorAll('[data-admin]').forEach(tab => {
                     tab.addEventListener('click', (e) => {
                         const adminTab = e.target.dataset.admin;
@@ -1458,7 +1500,6 @@
                         app.spinCount++;
                         app.profile.spins++;
                         
-                        // Сохраняем прокрученное задание в дневник
                         if (app.currentTask) {
                             addDiaryEntry(app.currentTask, 'Прокрутка');
                         }
@@ -1585,8 +1626,13 @@
                 });
             }
 
+            // НОВАЯ addLeaderboard С ПРОВЕРКОЙ
             function addLeaderboard(game, score) {
                 if (score > 0) {
+                    if (!validateClientName(app.profile.name)) {
+                        console.warn('Попытка отправить результат с недопустимым именем');
+                        return;
+                    }
                     mainSocket.emit('submitScore', { 
                         game: game, 
                         name: app.profile.name, 
@@ -1794,7 +1840,6 @@
                     document.getElementById('guessMessage').innerHTML = '🎉 Правильно! Вы угадали!';
                     playSound('final');
                     
-                    // Сохраняем результат в таблицу лидеров
                     const score = Math.max(10, 100 - attempts * 5);
                     addLeaderboard('guess', score);
                     
@@ -1813,8 +1858,14 @@
                 }
             }
 
+            // НОВАЯ saveProfileName С ПРОВЕРКОЙ
             function saveProfileName() {
-                app.profile.name = document.getElementById('profileName').value || 'Игрок';
+                let newName = document.getElementById('profileName').value || 'Игрок';
+                if (!validateClientName(newName)) {
+                    alert('Недопустимое имя. Используйте только буквы, цифры, подчёркивание и пробелы, без нецензурных слов.');
+                    return;
+                }
+                app.profile.name = newName;
                 localStorage.setItem('profileName', app.profile.name);
                 const raceNameInput = document.getElementById('racePlayerName');
                 if (raceNameInput) raceNameInput.value = app.profile.name;
@@ -1855,17 +1906,30 @@
                 renderDiary();
             }
 
+            // МАРАФОН С УЧЁТОМ ВЫБРАННОЙ КАТЕГОРИИ
             function startMarathon() {
                 const count = parseInt(document.getElementById('marathonCount').value);
-                const allTasks = Object.values(app.categories).flat();
+                const category = document.getElementById('marathonCategory').value;
+                let tasksPool = [];
+                if (category === 'all') {
+                    tasksPool = Object.values(app.categories).flat();
+                } else {
+                    tasksPool = app.categories[category] || [];
+                }
+                if (tasksPool.length === 0) {
+                    alert('В выбранной категории нет заданий!');
+                    return;
+                }
                 app.marathon.tasks = [];
-                for (let i=0; i<count; i++) {
-                    app.marathon.tasks.push(allTasks[Math.floor(Math.random() * allTasks.length)]);
+                for (let i = 0; i < count; i++) {
+                    const randomIndex = Math.floor(Math.random() * tasksPool.length);
+                    app.marathon.tasks.push(tasksPool[randomIndex]);
                 }
                 app.marathon.currentIndex = 0;
                 app.marathon.total = count;
                 app.marathon.completed = 0;
                 app.marathon.timeElapsed = 0;
+                app.marathon.category = category;
                 document.getElementById('marathonSetup').style.display = 'none';
                 document.getElementById('marathonRun').style.display = 'block';
                 document.getElementById('marathonTotal').textContent = count;
@@ -1945,7 +2009,6 @@
                 const container = document.getElementById('adminUserList');
                 container.innerHTML = '';
                 
-                // Текущий пользователь
                 const userDiv = document.createElement('div');
                 userDiv.className = 'admin-user';
                 userDiv.innerHTML = `
@@ -1961,7 +2024,6 @@
                 `;
                 container.appendChild(userDiv);
                 
-                // Список игроков в комнате (если есть)
                 if (gameState && gameState.players && gameState.players.length > 0) {
                     const playersDiv = document.createElement('div');
                     playersDiv.className = 'admin-user';
