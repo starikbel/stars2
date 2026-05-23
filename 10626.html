@@ -1492,6 +1492,9 @@
         activeSectors = shuffled.slice(0, sectorCount);
     }
 
+               // Обновляем случайный набор заданий перед каждым запуском
+    updateWheelData();
+
     // Перерисовываем колесо
     drawWheel();
 
