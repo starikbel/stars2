@@ -21,6 +21,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            user-select: none; /* чтобы при перетаскивании не выделялся текст */
         }
 
         body {
@@ -271,6 +272,11 @@
             width: 380px;
             height: 380px;
             flex-shrink: 0;
+            cursor: grab;
+        }
+
+        .wheel-wrapper:active {
+            cursor: grabbing;
         }
 
         .wheel-pointer {
@@ -283,6 +289,7 @@
             z-index: 15;
             filter: drop-shadow(0px 4px 12px var(--accent-color));
             transition: filter 0.5s ease;
+            pointer-events: none;
         }
 
         .wheel-pointer svg {
@@ -298,6 +305,7 @@
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.03);
             background-color: #09090a;
             transition: box-shadow 0.5s ease;
+            cursor: inherit;
         }
 
         .display-container {
@@ -841,7 +849,7 @@
     </footer>
 
     <script>
-        // --- ADVANCED AUDIO ENGINE ---
+        // --- AUDIO ENGINE ---
         let audioCtx = null;
 
         function initAudio() {
@@ -1112,7 +1120,7 @@
             requestAnimationFrame(tickRainbow);
         }
 
-        // --- DATA LOADING & SECTORS (NO HARDCODED TASKS) ---
+        // --- DATA LOADING & SECTORS (no hardcoded tasks) ---
         async function loadTasks() {
             try {
                 const response = await fetch('tasks.json');
@@ -1298,6 +1306,151 @@
             ctx.fill();
         }
 
+        // --- DRAG-TO-ROTATE (interactive) ---
+        let isDragging = false;
+        let dragStartAngleGlobal = 0;
+        let dragStartRingAngles = [0,0,0];
+        let dragOriginalStartAngle = 0;
+        let dragOriginalRingAngles = [0,0,0];
+        let returnAnimFrame = null;
+
+        function cancelReturnAnimation() {
+            if (returnAnimFrame) {
+                cancelAnimationFrame(returnAnimFrame);
+                returnAnimFrame = null;
+            }
+        }
+
+        function startReturnAnimation(targetStartAngle, targetRingAngles, startStartAngle, startRingAngles, duration = 400) {
+            cancelReturnAnimation();
+            const startTime = performance.now();
+            function step(now) {
+                const elapsed = now - startTime;
+                let t = Math.min(1, elapsed / duration);
+                // easeOutCubic
+                const ease = 1 - Math.pow(1 - t, 3);
+                if (currentSubject === 'constructor') {
+                    ringAngles[0] = startRingAngles[0] + (targetRingAngles[0] - startRingAngles[0]) * ease;
+                    ringAngles[1] = startRingAngles[1] + (targetRingAngles[1] - startRingAngles[1]) * ease;
+                    ringAngles[2] = startRingAngles[2] + (targetRingAngles[2] - startRingAngles[2]) * ease;
+                } else {
+                    startAngle = startStartAngle + (targetStartAngle - startStartAngle) * ease;
+                }
+                drawWheel();
+                if (t < 1) {
+                    returnAnimFrame = requestAnimationFrame(step);
+                } else {
+                    // окончательная фиксация
+                    if (currentSubject === 'constructor') {
+                        ringAngles[0] = targetRingAngles[0];
+                        ringAngles[1] = targetRingAngles[1];
+                        ringAngles[2] = targetRingAngles[2];
+                    } else {
+                        startAngle = targetStartAngle;
+                    }
+                    drawWheel();
+                    returnAnimFrame = null;
+                }
+            }
+            returnAnimFrame = requestAnimationFrame(step);
+        }
+
+        function handleDragStart(e) {
+            if (isSpinning || returnAnimFrame) return;
+            initAudio();
+            e.preventDefault();
+            const canvas = document.getElementById('wheelCanvas');
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            let clientX, clientY;
+            if (e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+                e.preventDefault();
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            const canvasX = (clientX - rect.left) * scaleX;
+            const canvasY = (clientY - rect.top) * scaleY;
+            const centerX = canvas.width/2;
+            const centerY = canvas.height/2;
+            const dx = canvasX - centerX;
+            const dy = canvasY - centerY;
+            dragStartAngleGlobal = Math.atan2(dy, dx);
+            // сохраняем оригинальные углы
+            dragOriginalStartAngle = startAngle;
+            dragOriginalRingAngles = [...ringAngles];
+            dragStartRingAngles = [...ringAngles];
+            isDragging = true;
+        }
+
+        function handleDragMove(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            const canvas = document.getElementById('wheelCanvas');
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            let clientX, clientY;
+            if (e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            const canvasX = (clientX - rect.left) * scaleX;
+            const canvasY = (clientY - rect.top) * scaleY;
+            const centerX = canvas.width/2;
+            const centerY = canvas.height/2;
+            const dx = canvasX - centerX;
+            const dy = canvasY - centerY;
+            let currentAngle = Math.atan2(dy, dx);
+            let delta = currentAngle - dragStartAngleGlobal;
+            // нормализуем дельту примерно в пределах -pi..pi
+            while (delta > Math.PI) delta -= 2*Math.PI;
+            while (delta < -Math.PI) delta += 2*Math.PI;
+            if (currentSubject === 'constructor') {
+                // вращаем все три кольца синхронно
+                let newAngle0 = dragOriginalRingAngles[0] + delta;
+                let newAngle1 = dragOriginalRingAngles[1] + delta;
+                let newAngle2 = dragOriginalRingAngles[2] + delta;
+                // не нормализуем, чтобы сохранять плавность
+                ringAngles[0] = newAngle0;
+                ringAngles[1] = newAngle1;
+                ringAngles[2] = newAngle2;
+            } else {
+                let newStart = dragOriginalStartAngle + delta;
+                // нормализуем только для удобства, но можно и без
+                // newStart = newStart % (2*Math.PI);
+                startAngle = newStart;
+            }
+            drawWheel();
+        }
+
+        function handleDragEnd(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            // запускаем анимацию возврата к исходным значениям
+            if (currentSubject === 'constructor') {
+                startReturnAnimation(0, dragOriginalRingAngles, startAngle, [...ringAngles]);
+            } else {
+                startReturnAnimation(dragOriginalStartAngle, [0,0,0], startAngle, [0,0,0]);
+            }
+        }
+
+        // --- установка обработчиков на канвас ---
+        const wheelCanvasElem = document.getElementById('wheelCanvas');
+        wheelCanvasElem.addEventListener('mousedown', handleDragStart);
+        window.addEventListener('mousemove', handleDragMove);
+        window.addEventListener('mouseup', handleDragEnd);
+        // поддержка touch
+        wheelCanvasElem.addEventListener('touchstart', handleDragStart);
+        window.addEventListener('touchmove', handleDragMove);
+        window.addEventListener('touchend', handleDragEnd);
+
         // --- SWITCH SUBJECT ---
         function switchSubject(subject, element) {
             if (isSpinning) return;
@@ -1330,9 +1483,14 @@
             }, 300);
         }
 
-        // --- SPIN WHEEL (no changes except the added reload at the end) ---
+        // --- SPIN WHEEL ---
         function spinWheel() {
             if (isSpinning) return;
+            // если идёт анимация возврата или перетаскивание — отменяем
+            cancelReturnAnimation();
+            if (isDragging) {
+                isDragging = false;
+            }
             initAudio();
             isSpinning = true;
             const btn = document.getElementById('generateBtn');
@@ -1480,11 +1638,10 @@
                 doneBtn.classList.add('show');
             }, 50);
 
-            // ---- НОВАЯ ПАРТИЯ ВОПРОСОВ СРАЗУ ПОСЛЕ ВРАЩЕНИЯ ----
+            // обновляем сектора для следующего спина
             reloadWheelSectors();
         }
 
-        // ---- ФУНКЦИЯ ДЛЯ ОБНОВЛЕНИЯ СЕКТОРОВ КОЛЕСА ----
         function reloadWheelSectors() {
             startAngle = 0;
             ringAngles = [0, 0, 0];
