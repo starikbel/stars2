@@ -2,10 +2,17 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>ITILANDIA // CREATIVE WHEEL 4.2 PRO</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none; /* prevent accidental text selection while spinning */
+        }
 
         :root {
             --accent-color: #d4af37;
@@ -17,12 +24,6 @@
             --border-color: rgba(255, 255, 255, 0.03);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
         body {
             background-color: var(--bg-color);
             color: #f5f5f7;
@@ -32,8 +33,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            transition: background-color 0.8s ease, color 0.5s ease;
+            transition: background-color 0.4s ease;
             position: relative;
         }
 
@@ -41,38 +41,30 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: radial-gradient(circle at 15% 15%, var(--accent-glow) 0%, rgba(0,0,0,0) 70%);
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 20%, var(--accent-glow) 0%, rgba(0,0,0,0) 70%);
+            pointer-events: none;
             z-index: 0;
-            pointer-events: none;
-            transition: background 0.8s ease;
+            transition: background 0.5s ease;
         }
 
-        /* Fullscreen Matrix and Confetti Canvases */
-        #confettiCanvas {
+        canvas#confettiCanvas,
+        canvas#matrixCanvas {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
             z-index: 99;
-            pointer-events: none;
         }
-
-        #matrixCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+        canvas#matrixCanvas {
             z-index: 1;
-            pointer-events: none;
             opacity: 0;
-            transition: opacity 1s ease;
+            transition: opacity 0.8s ease;
         }
 
-        /* HEADER & XP PROGRESS */
         header {
             padding: 25px 20px 10px;
             text-align: center;
@@ -86,181 +78,126 @@
             justify-content: center;
             gap: 15px;
             margin-bottom: 15px;
+            flex-wrap: wrap;
         }
-
         .xp-bar-container {
             width: 220px;
             height: 6px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 3px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.03);
             overflow: hidden;
-            position: relative;
-            border: 1.5px solid rgba(255, 255, 255, 0.03);
         }
-
         .xp-bar-fill {
             height: 100%;
             width: 0%;
             background: linear-gradient(90deg, var(--accent-color), #ffffff);
-            border-radius: 3px;
-            transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            border-radius: 4px;
+            transition: width 0.4s ease;
         }
-
         .level-text {
             font-size: 10px;
             font-weight: 700;
-            text-transform: uppercase;
             letter-spacing: 0.15em;
             color: var(--accent-color);
         }
-
         .brand-sub {
             font-size: 10px;
-            text-transform: uppercase;
             letter-spacing: 0.5em;
+            text-transform: uppercase;
             color: var(--accent-color);
             margin-bottom: 8px;
             font-weight: 700;
-            transition: color 0.5s ease;
         }
-
         h1 {
             font-family: var(--font-accent);
             font-size: 2.2rem;
             font-weight: 400;
             font-style: italic;
             letter-spacing: 0.02em;
-            color: #ffffff;
-            line-height: 1.2;
+            color: white;
         }
-
         h1 span {
             font-family: var(--font-primary);
             font-style: normal;
             font-weight: 300;
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             color: #a1a1a6;
             display: block;
             letter-spacing: 0.12em;
             margin-top: 5px;
         }
 
-        /* NAVIGATION TABS */
         main {
             max-width: 1100px;
             width: 100%;
             margin: 0 auto;
             padding: 0 20px;
             z-index: 10;
-            flex-grow: 1;
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            position: relative;
         }
 
         .tabs-wrapper {
-            position: relative;
             width: 100%;
             max-width: 950px;
             margin-bottom: 25px;
-            padding: 0 40px;
+            position: relative;
+            padding: 0 30px;
         }
-
-        .tabs-wrapper::before, .tabs-wrapper::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 35px;
-            z-index: 5;
-            pointer-events: none;
-        }
-        .tabs-wrapper::before {
-            left: 40px;
-            background: linear-gradient(to right, var(--bg-color), transparent);
-        }
-        .tabs-wrapper::after {
-            right: 40px;
-            background: linear-gradient(to left, var(--bg-color), transparent);
-        }
-
         .tabs {
             display: flex;
             gap: 12px;
             overflow-x: auto;
             scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 14px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            padding-bottom: 12px;
             cursor: grab;
             user-select: none;
+            scrollbar-width: none;
         }
-
-        .tabs:active { cursor: grabbing; }
         .tabs::-webkit-scrollbar { display: none; }
+        .tabs:active { cursor: grabbing; }
 
         .tab-btn {
             background: none;
             border: none;
             color: #6e6e73;
-            font-family: var(--font-primary);
             font-size: 10px;
             font-weight: 600;
-            text-transform: uppercase;
             letter-spacing: 0.2em;
+            text-transform: uppercase;
             padding: 8px 18px;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-            position: relative;
+            transition: all 0.3s;
             white-space: nowrap;
-            flex-shrink: 0;
-            z-index: 6;
+            position: relative;
         }
-
         .tab-btn::after {
             content: '';
             position: absolute;
-            bottom: -15px;
+            bottom: -12px;
             left: 0;
             width: 100%;
-            height: 1.5px;
-            background-color: var(--accent-color);
+            height: 2px;
+            background: var(--accent-color);
             transform: scaleX(0);
-            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.5s ease;
+            transition: transform 0.3s;
         }
-
-        .tab-btn:hover { color: #f5f5f7; }
-        .tab-btn.active { color: #ffffff; }
+        .tab-btn.active { color: white; }
         .tab-btn.active::after { transform: scaleX(1); }
-
-        .tab-btn.special-tab {
-            color: var(--accent-color);
-            border: 1px solid rgba(214, 175, 55, 0.2);
-            border-radius: 20px;
-            padding: 7px 16px;
+        .tab-btn.special-tab, .tab-btn.marathon-tab {
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px;
+            padding: 6px 16px;
         }
-        .tab-btn.special-tab.active {
-            background: rgba(214, 175, 55, 0.1);
+        .tab-btn.special-tab.active, .tab-btn.marathon-tab.active {
+            background: rgba(255,255,255,0.05);
             border-color: var(--accent-color);
         }
-        .tab-btn.special-tab::after { display: none; }
+        .tab-btn.special-tab::after, .tab-btn.marathon-tab::after { display: none; }
 
-        .tab-btn.marathon-tab {
-            color: #e5e5ea;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 20px;
-            padding: 7px 16px;
-        }
-        .tab-btn.marathon-tab.active {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: #ffffff;
-            color: #ffffff;
-        }
-        .tab-btn.marathon-tab::after { display: none; }
-
-        /* PLAY ZONE */
         .playzone {
             display: flex;
             align-items: center;
@@ -268,1724 +205,1010 @@
             gap: 40px;
             width: 100%;
             margin-bottom: 25px;
+            flex-wrap: wrap;
         }
-
         .wheel-wrapper {
             position: relative;
             width: 380px;
             height: 380px;
             flex-shrink: 0;
         }
-
         .wheel-pointer {
             position: absolute;
             top: -12px;
             left: 50%;
             transform: translateX(-50%);
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             z-index: 15;
-            filter: drop-shadow(0px 4px 12px var(--accent-color));
-            transition: filter 0.5s ease;
+            filter: drop-shadow(0 0 6px var(--accent-color));
         }
-
-        .wheel-pointer svg {
+        .wheel-pointer svg { fill: var(--accent-color); width: 100%; height: 100%; }
+        #wheelCanvas {
             width: 100%;
             height: 100%;
-            fill: var(--accent-color);
-            transition: fill 0.5s ease;
-        }
-
-        #wheelCanvas {
             border-radius: 50%;
-            display: block;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.03);
-            background-color: #09090a;
-            transition: box-shadow 0.5s ease;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+            background: #09090a;
         }
-
-        /* DISPLAY AND CHALLENGE AREA */
         .display-container {
-            flex-grow: 1;
-            min-height: 350px;
+            flex: 1;
+            min-width: 260px;
+            max-width: 480px;
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 30px;
+            border-radius: 16px;
+            padding: 30px 25px;
             text-align: center;
-            position: relative;
-            backdrop-filter: blur(10px);
-            max-width: 500px;
-            width: 100%;
+            backdrop-filter: blur(8px);
         }
-
         .placeholder-text {
             font-size: 11px;
             color: #6e6e73;
-            text-transform: uppercase;
             letter-spacing: 0.15em;
             font-weight: 500;
         }
-
         .task-title {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--accent-color);
-            text-transform: uppercase;
             letter-spacing: 0.3em;
-            font-weight: 600;
+            text-transform: uppercase;
             margin-bottom: 12px;
             opacity: 0;
-            transform: translateY(5px);
-            transition: all 0.5s ease, color 0.5s ease;
+            transform: translateY(8px);
+            transition: all 0.4s;
         }
-
         .task-text {
-            font-size: 16px;
-            line-height: 1.6;
-            color: #ffffff;
+            font-size: 15px;
+            line-height: 1.55;
             font-weight: 300;
+            color: white;
             opacity: 0;
             transform: translateY(15px);
-            transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-            margin-bottom: 20px;
+            transition: all 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            margin-bottom: 18px;
         }
+        .task-text.show, .task-title.show { opacity: 1; transform: translateY(0); }
 
-        .task-text.show, .task-title.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        .triple-result { text-align: left; display: flex; flex-direction: column; gap: 14px; }
+        .triple-part { border-left: 2px solid var(--accent-color); padding-left: 15px; }
+        .triple-label { font-size: 9px; letter-spacing: 0.2em; color: var(--accent-color); margin-bottom: 4px; }
+        .triple-val { font-size: 13px; font-weight: 300; }
 
-        /* CONSTRUCTOR OUTPUT */
-        .triple-result {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            text-align: left;
-            width: 100%;
-            padding: 5px 0;
-        }
-
-        .triple-part {
-            border-left: 2px solid var(--accent-color);
-            padding-left: 15px;
-            transition: border-color 0.5s ease;
-        }
-
-        .triple-label {
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 0.2em;
-            color: var(--accent-color);
-            font-weight: 600;
-            margin-bottom: 3px;
-        }
-
-        .triple-val {
-            font-size: 13px;
-            color: #ffffff;
-            font-weight: 300;
-            line-height: 1.4;
-        }
-
-        /* GAMIFICATION MODULES (TIMER, XP SYSTEM) */
-        .action-row {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
+        .action-row { display: flex; gap: 12px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
         .copy-btn, .done-btn {
             background: none;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255,255,255,0.1);
             color: #a1a1a6;
-            padding: 8px 16px;
+            padding: 7px 16px;
             font-size: 9px;
-            text-transform: uppercase;
             letter-spacing: 0.15em;
+            border-radius: 40px;
             cursor: pointer;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            transition: 0.2s;
             opacity: 0;
             transform: scale(0.9);
             pointer-events: none;
         }
+        .done-btn { border-color: var(--accent-color); color: var(--accent-color); }
+        .copy-btn.show, .done-btn.show { opacity: 1; transform: scale(1); pointer-events: auto; }
+        .copy-btn:hover, .done-btn:hover { background: rgba(255,255,255,0.05); border-color: var(--accent-color); color: white; }
 
-        .done-btn {
-            background: rgba(255, 255, 255, 0.04);
-            border-color: var(--accent-color);
-            color: var(--accent-color);
-        }
-
-        .done-btn:hover {
-            background: var(--accent-color);
-            color: #000000;
-        }
-
-        .copy-btn.show, .done-btn.show {
-            opacity: 1;
-            transform: scale(1);
-            pointer-events: auto;
-        }
-
-        .copy-btn:hover {
-            color: #ffffff;
-            border-color: var(--accent-color);
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .copy-btn svg {
-            width: 12px;
-            height: 12px;
-            fill: currentColor;
-        }
-
-        /* Challenge Timer Elements */
         .timer-container {
-            margin-top: 15px;
-            width: 100%;
+            margin-top: 18px;
             display: none;
             flex-direction: column;
             align-items: center;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
-
-        .timer-container.show {
-            display: flex;
-            opacity: 1;
-        }
-
-        .timer-presets {
-            display: flex;
             gap: 8px;
-            margin-bottom: 12px;
+            opacity: 0;
+            transition: 0.3s;
         }
-
+        .timer-container.show { display: flex; opacity: 1; }
+        .timer-presets { display: flex; gap: 10px; }
         .timer-preset-btn {
             background: none;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255,255,255,0.1);
             color: #a1a1a6;
-            font-size: 8px;
-            padding: 5px 12px;
+            font-size: 9px;
+            padding: 4px 12px;
             border-radius: 20px;
             cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            transition: all 0.3s ease;
         }
-
-        .timer-preset-btn:hover {
-            border-color: var(--accent-color);
-            color: #ffffff;
-        }
-
         .timer-display {
-            font-family: var(--font-primary);
-            font-size: 26px;
+            font-size: 28px;
             font-weight: 300;
-            letter-spacing: 0.1em;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 5px 0;
-            transition: text-shadow 0.3s ease, color 0.3s ease;
+            font-family: monospace;
+            letter-spacing: 0.08em;
         }
+        .timer-display.danger { color: #ff3b30; text-shadow: 0 0 6px #ff3b30; animation: pulse 0.8s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } }
+        .timer-progress { width: 80%; height: 2px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 5px; }
+        .timer-progress-fill { width: 100%; height: 100%; background: var(--accent-color); transition: width 1s linear; }
 
-        .timer-display.danger {
-            color: #ff3b30;
-            text-shadow: 0 0 10px rgba(255, 59, 48, 0.5);
-            animation: pulseWarning 1s infinite;
-        }
-
-        @keyframes pulseWarning {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .timer-progress {
-            width: 80%;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.05);
-            margin-top: 5px;
-            border-radius: 1px;
-            overflow: hidden;
-        }
-
-        .timer-progress-fill {
-            width: 100%;
-            height: 100%;
-            background: var(--accent-color);
-            transition: width 1s linear;
-        }
-
-        /* SPIN TRIGGER */
         .trigger-btn {
-            background-color: #ffffff;
-            color: #000000;
+            background: white;
+            color: black;
             border: none;
-            padding: 16px 45px;
-            font-family: var(--font-primary);
+            padding: 14px 42px;
             font-size: 11px;
             font-weight: 700;
-            text-transform: uppercase;
             letter-spacing: 0.3em;
             cursor: pointer;
-            border-radius: 0px;
-            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.05);
+            transition: 0.2s;
             margin-bottom: 25px;
-            z-index: 10;
+            border-radius: 40px;
         }
-
-        .trigger-btn:hover {
-            background-color: #f5f5f7;
-            transform: translateY(-2px);
-            box-shadow: 0 15px 40px rgba(255, 255, 255, 0.08);
-        }
-
-        .trigger-btn:active { transform: translateY(0); }
-        .trigger-btn:disabled {
-            background-color: #1c1c1e;
-            color: #48484a;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        /* QUEST LOG (HISTORY DRAWER) */
-        .quest-log-drawer {
-            position: fixed;
-            top: 0;
-            right: -320px;
-            width: 320px;
-            height: 100%;
-            background: rgba(7, 7, 8, 0.95);
-            backdrop-filter: blur(25px);
-            border-left: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: -20px 0 50px rgba(0,0,0,0.8);
-            z-index: 900;
-            transition: right 0.5s cubic-bezier(0.25, 1, 0.5, 1);
-            padding: 40px 25px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .quest-log-drawer.open {
-            right: 0;
-        }
-
-        .drawer-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .drawer-title {
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.2em;
-            color: var(--accent-color);
-        }
-
-        .drawer-close {
-            background: none;
-            border: none;
-            color: #a1a1a6;
-            cursor: pointer;
-            font-size: 18px;
-            transition: color 0.3s ease;
-        }
-
-        .drawer-close:hover { color: #ffffff; }
-
-        .quest-list {
-            flex-grow: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            padding-right: 5px;
-        }
-
-        .quest-list::-webkit-scrollbar {
-            width: 2px;
-        }
-        .quest-list::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .quest-item {
-            background: rgba(255, 255, 255, 0.01);
-            border: 1px solid rgba(255, 255, 255, 0.03);
-            border-radius: 4px;
-            padding: 12px;
-            font-size: 11px;
-            line-height: 1.5;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .quest-item:hover {
-            background: rgba(255, 255, 255, 0.03);
-            border-color: var(--accent-color);
-        }
-
-        .quest-item-subject {
-            font-size: 8px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--accent-color);
-            margin-bottom: 5px;
-        }
+        .trigger-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; background: #2c2c2e; color: gray; }
 
         .drawer-trigger {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: rgba(7, 7, 8, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            color: #ffffff;
-            width: 45px;
-            height: 45px;
+            bottom: 25px;
+            right: 25px;
+            background: rgba(7,7,8,0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.1);
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            transition: all 0.3s ease;
-            z-index: 100;
+            z-index: 200;
+            transition: 0.2s;
         }
-
-        .drawer-trigger:hover {
-            border-color: var(--accent-color);
-            transform: scale(1.05);
-        }
-
-        .drawer-trigger svg {
-            width: 16px;
-            height: 16px;
-            fill: var(--accent-color);
-        }
-
-        /* FOOTER & TERMINAL */
-        footer {
-            padding: 20px;
-            text-align: center;
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 0.2em;
-            color: #3a3a3c;
-            border-top: 1px solid rgba(255, 255, 255, 0.02);
-            z-index: 10;
-            position: relative;
+        .drawer-trigger:hover { border-color: var(--accent-color); transform: scale(1.05); }
+        .quest-log-drawer {
+            position: fixed;
+            top: 0;
+            right: -340px;
+            width: 320px;
+            height: 100%;
+            background: rgba(7,7,8,0.96);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255,255,255,0.05);
+            z-index: 1000;
+            transition: right 0.4s ease;
+            padding: 30px 20px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 10px;
         }
+        .quest-log-drawer.open { right: 0; }
+        .drawer-header { display: flex; justify-content: space-between; margin-bottom: 25px; }
+        .drawer-title { color: var(--accent-color); font-size: 10px; letter-spacing: 0.2em; }
+        .drawer-close { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
+        .quest-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .quest-item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.04);
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .quest-item:hover { background: rgba(255,255,255,0.05); border-color: var(--accent-color); }
+        .quest-item-subject { font-size: 8px; letter-spacing: 0.1em; color: var(--accent-color); margin-bottom: 6px; }
 
-        .terminal-container {
+        footer {
+            padding: 18px;
+            text-align: center;
+            font-size: 8px;
+            letter-spacing: 0.2em;
+            color: #3a3a3c;
+            border-top: 1px solid rgba(255,255,255,0.02);
             display: flex;
-            gap: 5px;
-            align-items: center;
-            opacity: 0.3;
-            transition: opacity 0.3s ease;
+            justify-content: center;
+            gap: 15px;
         }
-
-        .terminal-container:hover, .terminal-container:focus-within {
-            opacity: 1;
-        }
-
         .terminal-input {
             background: none;
             border: none;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            font-family: var(--font-primary);
-            font-size: 8px;
-            color: #ffffff;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            width: 120px;
-            outline: none;
-            padding: 3px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            width: 110px;
+            font-size: 9px;
+            color: white;
             text-align: center;
-            transition: all 0.3s ease;
+            outline: none;
         }
-
-        .terminal-input:focus {
-            border-color: var(--accent-color);
-            width: 160px;
-        }
-
-        /* MEDIA ADAPTATION */
-        @media (max-width: 900px) {
-            .playzone { flex-direction: column; gap: 30px; }
-            .display-container { width: 100%; max-width: 380px; min-height: 240px; }
-        }
-
-        @media (max-width: 500px) {
-            h1 { font-size: 1.8rem; }
-            h1 span { font-size: 1.3rem; }
-            .tabs-wrapper { padding: 0 10px; }
-            .tabs-wrapper::before, .tabs-wrapper::after { width: 15px; }
-            .tabs { gap: 4px; }
-            .tab-btn { padding: 6px 10px; font-size: 8px; }
-            .wheel-wrapper { width: 290px; height: 290px; }
-            #wheelCanvas { width: 290px; height: 290px; }
-            .drawer-trigger { bottom: 15px; right: 15px; }
+        @media (max-width: 800px) {
+            .wheel-wrapper { width: 280px; height: 280px; }
+            .tab-btn { padding: 5px 12px; font-size: 8px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="ambient-glow" id="ambientGlow"></div>
-    <canvas id="matrixCanvas"></canvas>
-    <canvas id="confettiCanvas"></canvas>
+<div class="ambient-glow" id="ambientGlow"></div>
+<canvas id="matrixCanvas"></canvas>
+<canvas id="confettiCanvas"></canvas>
 
-    <header>
-        <div class="xp-badge-container">
-            <div class="level-text" id="levelName">НОВИЧОК (УРОВЕНЬ 1)</div>
-            <div class="xp-bar-container">
-                <div class="xp-bar-fill" id="xpBarFill"></div>
-            </div>
-            <div class="level-text" id="xpDisplayVal">0 / 300 XP</div>
-        </div>
-        <div class="brand-sub" id="brandSub">АЙТИЛАНДИЯ // ACADEMY OF FUTURE CREATIVES</div>
-        <h1>Айтиландия <span id="brandTitle">CREATIVE WHEEL v4.2 PRO</span></h1>
-    </header>
-
-    <main>
-        <!-- Horizontal Scrollable Tabs -->
-        <div class="tabs-wrapper">
-            <div class="tabs" id="subjectTabs">
-                <button class="tab-btn active" onclick="switchSubject('photoshop', this)">Photoshop</button>
-                <button class="tab-btn" onclick="switchSubject('illustrator', this)">Illustrator</button>
-                <button class="tab-btn" onclick="switchSubject('blender', this)">Blender</button>
-                <button class="tab-btn" onclick="switchSubject('ai', this)">ИИ Промптинг</button>
-                <button class="tab-btn" onclick="switchSubject('python', this)">Python Art</button>
-                <button class="tab-btn" onclick="switchSubject('krita', this)">Krita Рисование</button>
-                <button class="tab-btn" onclick="switchSubject('aftereffects', this)">After Effects</button>
-                <button class="tab-btn" onclick="switchSubject('figma', this)">Figma UX</button>
-                <button class="tab-btn special-tab" onclick="switchSubject('constructor', this)">⚡ Конструктор</button>
-                <button class="tab-btn marathon-tab" onclick="switchSubject('marathon', this)">🏃‍♂️ Марафон</button>
-            </div>
-        </div>
-
-        <div class="playzone">
-            <!-- Canvas Wheel -->
-            <div class="wheel-wrapper">
-                <div class="wheel-pointer" id="wheelPointer">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M12 21l-8.2-13h16.4z"/>
-                    </svg>
-                </div>
-                <canvas id="wheelCanvas" width="380" height="380"></canvas>
-            </div>
-
-            <!-- Task Display Container -->
-            <div class="display-container">
-                <div id="placeholder" class="placeholder-text">Крути колесо и получай крутой челлендж!</div>
-                <div id="taskTitle" class="task-title">ТВОЙ СУПЕР-ЧЕЛЛЕНДЖ</div>
-                <div id="taskDisplay" class="task-text"></div>
-                
-                <!-- Action Controls -->
-                <div class="action-row">
-                    <button id="copyBtn" class="copy-btn" onclick="copyTaskToClipboard()">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M19 2h-4.18C14.4.84 13.3 0 12 0c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/>
-                        </svg>
-                        <span id="copyBtnText">Скопировать</span>
-                    </button>
-                    <button id="doneBtn" class="done-btn" onclick="claimXP()">
-                        Выполнено! (+100 XP)
-                    </button>
-                </div>
-
-                <!-- Sleek Challenge Timer Interface -->
-                <div class="timer-container" id="timerContainer">
-                    <div class="timer-presets" id="timerPresets">
-                        <button class="timer-preset-btn" onclick="startTimer(15)">15 м</button>
-                        <button class="timer-preset-btn" onclick="startTimer(30)">30 м</button>
-                        <button class="timer-preset-btn" onclick="startTimer(45)">45 м</button>
-                    </div>
-                    <div class="timer-display" id="timerDisplay">15:00</div>
-                    <div class="timer-progress">
-                        <div class="timer-progress-fill" id="timerProgressFill"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <button id="generateBtn" class="trigger-btn" onclick="spinWheel()">Крутить колесо</button>
-    </main>
-
-    <!-- Drawer Trigger -->
-    <div class="drawer-trigger" onclick="toggleDrawer(true)">
-        <svg viewBox="0 0 24 24">
-            <path d="M4 18h16c.55 0 1-.45 1-1s-.45-1-1-1H4c-.55 0-1 .45-1 1s.45 1 1 1zm0-5h16c.55 0 1-.45 1-1s-.45-1-1-1H4c-.55 0-1 .45-1 1s.45 1 1 1zM3 7c0 .55.45 1 1 1h16c.55 0 1-.45 1-1s-.45-1-1-1H4c-.55 0-1 .45-1 1z"/>
-        </svg>
+<header>
+    <div class="xp-badge-container">
+        <div class="level-text" id="levelName">НОВИЧОК (УРОВЕНЬ 1)</div>
+        <div class="xp-bar-container"><div class="xp-bar-fill" id="xpBarFill"></div></div>
+        <div class="level-text" id="xpDisplayVal">0 / 300 XP</div>
     </div>
+    <div class="brand-sub">АЙТИЛАНДИЯ // ACADEMY OF FUTURE CREATIVES</div>
+    <h1>Айтиландия <span>CREATIVE WHEEL v4.2 PRO</span></h1>
+</header>
 
-    <!-- Sliding Sidebar (Quest Log) -->
-    <div class="quest-log-drawer" id="questLogDrawer">
-        <div class="drawer-header">
-            <div class="drawer-title">ИСТОРИЯ ВЫЗОВОВ</div>
-            <button class="drawer-close" onclick="toggleDrawer(false)">×</button>
-        </div>
-        <div class="quest-list" id="questList">
-            <!-- Dynamically populated quest items -->
+<main>
+    <div class="tabs-wrapper">
+        <div class="tabs" id="subjectTabs">
+            <button class="tab-btn active" data-subj="photoshop">Photoshop</button>
+            <button class="tab-btn" data-subj="illustrator">Illustrator</button>
+            <button class="tab-btn" data-subj="blender">Blender</button>
+            <button class="tab-btn" data-subj="ai">ИИ Промптинг</button>
+            <button class="tab-btn" data-subj="python">Python Art</button>
+            <button class="tab-btn" data-subj="krita">Krita Рисование</button>
+            <button class="tab-btn" data-subj="aftereffects">After Effects</button>
+            <button class="tab-btn" data-subj="figma">Figma UX</button>
+            <button class="tab-btn special-tab" data-subj="constructor">⚡ Конструктор</button>
+            <button class="tab-btn marathon-tab" data-subj="marathon">🏃 Марафон</button>
         </div>
     </div>
 
-    <footer>
-        <div class="terminal-container">
-            <span>🔑 TERMINAL:</span>
-            <input type="text" class="terminal-input" id="terminalInput" placeholder="Код..." onkeydown="handleCheatcode(event)">
+    <div class="playzone">
+        <div class="wheel-wrapper">
+            <div class="wheel-pointer"><svg viewBox="0 0 24 24"><path d="M12 21l-8.2-13h16.4z"/></svg></div>
+            <canvas id="wheelCanvas" width="380" height="380"></canvas>
         </div>
-        <div style="margin-top: 5px;">ITILANDIA Minimalist Lab // Premium Creative Assistant v4.2 PRO</div>
-    </footer>
+        <div class="display-container">
+            <div id="placeholder" class="placeholder-text">Крути колесо и получай челлендж!</div>
+            <div id="taskTitle" class="task-title">СУПЕР-ЧЕЛЛЕНДЖ</div>
+            <div id="taskDisplay" class="task-text"></div>
+            <div class="action-row">
+                <button id="copyBtn" class="copy-btn"><span>📋 Скопировать</span></button>
+                <button id="doneBtn" class="done-btn">✅ Выполнено! (+100 XP)</button>
+            </div>
+            <div class="timer-container" id="timerContainer">
+                <div class="timer-presets"><button class="timer-preset-btn" data-min="15">15 мин</button><button class="timer-preset-btn" data-min="30">30 мин</button><button class="timer-preset-btn" data-min="45">45 мин</button></div>
+                <div class="timer-display" id="timerDisplay">15:00</div>
+                <div class="timer-progress"><div class="timer-progress-fill" id="timerProgressFill"></div></div>
+            </div>
+        </div>
+    </div>
+    <button id="generateBtn" class="trigger-btn">КРУТИТЬ КОЛЕСО</button>
+</main>
 
-    <script>
-        // --- ADVANCED AUDIO ENGINE (Web Audio API Synthesis) ---
-        let audioCtx = null;
+<div class="drawer-trigger" id="drawerTrigger">📜</div>
+<div class="quest-log-drawer" id="questLogDrawer">
+    <div class="drawer-header"><div class="drawer-title">ИСТОРИЯ ВЫЗОВОВ</div><button class="drawer-close" id="closeDrawer">✕</button></div>
+    <div class="quest-list" id="questList"></div>
+</div>
 
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+<footer><span>🔐 TERMINAL:</span><input type="text" class="terminal-input" id="terminalInput" placeholder="КОД..."><span>v4.2 PRO</span></footer>
+
+<script>
+    // --------------------------------------------------------------
+    // 1. ВСТРОЕННАЯ БАЗА ЗАДАНИЙ (полностью из tasks.json)
+    // --------------------------------------------------------------
+    const EMBEDDED_TASKS = {
+  "photoshop": [
+    "«Городской великан»: Вставь фото обычного человека так, будто он шагает между небоскребами большого города.",
+    "«Живой фрукт»: Возьми фото апельсина или яблока и приделай ему реалистичные глаза и улыбку.",
+    "«Киберпанк-бабушка»: Добавь на фото обычной бабули светящиеся неоновые очки, татуировки и гаджеты.",
+    "«Животное-гибрид»: Скрести акулу и котенка (или любые два других существа) в одном безумном коллаже.",
+    "«Обложка журнала»: Создай стильную обложку модного глянца с известным актером или персонажем в главной роли.",
+    "«Маг воздуха»: Добавь на фото человека спецэффекты свечения, магии или огненных шаров, летящих из рук.",
+    "«Дом на курьих ножках 2.0»: Возьми фото небоскреба и приделай ему огромные робо-лапы.",
+    "«Карманный питомец»: Сделай коллаж, где большой пес или кот уменьшился до размеров спичечной коробки на ладони.",
+    "«Подводный класс»: Перенеси фото школьного кабинета под воду: добавь проплывающих рыб и акулу за окном.",
+    "«Затерянный мир»: Спрячь среди зарослей домашнего цветка маленького испуганного динозавра.",
+    "«Детектив из нуара»: Преврати обычный мужской или женский портрет в черно-белый постер фильма с тенями.",
+    "«Прогулка по Марсу»: Замени фон на фото улицы на красные пустыни Марса и добавь два спутника в небе.",
+    "«Уборка у Тони Старка»: Вставь забавного персонажа на задний план лаборатории Железного Человека со шваброй.",
+    "«Kот-Мона Лиза»: Аккуратно впиши мордочку самого мемного кота в классическую старинную картину.",
+    "«В гостях у Майнкрафта»: Замени на фото природы небо на пиксельные облака, а персонажу в руку вложи кирку.",
+    "«Агент 007»: Пририсуй фотографии мопса или хаски строгий черный смокинг, бабочку и темные очки.",
+    "«Я внутри игры»: Возьми скриншот из популярной игры и максимально органично вставь туда реалистичного человека.",
+    "«Историческое селфи»: Сделай коллаж, где современный турист стоит в обнимку с рыцарем в латах или фараоном.",
+    "«Оживи памятник»: Возьми фото каменной статуи и вложи ей в руки современный смартфон или скейтборд.",
+    "«Мем-эволюция»: Объедини три совершенно разных интернет-мема в один безумный сюжет.",
+    "«Человек-невидимка»: На фото модели сотри все участки кожи, оставив только парящую одежду, обувь и кепку.",
+    "«Портал в стене»: Вырежи на фото кирпичной стены круг и вставь туда вид на бескрайний космос или фэнтези-лес.",
+    "«Эффект калейдоскопа»: Из одного небольшого предмета (кроссовка) создай сложный симметричный узор.",
+    "«Глитч-арт»: Преврати портрет в цифровой сбой — сдвинь каналы цвета (RGB) и добавь полосы помех.",
+    "«Шоколадный мир»: Измени цвета на фото пейзажа так, будто реки стали жидким шоколадом, а трава — кремом.",
+    "«Стеклянный силуэт»: Сделай силуэт человека прозрачным, наполнив его текстурой разбитого стекла или каплями.",
+    "«Двуликий»: Раздели лицо на фото пополам: одна половина обычная, а вторая — робот с микросхемами.",
+    "«Неоновый след»: Обведи силуэт бегущего спортсмена яркими светящимися линиями, имитируя кибер-эффект.",
+    "«Левитирующие кроссовки»: Оторви обувь от земли, добавь мягкую тень снизу и эффект легкого дыма.",
+    "«Силуэтная история»: Создай черный силуэт головы человека, а внутри него размести ночной лес с луной.",
+    "«Афиша супергероя»: Создай кинопостер для фильма про космонавта с неоновым названием и титрами.",
+    "«Дуотон-постер»: Используя только два ярких цвета (розовый и синий), сделай стильный постер музыкальной группы.",
+    "«Коллаж из букв»: Заполни крупную первую букву алфавита миниатюрными картинками разных гаджетов.",
+    "«Ретро-вейв открытка»: Сделай открытку в стиле 80-х: фиолетовое солнце, сетка перспективы, пальмы и горы.",
+    "«Обложка трека»: Разработай квадратную обложку для вымышленного музыкального альбома в стиле минимализма.",
+    "«Эко-манифест»: Сделай постер, где из старой выброшенной клавиатуры прорастают сочные папоротники.",
+    "«Назад в будущее»: Возьми старое черно-белое фото города и аккуратно раскрась его элементы в реальные цвета.",
+    "«Поп-арт аватар»: Преврати портрет модели в яркий комикс в стиле Энди Уорхола (кислотные заливки).",
+    "«Каменный человек»: Наложи текстуру потрескавшегося камня на портрет, превратив человека в статую.",
+    "«Зимняя магия»: Возьми летнее фото природы и с помощью цветокоррекции преврати его в заснеженную зиму.",
+    "«Мультяшные глаза»: Замени на портрете обычные глаза на огромные, выразительные аниме-глаза.",
+    "«Огненные волосы»: Сделай выборочную цветокоррекцию волос на фото, превратив их в языки пламени.",
+    "«Космический лимонад»: Придумай дизайн этикетки газировки и наложи ее на фото стеклянной бутылки.",
+    "«Собственное тату»: Найди крутой рисунок и с помощью режимов наложения реалистично нанеси его на руку модели.",
+    "«Коробка для игры»: Создай дизайн передней обложки для диска с игрой своей мечты с логотипами платформ.",
+    "«Наклейка на ноут»: Создай круглый стикер с забавной фразой для IT-шников, используя эффекты текста.",
+    "«Граффити на заборе»: Напиши любое слово стильным шрифтом и наложи на фото кирпичной стены с текстурой.",
+    "«Идеальный камуфляж»: Сделай коллаж, где человек одет в одежду, текстура которой полностью совпадает с обоями.",
+    "«Лего-бургер»: Замени на фотографии сочного бургера котлету и салат на детальки конструктора LEGO.",
+    "«Дракон в облаках»: Найди фото грозового неба и с помощью масок прояви в облаках очертания дракона.",
+    "«Кошачий барон»: Переодень пушистого кота в королевскую мантию, добавь золотую корону и старинный трон.",
+    "«Призрачный гонщик»: Пририсуй колесам обычного велосипеда или мотоцикла реалистичные языки пламени.",
+    "«Глаз дракона»: Крупным планом вставь в человеческий зрачок чешуйчатую текстуру и вертикальный разрез.",
+    "«Замороженный гаджет»: Помести современный смартфон или часы внутрь полупрозрачной глыбы льда с трещинами.",
+    "«Остров в чашке»: Создай внутри обычной кружки чая миниатюрный тропический пляж с пальмой.",
+    "«Летающий город»: Вырежи кусок городского парка и заставь его парить в воздухе среди белых облаков.",
+    "«Эффект хамелеона»: Измени цвет кожи человека на фото на ярко-зеленый с текстурой чешуи и добавь ветку.",
+    "«Цифровой макияж»: Нанеси на лицо модели футуристичный неоновый грим, который как бы светится в темноте.",
+    "«Книжная магия»: Сделай так, чтобы из открытой книги вверх поднимался поток звезд, планет и букв.",
+    "«Рентгеновский снимок»: Сделай часть руки человека прозрачной, показав внутри светящиеся провода и платы.",
+    "«Космический турист»: Замени стекло шлема космонавта на отражение песчаного пляжа с пальмами вместо космоса.",
+    "«Живые обои»: Сделай так, чтобы рисунок птицы на обоях вылетал из стены прямо в виртуальную комнату.",
+    "«Кроссовки из травы»: Измени текстуру спортивной обуви, полностью покрыв её сочным зеленым газоном.",
+    "«Железный человек»: Преврати руку парня или девушки в металлический протез с помощью текстур хрома.",
+    "«Шторм в тарелке»: Замени суп в глубокой тарелке на бушующий океан с маленьким пиратским парусником.",
+    "«Золотой котик»: Преврати обычного домашнего питомца в чистую золотую статуэтку с блеском и бликами.",
+    "«Пиксельный распад»: Сделай так, чтобы половина силуэта человека на фото растворялась на крупные кубики.",
+    "«Лавовый монстр»: Наложи на контуры спортивной машины текстуру раскаленной лавы, текущей по дверям.",
+    "«Вспышка супергероя»: Добавь за спиной прыгающего каскадера мощную взрывную волну, дым и искры.",
+    "«Аватар на прокачку»: Добавь к портрету человека рамку редкого лута и полоску здоровья из RPG-игры.",
+    "«Подводный город»: Наложи на фото мегаполиса синий фильтр, пузыри воздуха и проплывающего огромного кита.",
+    "«Песочный человек»: Сделай так, чтобы кисть руки и пальцы человека рассыпались на миллионы песчинок.",
+    "«Кибер-очки»: Пририсуй к фотографии лица очки, внутри которых светятся графики и цифровые коды.",
+    "«Ламповая голова»: Замени голову персонажа на фото на старинную лампочку, которая ярко горит.",
+    "«Снежная буря в комнате»: Добавь на фото интерьера сугробы на диване и падающие пушистые снежинки.",
+    "«Обложка комикса»: Преврати любое фото в страницу комикса: добавь облачко с текстом «БАМ!» или «УПС!»",
+    "«Бумажный мир»: Сделай фото плоским, добавив по краям объектов белую обводку и тени, как у вырезок.",
+    "«Огненный лед»: Соедини в одном объекте (например, стакане) текстуру горящего пламени и кубиков льда.",
+    "«Вторая тень»: Сделай так, чтобы тень идущего человека на стене не повторяла его позу, а танцевала.",
+    "«Микро-мир»: Посади маленьких вырезанных человечков на компьютерную мышь, будто это огромный холм.",
+    "«Джинн из бутылки»: Выпусти из горлышка стеклянной бутылочки светящийся дым с силуэтом существа.",
+    "«Взрыв цвета»: Добавь вокруг бегущего спортсмена яркие разноцветные брызги сухой краски Холи.",
+    "«Каменный текст»: Напиши любое слово и преврати его в древние тяжелые камни с наросшим зеленым мхом.",
+    "«Свечение сквозь кожу»: Сделай так, чтобы на руке или шее модели проступали светящиеся неоновые татуировки.",
+    "«В мире великанов»: Сделай коллаж, где маленький ребенок пытается залезть на огромную домашнюю клавиатуру.",
+    "«Деревянный гаджет»: Замени корпус современного телефона на текстуру старого дуба с годовыми кольцами.",
+    "«Леденцовые горы»: Перекрась горный пейзаж в нежно-розовые и мятные цвета воздушной сахарной ваты.",
+    "«Вспышка скорости»: Добавь бегущему по траве коту шлейф размытия и синие молнии, как у Соника.",
+    "«Картина в картине»: Сделай бесконечный рекурсивный коллаж, где парень держит в руках рамку с самим собой.",
+    "«Звездный плащ»: Преврати обычную куртку или худи на фото в ткань, сотканную из созвездий галактики.",
+    "«Глаза-телепорты»: Замени радужку глаз человека на фото на вид крутящейся космической черной дыры.",
+    "«Векторный микс»: Оставь одну половину фотографии реальной, а вторую обрисуй плоскими цветными пятнами.",
+    "«Красная угроза»: Сделай всю фотографию черно-белой, оставив ярко-красными только кроссовки или кепку.",
+    "«Облако на поводке»: Замени собаку на фото на пушистое белое облачко, от которого идет поводок к руке человека.",
+    "«Повелитель молний»: Добавь в грозовое небо фигуру мага, которая призывает разряд молнии прямо в пальцы.",
+    "«Кристальные слезы»: Добавь на лицо грустной модели сияющие граненые стразы и алмазные капли.",
+    "«Механическое яблоко»: Отрежь половинку яблока, а внутри покажи шестеренки, мелкие часы и провода.",
+    "«Король неонового города»: Добавь над головой идущего парня парящую минималистичную корону из чистого света.",
+    "«Сон наяву»: Сделай так, чтобы из белой чашки с чаем выплывали маленькие бумажные кораблики и киты.",
+    "«Аура геймера»: Добавь вокруг сидящего за компом парня мягкое RGB-свечение, как у топовых девайсов."
+  ],
+  "illustrator": [
+    "«Эмодзи-ты»: Создай векторный аватар-смайлик, идеально передающий твое настроение или внешность.",
+    "«Геометрический монстр»: Используй только круги, квадраты и треугольники, чтобы нарисовать забавного персонажа.",
+    "«Космический значок»: Нарисуй неоновую плоскую ракету, летящую сквозь кольца Сатурна.",
+    "«Зомби-Бургер»: Разработай дерзкий векторный логотип для вымышленного кафе быстрого питания.",
+    "«Стикер со злобным бананом»: Нарисуй яркий, запоминающийся стикер для мессенджеров с характером.",
+    "«Минималистичный постер»: Создай плакат к любимому фильму, используя всего 3 цвета и 2 простые фигуры.",
+    "«Формозавр»: Собери контур динозавра, комбинируя и вычитая только базовые геометрические фигуры.",
+    "«Крипто-монета»: Разработай дизайн золотой монеты с собственным крутым логотипом по центру.",
+    "«Скин для геймпада»: Придумай векторный паттерн (узор) и наложи его на шаблон джойстика.",
+    "«Ограбление банка»: Нарисуй плоскую минималистичную иконку сейфа со следами взлома и лазерами.",
+    "«Неоновый коктейль»: Создай яркую вывеску с бокалом, трубочкой и светящейся долькой лайма.",
+    "«Кот-ниндзя»: Нарисуй круглый стикер с черным котом в маске синоби и с деревянными палочками.",
+    "«Стильный бейдж»: Создай винтажную нашивку исследователя гор с палаткой, костром и звездами.",
+    "«Пак зелий»: Нарисуй три колбы с разной формой и цветом магической жидкости (яд, мана, здоровье).",
+    "«Лого для клана»: Придумай суровый киберспортивный логотип с головой волка или медведя в векторе.",
+    "«Пингвин на чилле»: Нарисуй пингвина в солнцезащитных очках и пляжной рубашке с пальмами.",
+    "«Робо-банка»: Преврати обычную жестянку газировки в робота, добавив векторные провода, кнопки и экран.",
+    "«Космический пончик»: Изобрази гигантский пончик с глазурью в виде далекой галактики со звездами.",
+    "«Хипстерский олень»: Нарисуй геометрию головы оленя и надень на него стильные хипстерские очки.",
+    "«Летящий худи»: Разработай минималистичный принт на одежду с изображением летящего скейта.",
+    "«Волшебный гриб»: Нарисуй мультяшный мухомор, у которого вместо пятнышек светящиеся звездочки.",
+    "«Иконка суперсилы»: Создай квадратный значок для RPG-игры с кулаком в молниях или огненным щитом.",
+    "«Привидение-сладкоежка»: Нарисуй милое белое привидение, которое летит с коробкой пиццы в лапках.",
+    "«Кибер-наушники»: Сделай векторный концепт футуристичных наушников с кошачьими светящимися ушками.",
+    "«Узор из еды»: Создай бесшовный паттерн, состоящий из маленьких иконок пиццы, суши и картошки фри.",
+    "«Мистер Кактус»: Нарисуй кактус в горшке, который улыбается и держит в руках маленькую гитару.",
+    "«Билет на Марс»: Разработай футуристичный посадочный талон на космический корабль Space-X.",
+    "«Механическое сердце»: Нарисуй сердце, состоящее из соединенных векторных шестеренок и винтиков.",
+    "«Крутой ленивец»: Создай персонажа-ленивца, который висит на лиане и слушает плеер.",
+    "«Логотип со смыслом»: Создай лого для бренда одежды, соединив первую букву имени и стрелу.",
+    "«Аппетитный тако»: Нарисуй мексиканское тако с улыбкой, усами-начос и в традиционном сомбреро.",
+    "«Городской силуэт»: Используя инструмент Выравнивание, создай ровную линию ночного города с луной.",
+    "«Кристальный лис»: Нарисуй лису в стиле полигональной графики (из разноцветных треугольников).",
+    "«Аквариум в лампочке»: Изобрази обычную лампочку, внутри которой плавает маленькая золотая рыбка.",
+    "«Постер с цитатой»: Напиши любимую фразу, превратив буквы в объемные 3D-объекты инструментами Illustrator.",
+    "«Супер-рюкзак»: Нарисуй flat-иконку школьного рюкзака, из карманов которого торчат гаджеты.",
+    "«Драконье яйцо»: Создай детализированное яйцо с чешуйками и светящимися трещинами.",
+    "«Модный кроссовок»: Нарисуй сбоку культовый кроссовок в яркой неоновой цветовой гамме.",
+    "«Ретро-кассета»: Нарисуй старую аудиокассету, из которой забавно размоталась магнитная лента.",
+    "«Король Лев 2.0»: Создай минималистичный геометрический portrait льва, используя только прямые линии.",
+    "«Стикер Кибер-кота»: Нарисуй кота, у которого вместо одного глаза вмонтирован светящийся прицел.",
+    "«Звездное мороженое»: Изобрази рожок мороженого, шарики которого выглядят как планеты.",
+    "«Вывеска Аркады»: Разработай ретро-логотип для зала игровых автоматов с пиксельным шрифтом.",
+    "«Загадочный тотем»: Сделай симметричный рисунок индейского тотема, используя инструмент Зеркало.",
+    "«Авокадо-йог»: Нарисуй половинку авокадо с косточкой, которая сидит в позе лотоса и медитирует.",
+    "«Векторный щит»: Создай рыцарский щит с гербом, на котором нарисованы скрещенные молнии.",
+    "«Алхимическая книга»: Изобрази старинный фолиант с полумесяцем на обложке и светящимися страницами.",
+    "«Суши-мастер»: Нарисуй забавный ролл с повязкой камикадзе на голове и с маленьким веером.",
+    "«Микро-робот»: Создай милого робота-пылесоса с глазками, который везет на себе испуганного кота.",
+    "«Облачный кит»: Нарисуй огромного кита, плывущего по небу, у которого на спине растет маленький сад."
+  ],
+  "blender": [
+    "«Меч Джедая»: Смоделируй низкополигональный (low-poly) светящийся клинок в стиле фэнтези.",
+    "«Тропик-Микро»: Создай парящий в воздухе микро-остров: кусочек океана, песок и одна пальма.",
+    "«Кристалл Силы»: Сделай граненый полупрозрачный кристалл, светящийся в темной неоновой комнате.",
+    "«Похищение Коров»: Простая летающая тарелка, которая захватывает светящимся лучом объект внизу.",
+    "«Пончик Гомера»: Смоделируй 3D-пончик с глянцевой глазурью и светящейся посыпкой.",
+    "«Бот-Валли»: Собери из простых мешей (кубы, сферы, цилиндры) милого робота-помощника.",
+    "«Уютный Кофе»: Сделай простую глиняную чашку с паром над горячим шоколадом.",
+    "«Дерево из Сказки»: Смоделируй пышное стилизованное дерево с облаковидной кроной.",
+    "«Шар Зимы»: Помести зимний пейзаж со снеговиком внутрь прозрачной сферы.",
+    "«Сундук Пирата»: Смоделируй старинный пиратский сундук с золотыми заклепками.",
+    "«Киберпанк-раменная»: Смоделируй угловой уличный ларёк с едой, неоновой вывеской в виде лапши и парящими дронами-официантами."
+  ],
+  "ai": [
+    "«Город в лампочке»: Напиши промпт для генерации детализированного эко-города внутри лампочки.",
+    "«Кибер-Самурай»: Создай промпт для портрета кота-самурая в неоновых доспехах Токио 2099 года.",
+    "«Стимпанк-Поезд»: Сгенерируй летящий сквозь облака локомотив на паровом ходу из золота и меди.",
+    "«Мармеладный Мир»: Напиши промпт для создания долины, где горы сделаны из сладостей, а реки из сиропа.",
+    "«Дворец Эльзы»: Опиши генерацию величественного ледяного дворца, сверкающего на солнце.",
+    "«Гримуар Мага»: Сгенерируй страницу магической книги с алхимическими знаками и светящимся текстом.",
+    "«Отель на Луне»: Промпт для концепт-арта футуристического отеля с видом на Землю.",
+    "«Сад из кристаллов»: Напиши промпт для генерации сада, где все растения сделаны из драгоценных камней."
+  ],
+  "python": [
+    "«Черепаший фрактал»: Напиши код на Turtle, который генерирует бесконечную цветную спираль.",
+    "«Арт-хаус холст»: Создай скрипт, рисующий сотни случайных цветных кругов разного диаметра.",
+    "«Космический кликер»: Сделай на Pygame микро-игру, где при клике на летающую тарелку растет счет.",
+    "«Побег из Лаборатории»: Напиши текстовый квест в консоли про побег из заброшенной IT-лаборатории.",
+    "«Радужная волна»: Нарисуй синусоидальную волну, плавно меняющую цвет градиента в цикле.",
+    "«Генератор Ников»: Напиши программу, собирающую крутые геймерские никнеймы из списков слов.",
+    "«Шифратор Цезаря»: Напиши программу, которая автоматически зашифровывает и расшифровывает текстовые сообщения."
+  ],
+  "krita": [
+    "«Монстр из тени»: Нарисуй концепт таинственного лесного духа, используя только силуэт и маски.",
+    "«Акварельный рассвет»: Нарисуй туманные горы, используя исключительно кисти с эффектом влажной акварели.",
+    "«Древний Амулет»: Нарисуй детализированный амулет из старого дерева со светящейся неоновой руной.",
+    "«Портрет Поп-Арт»: Изобрази своего персонажа с яркими плоскими тенями и кричащей обводкой.",
+    "«Космический Кит»: Нарисуй кита, плывущего в звездном небе, где вместо плавников — туманности."
+  ],
+  "aftereffects": [
+    "«Жидкое Золото»: Анимируй появление текстового логотипа с эффектом жидкого расплавленного золота.",
+    "«Неоновый след»: Сделай анимацию объекта, оставляющего за собой светящийся дымчатый след.",
+    "«Формы в танце»: Создай плавное превращение плоского круга в звезду, а затем в треугольник.",
+    "«Глитч-Переход»: Создай короткий эффект помех и хроматической аберрации на стыке кадров.",
+    "«Магия Пера»: Настрой эффект проявления рукописного шрифта с использованием путей (Path)."
+  ],
+  "figma": [
+    "«Билет на Марс»: Спроектируй экран приложения для покупки билетов на межгалактические рейсы.",
+    "«Карта Сокровищ»: Создай интерактивный прототип карты с всплывающими подсказками при наведении.",
+    "«Нео-брутализм»: Разработай дерзкий интерфейс музыкального плеера с жесткими тенями.",
+    "«Панель Умного Дома»: Спроектируй футуристический дашборд для управления умными роботами дома.",
+    "«Кастомайзер Шлема»: Создай UI-экран выбора кастомизации шлема и брони игрового персонажа."
+  ],
+  "constructor_what": [
+    "Космический корабль", "Затерянный замок", "Логотип содовой", "Фантастический зверь", 
+    "Портрет киборга", "Обложка альбома", "Иконка приложения", "Комната геймера",
+    "Магический посох", "Кибер-кроссовки", "Робот-доставщик", "Летающий остров",
+    "Механический цветок", "Футуристический шлем", "Античный смартфон", "Кристальный город"
+  ],
+  "constructor_style": [
+    "в стиле ретро-футуризм", "с неоновым киберпанк свечением", "в нежных пастельных тонах", "в стиле яркого пиксель-арта", 
+    "в стиле ультра-минимализм", "в изометрической проекции", "с текстурой старой бумаги", "в стиле поп-арт", 
+    "с эффектом жидкого золота", "в стиле темного фэнтези", "в стиле нео-нуар", "в мультяшном low-poly"
+  ],
+  "constructor_rules": [
+    "ровно за 15 минут", "используя только 3 базовых цвета", "без использования градиентов", "добавив пасхалку (секретную деталь)", 
+    "только из геометрических примитивов", "сделав темную и светлую версии", "добавив анимированную деталь",
+    "используя только один тип кисти", "добавив элемент искажения", "в формате 1:1 (квадрат)"
+  ]
+};
+
+    // --------------------------------------------------------------
+    // 2. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+    // --------------------------------------------------------------
+    let tasks = EMBEDDED_TASKS;
+    let currentSubject = 'photoshop';
+    let isSpinning = false;
+    let startAngle = 0;
+    let ringAngles = [0, 0, 0];
+    let activeSectors = [];
+    let tripleSectors = { what: [], style: [], rules: [] };
+    let activeTaskText = '';
+    let userXP = parseInt(localStorage.getItem('itilandia_xp')) || 0;
+    let countdownActive = false, timerInterval = null;
+    let audioCtx = null;
+
+    // --------------------------------------------------------------
+    // 3. ЗВУКИ (Web Audio)
+    // --------------------------------------------------------------
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+    function playSpinTick() {
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(650, now);
+        osc.frequency.exponentialRampToValueAtTime(180, now + 0.05);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+        osc.start(now); osc.stop(now + 0.05);
+    }
+    function playVictory() {
+        if (!audioCtx) return;
+        const notes = [523.25, 659.25, 784.0];
+        notes.forEach((freq, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            const t = audioCtx.currentTime + i * 0.12;
+            osc.frequency.setValueAtTime(freq, t);
+            gain.gain.setValueAtTime(0.12, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+            osc.start(t); osc.stop(t + 0.6);
+        });
+    }
+    function playSoftClick() {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    }
 
-        function playTickSound() {
-            try {
-                initAudio();
-                const now = audioCtx.currentTime;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(650, now);
-                osc.frequency.exponentialRampToValueAtTime(120, now + 0.04);
-
-                gain.gain.setValueAtTime(0.06, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-
-                osc.start(now);
-                osc.stop(now + 0.04);
-            } catch (e) {}
+    // --------------------------------------------------------------
+    // 4. КОЛЕСО: отрисовка и сектора
+    // --------------------------------------------------------------
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
         }
+        return arr;
+    }
 
-        function playSoftClick() {
-            try {
-                initAudio();
-                const now = audioCtx.currentTime;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(400, now);
-                osc.frequency.exponentialRampToValueAtTime(550, now + 0.06);
-
-                gain.gain.setValueAtTime(0.02, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
-
-                osc.start(now);
-                osc.stop(now + 0.06);
-            } catch (e) {}
-        }
-
-        function playTimerWarningClick() {
-            try {
-                initAudio();
-                const now = audioCtx.currentTime;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, now);
-                gain.gain.setValueAtTime(0.12, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-
-                osc.start(now);
-                osc.stop(now + 0.15);
-            } catch (e) {}
-        }
-
-        function playVictoryChime() {
-            try {
-                initAudio();
-                const now = audioCtx.currentTime;
-                const arpeggio = [261.63, 329.63, 392.00, 523.25];
-                
-                arpeggio.forEach((frequency, index) => {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-
-                    osc.type = 'sine';
-                    const startTime = now + (index * 0.08);
-                    
-                    osc.frequency.setValueAtTime(frequency, startTime);
-                    gain.gain.setValueAtTime(0, startTime);
-                    gain.gain.linearRampToValueAtTime(0.1, startTime + 0.04);
-                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.5);
-
-                    osc.start(startTime);
-                    osc.stop(startTime + 0.5);
-                });
-            } catch (e) {}
-        }
-
-        function playLevelUpChime() {
-            try {
-                initAudio();
-                const now = audioCtx.currentTime;
-                const baseFreq = 220; // A3
-                const scaleMultipliers = [1, 1.25, 1.5, 1.875, 2, 2.5, 3]; // Major intervals
-
-                scaleMultipliers.forEach((mult, index) => {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-
-                    osc.type = 'triangle';
-                    const startTime = now + (index * 0.06);
-                    
-                    osc.frequency.setValueAtTime(baseFreq * mult, startTime);
-                    gain.gain.setValueAtTime(0, startTime);
-                    gain.gain.linearRampToValueAtTime(0.15, startTime + 0.03);
-                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.8);
-
-                    osc.start(startTime);
-                    osc.stop(startTime + 0.8);
-                });
-            } catch (e) {}
-        }
-
-        // --- CORE GAME STATE AND DB ---
-        let tasks = {};
-        let currentSubject = 'photoshop';
-        let isSpinning = false;
-        let startAngle = 0;
-        let ringAngles = [0, 0, 0];
-        let activeSectors = [];
-        let tripleSectors = { what: [], style: [], rules: [] };
-        let activeCheatCode = null;
-
-        // Visual Customization Themes (Cheat-codes)
-        const themes = {
-            'photoshop': { main: '#00c6ff', glow: 'rgba(0, 198, 255, 0.15)' },
-            'illustrator': { main: '#f7971e', glow: 'rgba(247, 151, 30, 0.15)' },
-            'blender': { main: '#ff007f', glow: 'rgba(255, 0, 127, 0.15)' },
-            'ai': { main: '#9b5de5', glow: 'rgba(155, 93, 229, 0.15)' },
-            'python': { main: '#3776ab', glow: 'rgba(55, 118, 171, 0.15)' },
-            'krita': { main: '#00f5d4', glow: 'rgba(0, 245, 212, 0.15)' },
-            'aftereffects': { main: '#d62828', glow: 'rgba(214, 40, 40, 0.15)' },
-            'figma': { main: '#00bbf9', glow: 'rgba(0, 187, 249, 0.15)' },
-            'constructor': { main: '#d4af37', glow: 'rgba(214, 175, 55, 0.15)' },
-            'marathon': { main: '#ff0055', glow: 'rgba(255, 0, 85, 0.18)' },
-            'GOLD_THEME': { main: '#ffd700', glow: 'rgba(255, 215, 0, 0.25)' },
-            'HELL_THEME': { main: '#ff3333', glow: 'rgba(255, 51, 51, 0.3)' },
-            'RETRO_THEME': { main: '#ff007f', glow: 'rgba(255, 0, 127, 0.2)' },
-            'SPACE_THEME': { main: '#4f46e5', glow: 'rgba(79, 70, 229, 0.2)' }
-        };
-
-        const fallbackTasks = {
-            "photoshop": [
-                "«Я — великан»: Вставь свое фото так, будто ты шагаешь между небоскребами большого города.",
-                "«Живой фрукт»: Возьми фото апельсина или яблока и приделай ему реалистичные глаза и улыбку.",
-                "«Киберпанк-бабушка»: Добавь на фото обычной бабули светящиеся неоновые очки, татуировки и гаджеты.",
-                "«Животное-гибрид»: Скрести акулу и котенка в одном безумном цифровом коллаже.",
-                "«Эпичная Обложка»: Создай стильную обложку музыкального альбома с собой в главной роли.",
-                "«Властелин Стихий»: Добавь на фото спецэффекты свечения, магии или огненных шаров, летящих из рук.",
-                "«Секретный Портал»: Вырежи в стене комнаты проход и вставь туда вид на пляж или далекую галактику.",
-                "«Атлантида 2.0»: Перенеси городскую улицу под воду, добавив медуз, рыб и синеватый туман.",
-                "«Гравитация, пока!»: Заставь посуду на кухне летать в воздухе с помощью мягких теней и обтравки.",
-                "«Двойной запуск»: Сделай коллаж, где ты сидишь на плече у самого себя."
-            ],
-            "illustrator": [
-                "«Мой Эмодзи»: Создай векторный аватар-смайлик, идеально передающий твое настроение или внешность.",
-                "«Формозавр»: Используй только круги, квадраты и треугольники, чтобы нарисовать забавного персонажа.",
-                "«Лого Космоса»: Нарисуй неоновую плоскую ракету, летящую сквозь кольца Сатурна.",
-                "«Монстр-Бургер»: Разработай дерзкий векторный логотип для вымышленного кафе быстрого питания.",
-                "«Фруктовый Бунт»: Нарисуй яркий, запоминающийся стикер для мессенджеров с характером.",
-                "«Постер-Загадка»: Создай плакат к фильму, используя всего 3 цвета и 2 простые фигуры.",
-                "«Домик 3D-Лайт»: Построй аккуратный объемный 2D домик с помощью сетки изометрии.",
-                "«Лакшери Утка»: Нарисуй глянцевую желтую уточку с проработанными векторными бликами.",
-                "«Суши-Паттерн»: Сделай бесшовный сочный паттерн с роллами и суши для обоев.",
-                "«Неон-Магия»: Создай светящуюся неоном вывеску в стиле ретро-кафе."
-            ],
-            "blender": [
-                "«Меч Джедая»: Смоделируй низкополигональный (low-poly) светящийся клинок в стиле фэнтези.",
-                "«Тропик-Микро»: Создай парящий в воздухе микро-остров: кусочек океана, песок и одна пальма.",
-                "«Kристалл Силы»: Сделай граненый полупрозрачный кристалл, светящийся в темной неоновой комнате.",
-                "«Похищение Коров»: Простая летающая тарелка, которая захватывает светящимся лучом объект внизу.",
-                "«Пончик Гомера»: Смоделируй 3D-пончик с глянцевой глазурью и светящейся посыпкой.",
-                "«Бот-Валли»: Собери из простых мешей (кубы, сферы, цилиндры) милого робота-помощника.",
-                "«Уютный Кофе»: Сделай простую глиняную чашку с паром над горячим шоколадом.",
-                "«Дерево из Сказки»: Смоделируй пышное стилизованное дерево с облаковидной кроной.",
-                "«Шар Зимы»: Помести зимний пейзаж со снеговиком внутрь прозрачной сферы.",
-                "«Сундук Пирата»: Смоделируй старинный пиратский сундук с золотыми заклепками."
-            ],
-            "ai": [
-                "«Город в лампочке»: Напиши промпт для генерации детального города внутри лампы.",
-                "«Кибер-Самурай»: Создай промпт для портрета кота-самурая в неоновом Токио.",
-                "«Стимпанк-Поезд»: Сгенерируй летящий локомотив из золота и меди.",
-                "«Мармеладный Мир»: Сделай долину, где горы из сладостей, а реки из сиропа.",
-                "«Дворец Эльзы»: Опиши генерацию ледяного дворца, сверкающего на солнце.",
-                "«Гримуар Мага»: Сгенерируй страницу книги заклинаний с алхимическими знаками."
-            ],
-            "python": [
-                "«Черепаший фрактал»: Напиши код на Turtle для генерации цветной спирали.",
-                "«Арт-хаус холст»: Создай скрипт, рисующий сотни случайных цветных кругов.",
-                "«Космический кликер»: Сделай на Pygame микро-игру с кликами по тарелке.",
-                "«Победитель Лабиринта»: Создай текстовый квест-побег из секретной лаборатории.",
-                "«Радужная волна»: Нарисуй синусоиду, меняющую цвет в цикле.",
-                "«Генератор Ников»: Напиши программу, собирающую крутые геймерские никнеймы."
-            ],
-            "krita": [
-                "«Монстр из тени»: Нарисуй концепт таинственного духа с помощью силуэтов.",
-                "«Акварельный рассвет»: Нарисуй горы, используя акварельные кисти.",
-                "«Древний Амулет»: Изобрази амулет со светящимися рунами.",
-                "«Портрет Поп-Арт»: Нарисуй персонажа с яркими плоскими тенями.",
-                "«Космический Кит»: Нарисуй кита, у которого вместо плавников туманности.",
-                "«Старый пергамент»: Создай текстуру древней бумаги с трещинами."
-            ],
-            "aftereffects": [
-                "«Жидкое Золото»: Анимируй появление текста с эффектом жидкого золота.",
-                "«Неоновый след»: Сделай анимацию объекта, оставляющего светящийся след.",
-                "«Формы в танце»: Создай плавный морфинг круга в звезду.",
-                "«Глитч-Переход»: Настрой эффект помех и хроматического сдвига.",
-                "«Магия Пера»: Настрой проявление рукописного шрифта по маске.",
-                "«Параллакс Фото»: Раздели фото на слои и анимируй глубину в 3D."
-            ],
-            "figma": [
-                "«Билет на Марс»: Спроектируй экран покупки билетов на космические рейсы.",
-                "«Карта Сокровищ»: Создай интерактивный прототип карты с подсказками.",
-                "«Нео-брутализм»: Разработай дерзкий интерфейс плеера с жесткими тенями.",
-                "«Панель Умного Дома»: Спроектируй дашборд управления роботами.",
-                "«Кастомайзер Шлема»: Создай UI-экран выбора брони игрового персонажа.",
-                "«Радиальное Меню»: Разработай круговое меню для мобильной RPG игры."
-            ],
-            "constructor_what": [
-                "Космический корабль", "Затерянный замок", "Логотип содовой", "Фантастический зверь",
-                "Портрет киборга", "Обложка альбома", "Иконка приложения", "Комната геймера",
-                "Магический посох", "Кибер-кроссовки", "Робот-доставщик", "Летающий остров"
-            ],
-            "constructor_style": [
-                "в стиле ретро-футуризм", "с неоновым киберпанк свечением", "в нежных пастельных тонах", "в стиле яркого пиксель-арта",
-                "в стиле ультра-минимализм", "в изометрической проекции", "с текстурой старой бумаги", "в стиле поп-арт",
-                "with эффектом жидкого золота", "в стиле темного фэнтези", "в стиле нео-нуар", "в мультяшном low-poly"
-            ],
-            "constructor_rules": [
-                "ровно за 15 минут", "используя только 3 базовых цвета", "без использования градиентов", "добавив пасхалку (секретную деталь)",
-                "только из геометрических примитивов", "сделав темную и светлую версии", "добавив анимированную деталь"
-            ]
-        };
-
-        // --- CONFETTI PARTICLE SYSTEM ---
-        const confettiCanvas = document.getElementById('confettiCanvas');
-        const cCtx = confettiCanvas.getContext('2d');
-        let confettiArray = [];
-
-        function resizeConfettiCanvas() {
-            confettiCanvas.width = window.innerWidth;
-            confettiCanvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeConfettiCanvas);
-        resizeConfettiCanvas();
-
-        class ConfettiParticle {
-            constructor(x, y, levelUp = false) {
-                this.x = x;
-                this.y = y;
-                this.size = Math.random() * 8 + (levelUp ? 10 : 4);
-                this.speedX = Math.random() * 12 - 6;
-                this.speedY = Math.random() * -12 - (levelUp ? 10 : 5);
-                this.rotation = Math.random() * 360;
-                this.rotationSpeed = Math.random() * 10 - 5;
-                this.color = levelUp ? `hsl(${Math.random() * 360}, 100%, 60%)` : this.getThemeColor();
-                this.gravity = 0.3;
-                this.alpha = 1;
-            }
-
-            getThemeColor() {
-                const currentAccent = themes[currentSubject]?.main || '#d4af37';
-                const colors = [currentAccent, '#ffffff', '#e5e5ea', '#8e8e93'];
-                return colors[Math.floor(Math.random() * colors.length)];
-            }
-
-            update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-                this.speedY += this.gravity;
-                this.rotation += this.rotationSpeed;
-                this.alpha -= 0.015;
-            }
-
-            draw() {
-                cCtx.save();
-                cCtx.translate(this.x, this.y);
-                cCtx.rotate((this.rotation * Math.PI) / 180);
-                cCtx.fillStyle = this.color;
-                cCtx.globalAlpha = this.alpha;
-                cCtx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
-                cCtx.restore();
-            }
-        }
-
-        function triggerConfetti(levelUp = false) {
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2 + 100;
-            const count = levelUp ? 200 : 70;
-            for (let i = 0; i < count; i++) {
-                confettiArray.push(new ConfettiParticle(centerX, centerY, levelUp));
-            }
-        }
-
-        function animateConfetti() {
-            cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-            for (let i = confettiArray.length - 1; i >= 0; i--) {
-                confettiArray[i].update();
-                if (confettiArray[i].alpha <= 0) {
-                    confettiArray.splice(i, 1);
-                } else {
-                    confettiArray[i].draw();
-                }
-            }
-            requestAnimationFrame(animateConfetti);
-        }
-        animateConfetti();
-
-        // --- MATRIX RAIN SYSTEM ---
-        const matrixCanvas = document.getElementById('matrixCanvas');
-        const mCtx = matrixCanvas.getContext('2d');
-        let matrixInterval = null;
-
-        function resizeMatrixCanvas() {
-            matrixCanvas.width = window.innerWidth;
-            matrixCanvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeMatrixCanvas);
-        resizeMatrixCanvas();
-
-        const katakana = "アァカサタナハマヤャラワガザダバパイィウゥクスツヌフムユュルグズヅブプエェケセテネヘメレゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン";
-        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        const chars = (katakana + alphabet).split("");
-        
-        let columns = window.innerWidth / 14;
-        let rainDrops = [];
-
-        for (let x = 0; x < columns; x++) {
-            rainDrops[x] = 1;
-        }
-
-        function drawMatrix() {
-            mCtx.fillStyle = 'rgba(7, 7, 8, 0.15)';
-            mCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-            mCtx.fillStyle = '#0F0';
-            mCtx.font = '14px monospace';
-
-            for (let i = 0; i < rainDrops.length; i++) {
-                const text = chars[Math.floor(Math.random() * chars.length)];
-                mCtx.fillText(text, i * 14, rainDrops[i] * 14);
-
-                if (rainDrops[i] * 14 > matrixCanvas.height && Math.random() > 0.975) {
-                    rainDrops[i] = 0;
-                }
-                rainDrops[i]++;
-            }
-        }
-
-        let snowFlakes = [];
-        function drawSnow() {
-            mCtx.fillStyle = 'rgba(7, 7, 8, 0.25)';
-            mCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-            mCtx.fillStyle = '#ffffff';
-            
-            if (snowFlakes.length < 100) {
-                snowFlakes.push({
-                    x: Math.random() * matrixCanvas.width,
-                    y: 0,
-                    r: Math.random() * 3 + 1,
-                    d: Math.random() * 1.5 + 0.5
-                });
-            }
-
-            for (let i = 0; i < snowFlakes.length; i++) {
-                let f = snowFlakes[i];
-                mCtx.beginPath();
-                mCtx.arc(f.x, f.y, f.r, 0, Math.PI * 2, true);
-                mCtx.fill();
-
-                f.y += f.d;
-                f.x += Math.sin(f.y / 30) * 0.5;
-
-                if (f.y > matrixCanvas.height) {
-                    snowFlakes[i] = {
-                        x: Math.random() * matrixCanvas.width,
-                        y: 0,
-                        r: Math.random() * 3 + 1,
-                        d: Math.random() * 1.5 + 0.5
-                    };
-                }
-            }
-        }
-
-        let rainbowHue = 0;
-        function tickRainbow() {
-            if (activeCheatCode !== 'RAINBOW') return;
-            rainbowHue = (rainbowHue + 1) % 360;
-            document.documentElement.style.setProperty('--accent-color', `hsl(${rainbowHue}, 100%, 60%)`);
-            document.documentElement.style.setProperty('--accent-glow', `hsla(${rainbowHue}, 100%, 60%, 0.15)`);
-            drawWheel();
-            requestAnimationFrame(tickRainbow);
-        }
-
-        // --- DB MANAGEMENT & LOADING ---
-        async function loadTasks() {
-            try {
-                const response = await fetch('tasks.json');
-                if (response.ok) {
-                    tasks = await response.json();
-                } else {
-                    throw new Error("Local task file fetch blocked/CORS");
-                }
-            } catch (error) {
-                tasks = fallbackTasks;
-            }
-            prepareWheelSectors();
-        }
-
-        function prepareWheelSectors() {
-            if (currentSubject === 'constructor') {
-                tripleSectors.what = shuffleArray([...(tasks.constructor_what || fallbackTasks.constructor_what)]).slice(0, 8);
-                tripleSectors.style = shuffleArray([...(tasks.constructor_style || fallbackTasks.constructor_style)]).slice(0, 8);
-                tripleSectors.rules = shuffleArray([...(tasks.constructor_rules || fallbackTasks.constructor_rules)]).slice(0, 8);
-            } else if (currentSubject === 'marathon') {
-                const standardSubjects = ['photoshop', 'illustrator', 'blender', 'ai', 'python', 'krita', 'aftereffects', 'figma'];
-                let allStandardTasks = [];
-                standardSubjects.forEach(sub => {
-                    const subList = tasks[sub] || fallbackTasks[sub] || [];
-                    allStandardTasks = allStandardTasks.concat(subList);
-                });
-                activeSectors = shuffleArray([...allStandardTasks]).slice(0, 10);
-            } else {
-                const fullList = tasks[currentSubject] || fallbackTasks[currentSubject] || [];
-                activeSectors = fullList.length > 10 ? shuffleArray([...fullList]).slice(0, 10) : [...fullList];
-            }
-            drawWheel();
-        }
-
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        function getAccentColor(subject) {
-            if (activeCheatCode === 'GOLD') return themes['GOLD_THEME'];
-            if (activeCheatCode === 'HELL') return themes['HELL_THEME'];
-            if (activeCheatCode === 'RETRO') return themes['RETRO_THEME'];
-            if (activeCheatCode === 'SPACE') return themes['SPACE_THEME'];
-            return themes[subject] || themes['photoshop'];
-        }
-
-        function updateAccentStyles(subject) {
-            const theme = getAccentColor(subject);
-            document.documentElement.style.setProperty('--accent-color', theme.main);
-            document.documentElement.style.setProperty('--accent-glow', theme.glow);
-        }
-
-        function getSegmentLabel(taskString, index) {
-            const match = taskString.match(/«(.*?)»/);
-            if (match && match[1]) {
-                let name = match[1].toUpperCase();
-                return name.length > 15 ? name.substring(0, 13) + '...' : name;
-            }
-            return `КВЕСТ ${index + 1}`;
-        }
-
-        // --- DRAW WHEEL GRAPHICS (CANVAS) ---
-        function drawWheel() {
-            const canvas = document.getElementById('wheelCanvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const radius = Math.min(centerX, centerY) - 15;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            if (currentSubject === 'constructor') {
-                drawConcentricRings(ctx, centerX, centerY, radius);
-            } else {
-                const numSectors = activeSectors.length;
-                if (numSectors === 0) return;
-                const arc = 2 * Math.PI / numSectors;
-
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-                ctx.shadowBlur = 15;
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, radius + 4, 0, 2 * Math.PI);
-                ctx.stroke();
-                ctx.shadowBlur = 0;
-
-                for (let i = 0; i < numSectors; i++) {
-                    const angle = startAngle + i * arc;
-                    ctx.fillStyle = (i % 2 === 0) ? '#101012' : '#17171a';
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(centerX, centerY);
-                    ctx.arc(centerX, centerY, radius, angle, angle + arc);
-                    ctx.lineTo(centerX, centerY);
-                    ctx.fill();
-
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-
-                    ctx.save();
-                    ctx.fillStyle = (i % 2 === 0) ? '#a1a1a6' : '#8e8e93';
-                    ctx.font = '500 8px Montserrat';
-                    ctx.textAlign = 'right';
-                    ctx.textBaseline = 'middle';
-                    ctx.translate(centerX, centerY);
-                    ctx.rotate(angle + arc / 2);
-                    
-                    const label = getSegmentLabel(activeSectors[i], i);
-                    ctx.fillText(label, radius - 20, 0);
-                    ctx.restore();
-                }
-
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
-                ctx.fillStyle = '#070708';
-                ctx.fill();
-                
-                const accent = getAccentColor(currentSubject).main;
-                ctx.strokeStyle = accent;
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
-                ctx.fillStyle = accent;
-                ctx.fill();
-            }
-        }
-
-        function drawConcentricRings(ctx, cx, cy, maxRadius) {
-            const rings = [
-                { sectors: tripleSectors.what, rIn: 115, rOut: 170, angle: ringAngles[0] },   // Outer Ring
-                { sectors: tripleSectors.style, rIn: 65, rOut: 115, angle: ringAngles[1] },  // Middle Ring
-                { sectors: tripleSectors.rules, rIn: 25, rOut: 65, angle: ringAngles[2] }    // Inner Ring
+    function prepareWheelSectors() {
+        if (currentSubject === 'constructor') {
+            tripleSectors.what = shuffleArray([...tasks.constructor_what]).slice(0, 12);
+            tripleSectors.style = shuffleArray([...tasks.constructor_style]).slice(0, 12);
+            tripleSectors.rules = shuffleArray([...tasks.constructor_rules]).slice(0, 12);
+        } else if (currentSubject === 'marathon') {
+            const allTasks = [
+                ...(tasks.photoshop || []), ...(tasks.illustrator || []), ...(tasks.blender || []),
+                ...(tasks.ai || []), ...(tasks.python || []), ...(tasks.krita || []),
+                ...(tasks.aftereffects || []), ...(tasks.figma || [])
             ];
+            activeSectors = shuffleArray([...allTasks]).slice(0, 12);
+        } else {
+            const list = tasks[currentSubject] || [];
+            activeSectors = shuffleArray([...list]).slice(0, 12);
+        }
+        drawWheel();
+    }
 
-            rings.forEach((ring, rIdx) => {
-                const numSectors = ring.sectors.length;
-                if (numSectors === 0) return;
-                const arc = 2 * Math.PI / numSectors;
-
-                for (let i = 0; i < numSectors; i++) {
-                    const angle = ring.angle + i * arc;
-                    
-                    if (rIdx === 0) {
-                        ctx.fillStyle = (i % 2 === 0) ? '#101012' : '#151518';
-                    } else if (rIdx === 1) {
-                        ctx.fillStyle = (i % 2 === 0) ? '#17171a' : '#1d1d22';
-                    } else {
-                        ctx.fillStyle = (i % 2 === 0) ? '#1f1f24' : '#25252b';
-                    }
-
-                    ctx.beginPath();
-                    ctx.arc(cx, cy, ring.rOut, angle, angle + arc);
-                    ctx.arc(cx, cy, ring.rIn, angle + arc, angle, true);
-                    ctx.closePath();
-                    ctx.fill();
-
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-
-                    ctx.save();
-                    ctx.fillStyle = (i % 2 === 0) ? '#a1a1a6' : '#8e8e93';
-                    ctx.font = rIdx === 2 ? '500 6px Montserrat' : '500 7px Montserrat';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.translate(cx, cy);
-                    ctx.rotate(angle + arc / 2);
-                    
-                    const text = ring.sectors[i];
-                    const shortText = text.length > 12 ? text.substring(0, 10) + '..' : text;
-                    const textR = (ring.rIn + ring.rOut) / 2;
-                    ctx.fillText(shortText.toUpperCase(), textR, 0);
-                    ctx.restore();
-                }
-            });
-
+    function drawWheel() {
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width, h = canvas.height;
+        const center = w/2, radius = w/2 - 18;
+        ctx.clearRect(0, 0, w, h);
+        
+        if (currentSubject === 'constructor') {
+            drawConcentricRings(ctx, center, radius);
+        } else {
+            const sectors = activeSectors;
+            if (!sectors.length) return;
+            const angleStep = (Math.PI * 2) / sectors.length;
+            for (let i=0; i<sectors.length; i++) {
+                const angle = startAngle + i * angleStep;
+                ctx.beginPath();
+                ctx.moveTo(center, center);
+                ctx.arc(center, center, radius, angle, angle + angleStep);
+                ctx.fillStyle = (i % 2 === 0) ? '#101012' : '#18181c';
+                ctx.fill();
+                ctx.strokeStyle = '#2a2a2e';
+                ctx.stroke();
+                ctx.save();
+                ctx.translate(center, center);
+                ctx.rotate(angle + angleStep/2);
+                ctx.fillStyle = '#a1a1a6';
+                ctx.font = 'bold 9px "Montserrat"';
+                ctx.textAlign = 'center';
+                let label = sectors[i].substring(0, 20);
+                ctx.fillText(label, radius - 22, 4);
+                ctx.restore();
+            }
             ctx.beginPath();
-            ctx.arc(cx, cy, 24, 0, 2 * Math.PI);
+            ctx.arc(center, center, 28, 0, Math.PI*2);
             ctx.fillStyle = '#070708';
             ctx.fill();
-            const accent = getAccentColor('constructor').main;
-            ctx.strokeStyle = accent;
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim();
+            ctx.lineWidth = 1.5;
             ctx.stroke();
-
-            ctx.beginPath();
-            ctx.arc(cx, cy, 4, 0, 2 * Math.PI);
-            ctx.fillStyle = accent;
-            ctx.fill();
         }
+    }
 
-        // --- NAVIGATION & TABS ---
-        function switchSubject(subject, element) {
-            if (isSpinning) return;
-            initAudio();
-            playSoftClick();
-
-            currentSubject = subject;
-            
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            element.classList.add('active');
-
-            // Autocenter selected tab
-            element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-
-            updateAccentStyles(subject);
-
-            const placeholder = document.getElementById('placeholder');
-            const taskTitle = document.getElementById('taskTitle');
-            const taskDisplay = document.getElementById('taskDisplay');
-            const copyBtn = document.getElementById('copyBtn');
-            const doneBtn = document.getElementById('doneBtn');
-            const timerContainer = document.getElementById('timerContainer');
-            
-            taskTitle.classList.remove('show');
-            taskDisplay.classList.remove('show');
-            copyBtn.classList.remove('show');
-            doneBtn.classList.remove('show');
-            timerContainer.classList.remove('show');
-            
-            setTimeout(() => {
-                taskDisplay.style.display = 'none';
-                taskTitle.style.display = 'none';
-                placeholder.style.display = 'block';
-                placeholder.innerText = `КОЛЕСО ГОТОВО ДЛЯ: ${element.innerText.toUpperCase()}`;
-                
-                startAngle = 0;
-                ringAngles = [0, 0, 0];
-                prepareWheelSectors();
-            }, 300);
-        }
-
-        // --- WHEEL SPIN ACTION ---
-        function spinWheel() {
-            if (isSpinning) return;
-            initAudio();
-            isSpinning = true;
-            
-            const btn = document.getElementById('generateBtn');
-            btn.disabled = true;
-
-            const placeholder = document.getElementById('placeholder');
-            const taskTitle = document.getElementById('taskTitle');
-            const taskDisplay = document.getElementById('taskDisplay');
-            const copyBtn = document.getElementById('copyBtn');
-            const doneBtn = document.getElementById('doneBtn');
-            const timerContainer = document.getElementById('timerContainer');
-            
-            placeholder.style.display = 'none';
-            taskTitle.style.display = 'none';
-            taskDisplay.style.display = 'none';
-            taskTitle.classList.remove('show');
-            taskDisplay.classList.remove('show');
-            copyBtn.classList.remove('show');
-            doneBtn.classList.remove('show');
-            timerContainer.classList.remove('show');
-            resetActiveTimer();
-
-            const spinDuration = 5200; 
-            const startTime = performance.now();
-
-            let lastAudioIndex = -1;
-
-            if (currentSubject === 'constructor') {
-                const targetRotations = [
-                    (5 + Math.random() * 5) * 2 * Math.PI,    
-                    -(6 + Math.random() * 4) * 2 * Math.PI,   
-                    (7 + Math.random() * 5) * 2 * Math.PI     
-                ];
-                const initAngles = [...ringAngles];
-
-                function animateTriple(currentTime) {
-                    const elapsed = currentTime - startTime;
-                    if (elapsed < spinDuration) {
-                        const progress = elapsed / spinDuration;
-                        const easeOut = 1 - Math.pow(1 - progress, 4.5); 
-                        
-                        ringAngles[0] = initAngles[0] + targetRotations[0] * easeOut;
-                        ringAngles[1] = initAngles[1] + targetRotations[1] * easeOut;
-                        ringAngles[2] = initAngles[2] + targetRotations[2] * easeOut;
-                        
-                        const numSectors = tripleSectors.what.length;
-                        const arc = 2 * Math.PI / numSectors;
-                        const currIndex = Math.floor(ringAngles[0] / arc);
-                        if (currIndex !== lastAudioIndex) {
-                            playTickSound();
-                            lastAudioIndex = currIndex;
-                        }
-
-                        drawWheel();
-                        requestAnimationFrame(animateTriple);
-                    } else {
-                        ringAngles[0] = initAngles[0] + targetRotations[0];
-                        ringAngles[1] = initAngles[1] + targetRotations[1];
-                        ringAngles[2] = initAngles[2] + targetRotations[2];
-                        drawWheel();
-                        resolveSpinResults();
-                    }
-                }
-                requestAnimationFrame(animateTriple);
-
-            } else {
-                const numSectors = activeSectors.length;
-                const spinRotations = 6 + Math.random() * 7;
-                const totalTargetRotation = spinRotations * 2 * Math.PI;
-                const initialAngle = startAngle;
-
-                function animateSingle(currentTime) {
-                    const elapsed = currentTime - startTime;
-                    if (elapsed < spinDuration) {
-                        const progress = elapsed / spinDuration;
-                        const easeOut = 1 - Math.pow(1 - progress, 4); 
-                        startAngle = initialAngle + totalTargetRotation * easeOut;
-                        
-                        const arc = 2 * Math.PI / numSectors;
-                        const currIndex = Math.floor(startAngle / arc);
-                        if (currIndex !== lastAudioIndex) {
-                            playTickSound();
-                            lastAudioIndex = currIndex;
-                        }
-
-                        drawWheel();
-                        requestAnimationFrame(animateSingle);
-                    } else {
-                        startAngle = initialAngle + totalTargetRotation;
-                        drawWheel();
-                        resolveSpinResults();
-                    }
-                }
-                requestAnimationFrame(animateSingle);
+    function drawConcentricRings(ctx, center, maxR) {
+        const rings = [
+            { sectors: tripleSectors.what, rIn: 115, rOut: 170, angle: ringAngles[0] },
+            { sectors: tripleSectors.style, rIn: 65, rOut: 115, angle: ringAngles[1] },
+            { sectors: tripleSectors.rules, rIn: 25, rOut: 65, angle: ringAngles[2] }
+        ];
+        rings.forEach((ring, idx) => {
+            const len = ring.sectors.length;
+            if (!len) return;
+            const step = (Math.PI*2)/len;
+            for (let i=0; i<len; i++) {
+                const a = ring.angle + i*step;
+                ctx.beginPath();
+                ctx.arc(center, center, ring.rOut, a, a+step);
+                ctx.arc(center, center, ring.rIn, a+step, a, true);
+                ctx.fillStyle = idx===0 ? '#141416' : (idx===1 ? '#1c1c20' : '#24242a');
+                ctx.fill();
+                ctx.strokeStyle = '#2f2f35';
+                ctx.stroke();
+                ctx.save();
+                ctx.translate(center, center);
+                ctx.rotate(a + step/2);
+                ctx.fillStyle = '#b0b0b8';
+                ctx.font = 'bold 7px "Montserrat"';
+                ctx.textAlign = 'center';
+                let text = ring.sectors[i].length > 16 ? ring.sectors[i].slice(0,14)+'..' : ring.sectors[i];
+                ctx.fillText(text, (ring.rIn+ring.rOut)/2, 4);
+                ctx.restore();
             }
-        }
+        });
+        ctx.beginPath();
+        ctx.arc(center, center, 24, 0, Math.PI*2);
+        ctx.fillStyle = '#070708';
+        ctx.fill();
+    }
 
-        // --- RESOLVE SPIN OUTCOME AND DISPLAY ---
-        let activeTaskText = '';
+    // --------------------------------------------------------------
+    // 5. ВРАЩЕНИЕ И ВЫБОР ЗАДАНИЯ
+    // --------------------------------------------------------------
+    function spinWheel() {
+        if (isSpinning) return;
+        initAudio();
+        isSpinning = true;
+        document.getElementById('generateBtn').disabled = true;
+        document.getElementById('taskTitle').classList.remove('show');
+        document.getElementById('taskDisplay').classList.remove('show');
+        document.getElementById('copyBtn').classList.remove('show');
+        document.getElementById('doneBtn').classList.remove('show');
+        document.getElementById('timerContainer').classList.remove('show');
+        if (countdownActive) resetTimer();
 
-        function resolveSpinResults() {
-            const btn = document.getElementById('generateBtn');
-            const taskTitle = document.getElementById('taskTitle');
-            const taskDisplay = document.getElementById('taskDisplay');
-            const copyBtn = document.getElementById('copyBtn');
-            const doneBtn = document.getElementById('doneBtn');
-            const timerContainer = document.getElementById('timerContainer');
-
-            isSpinning = false;
-            btn.disabled = false;
-
-            playVictoryChime();
-            triggerConfetti();
-
-            taskTitle.style.display = 'block';
-            taskDisplay.style.display = 'block';
-            timerContainer.classList.add('show');
-
-            if (currentSubject === 'constructor') {
-                const resolveIndex = (angle, sectors) => {
-                    let normalized = angle % (2 * Math.PI);
-                    if (normalized < 0) normalized += 2 * Math.PI;
-                    const arc = 2 * Math.PI / sectors.length;
-                    let winningIdx = Math.floor((3 * Math.PI / 2 - normalized) / arc) % sectors.length;
-                    if (winningIdx < 0) winningIdx += sectors.length;
-                    return winningIdx;
-                };
-
-                const winWhat = tripleSectors.what[resolveIndex(ringAngles[0], tripleSectors.what)];
-                const winStyle = tripleSectors.style[resolveIndex(ringAngles[1], tripleSectors.style)];
-                const winRules = tripleSectors.rules[resolveIndex(ringAngles[2], tripleSectors.rules)];
-
-                activeTaskText = `СОЗДАТЬ: ${winWhat} | СТИЛЬ: ${winStyle} | УСЛОВИЕ: ${winRules}`;
-
-                taskDisplay.innerHTML = `
-                    <div class="triple-result">
-                        <div class="triple-part">
-                            <div class="triple-label">ЧТО СОЗДАТЬ</div>
-                            <div class="triple-val">${winWhat}</div>
-                        </div>
-                        <div class="triple-part">
-                            <div class="triple-label">СТИЛЬ / ОСОБЕННОСТЬ</div>
-                            <div class="triple-val">${winStyle}</div>
-                        </div>
-                        <div class="triple-part">
-                            <div class="triple-label">УСЛОЖНЕНИЕ</div>
-                            <div class="triple-val">${winRules}</div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                const numSectors = activeSectors.length;
-                const arc = 2 * Math.PI / numSectors;
-                let normalizedAngle = startAngle % (2 * Math.PI);
-                if (normalizedAngle < 0) normalizedAngle += 2 * Math.PI;
-                
-                let winningIndex = Math.floor((3 * Math.PI / 2 - normalizedAngle) / arc) % numSectors;
-                if (winningIndex < 0) winningIndex += numSectors;
-
-                activeTaskText = activeSectors[winningIndex];
-                taskDisplay.innerText = activeTaskText;
+        const duration = 4200;
+        const startTime = performance.now();
+        
+        if (currentSubject === 'constructor') {
+            const target = [ (6+Math.random()*5)*Math.PI*2, -(5+Math.random()*5)*Math.PI*2, (7+Math.random()*4)*Math.PI*2 ];
+            const init = [...ringAngles];
+            function animate(now) {
+                const elapsed = now - startTime;
+                if (elapsed < duration) {
+                    const t = elapsed/duration;
+                    const ease = 1 - Math.pow(1-t, 3.5);
+                    ringAngles[0] = init[0] + target[0] * ease;
+                    ringAngles[1] = init[1] + target[1] * ease;
+                    ringAngles[2] = init[2] + target[2] * ease;
+                    drawWheel();
+                    requestAnimationFrame(animate);
+                } else {
+                    ringAngles[0] = init[0] + target[0];
+                    ringAngles[1] = init[1] + target[1];
+                    ringAngles[2] = init[2] + target[2];
+                    drawWheel();
+                    resolveConstructorResult();
+                }
             }
-
-            // Save to Local Quest Log History
-            saveQuestToHistory(currentSubject.toUpperCase(), activeTaskText);
-
-            setTimeout(() => {
-                taskTitle.classList.add('show');
-                taskDisplay.classList.add('show');
-                copyBtn.classList.add('show');
-                doneBtn.classList.add('show');
-            }, 50);
+            requestAnimationFrame(animate);
+        } else {
+            const sectors = activeSectors;
+            const rotations = 8 + Math.random() * 6;
+            const targetAngle = startAngle + rotations * 2 * Math.PI;
+            const initAngle = startAngle;
+            function animate(now) {
+                const elapsed = now - startTime;
+                if (elapsed < duration) {
+                    const t = elapsed/duration;
+                    const ease = 1 - Math.pow(1-t, 3.2);
+                    startAngle = initAngle + (targetAngle - initAngle) * ease;
+                    drawWheel();
+                    requestAnimationFrame(animate);
+                } else {
+                    startAngle = targetAngle;
+                    drawWheel();
+                    resolveStandardResult();
+                }
+            }
+            requestAnimationFrame(animate);
         }
+    }
 
-        // --- QUEST HISTORY LOGGER ---
-        function saveQuestToHistory(subjectName, text) {
-            let history = JSON.parse(localStorage.getItem('itilandia_history')) || [];
-            history.unshift({ subject: subjectName, taskText: text, timestamp: Date.now() });
-            
-            // Limit to last 20 quests
-            if (history.length > 20) history.pop();
-            localStorage.setItem('itilandia_history', JSON.stringify(history));
-            renderQuestHistory();
-        }
+    function resolveStandardResult() {
+        const sectors = activeSectors;
+        const angleStep = (Math.PI*2)/sectors.length;
+        let norm = startAngle % (Math.PI*2);
+        if (norm < 0) norm += Math.PI*2;
+        let idx = Math.floor(( (3*Math.PI/2) - norm ) / angleStep) % sectors.length;
+        if (idx < 0) idx += sectors.length;
+        activeTaskText = sectors[idx];
+        showTaskResult(activeTaskText);
+        isSpinning = false;
+        document.getElementById('generateBtn').disabled = false;
+        playVictory();
+        saveToHistory(currentSubject.toUpperCase(), activeTaskText);
+    }
 
-        function renderQuestHistory() {
-            const container = document.getElementById('questList');
-            container.innerHTML = '';
-            const history = JSON.parse(localStorage.getItem('itilandia_history')) || [];
+    function resolveConstructorResult() {
+        const getIdx = (angle, arr) => {
+            let a = angle % (Math.PI*2);
+            if (a < 0) a += Math.PI*2;
+            const step = (Math.PI*2)/arr.length;
+            let i = Math.floor(( (3*Math.PI/2) - a ) / step) % arr.length;
+            if (i < 0) i += arr.length;
+            return i;
+        };
+        const what = tripleSectors.what[getIdx(ringAngles[0], tripleSectors.what)];
+        const style = tripleSectors.style[getIdx(ringAngles[1], tripleSectors.style)];
+        const rule = tripleSectors.rules[getIdx(ringAngles[2], tripleSectors.rules)];
+        activeTaskText = `СОЗДАТЬ: ${what} | СТИЛЬ: ${style} | УСЛОВИЕ: ${rule}`;
+        document.getElementById('taskDisplay').innerHTML = `
+            <div class="triple-result">
+                <div class="triple-part"><div class="triple-label">ЧТО СОЗДАТЬ</div><div class="triple-val">${what}</div></div>
+                <div class="triple-part"><div class="triple-label">СТИЛЬ / ОСОБЕННОСТЬ</div><div class="triple-val">${style}</div></div>
+                <div class="triple-part"><div class="triple-label">УСЛОЖНЕНИЕ</div><div class="triple-val">${rule}</div></div>
+            </div>
+        `;
+        showTaskResult('');
+        isSpinning = false;
+        document.getElementById('generateBtn').disabled = false;
+        playVictory();
+        saveToHistory(currentSubject.toUpperCase(), `${what} / ${style} / ${rule}`);
+    }
 
-            if (history.length === 0) {
-                container.innerHTML = `<div class="placeholder-text" style="text-align: center; margin-top: 40px; opacity: 0.5;">Вызовов еще не было</div>`;
+    function showTaskResult(plainText) {
+        const titleDiv = document.getElementById('taskTitle');
+        const textDiv = document.getElementById('taskDisplay');
+        const copyBtn = document.getElementById('copyBtn');
+        const doneBtn = document.getElementById('doneBtn');
+        const timerDiv = document.getElementById('timerContainer');
+        if (plainText) textDiv.innerText = plainText;
+        titleDiv.classList.add('show');
+        textDiv.classList.add('show');
+        copyBtn.classList.add('show');
+        doneBtn.classList.add('show');
+        timerDiv.classList.add('show');
+    }
+
+    // --------------------------------------------------------------
+    // 6. XP, ИСТОРИЯ, ТАЙМЕР
+    // --------------------------------------------------------------
+    function updateXPBar() {
+        let xp = userXP;
+        let level = 1, minXp = 0, maxXp = 300;
+        if (xp >= 1500) { level = 4; minXp = 1500; maxXp = 1500; }
+        else if (xp >= 800) { level = 3; minXp = 800; maxXp = 1500; }
+        else if (xp >= 300) { level = 2; minXp = 300; maxXp = 800; }
+        let percent = level === 4 ? 100 : ((xp - minXp) / (maxXp - minXp)) * 100;
+        document.getElementById('xpBarFill').style.width = `${percent}%`;
+        const levelNames = ['', 'Новичок', 'Подмастерье', '3D-Владыка', 'Пиксельный Бог'];
+        document.getElementById('levelName').innerText = `${levelNames[level]} (УРОВЕНЬ ${level})`;
+        document.getElementById('xpDisplayVal').innerText = level === 4 ? `${xp} XP` : `${xp - minXp} / ${maxXp - minXp} XP`;
+    }
+
+    function claimXP() {
+        initAudio();
+        if (isSpinning) return;
+        userXP += 100;
+        localStorage.setItem('itilandia_xp', userXP);
+        updateXPBar();
+        playVictory();
+        document.getElementById('doneBtn').classList.remove('show');
+        // добавим конфетти
+        triggerConfetti();
+    }
+
+    function saveToHistory(subject, task) {
+        let hist = JSON.parse(localStorage.getItem('itilandia_history')) || [];
+        hist.unshift({ subject, task, time: Date.now() });
+        if (hist.length > 20) hist.pop();
+        localStorage.setItem('itilandia_history', JSON.stringify(hist));
+        renderHistory();
+    }
+
+    function renderHistory() {
+        const container = document.getElementById('questList');
+        const hist = JSON.parse(localStorage.getItem('itilandia_history')) || [];
+        if (!hist.length) { container.innerHTML = '<div class="placeholder-text">Нет вызовов</div>'; return; }
+        container.innerHTML = hist.map(h => `<div class="quest-item"><div class="quest-item-subject">${h.subject}</div><div>${h.task}</div></div>`).join('');
+        document.querySelectorAll('.quest-item').forEach(el => {
+            el.addEventListener('click', () => copyToClipboard(el.innerText));
+        });
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text);
+        const btn = document.getElementById('copyBtnText');
+        if(btn) btn.innerText = '✅';
+        setTimeout(() => { if(btn) btn.innerText = '📋 Скопировать'; }, 1200);
+    }
+
+    function startTimer(minutes) {
+        if (countdownActive) resetTimer();
+        let remaining = minutes * 60;
+        const display = document.getElementById('timerDisplay');
+        const fill = document.getElementById('timerProgressFill');
+        const total = remaining;
+        countdownActive = true;
+        const interval = setInterval(() => {
+            if (!countdownActive) { clearInterval(interval); return; }
+            if (remaining <= 0) {
+                clearInterval(interval);
+                playVictory();
+                triggerConfetti(true);
+                resetTimer();
                 return;
             }
+            remaining--;
+            const mins = Math.floor(remaining / 60);
+            const secs = remaining % 60;
+            display.innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+            fill.style.width = `${(remaining/total)*100}%`;
+            if (remaining <= 10) display.classList.add('danger');
+            else display.classList.remove('danger');
+        }, 1000);
+        timerInterval = interval;
+    }
+    function resetTimer() {
+        countdownActive = false;
+        if (timerInterval) clearInterval(timerInterval);
+        document.getElementById('timerDisplay').innerText = '15:00';
+        document.getElementById('timerProgressFill').style.width = '100%';
+        document.getElementById('timerDisplay').classList.remove('danger');
+    }
 
-            history.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'quest-item';
-                div.innerHTML = `
-                    <div class="quest-item-subject">${item.subject}</div>
-                    <div>${item.taskText}</div>
-                `;
-                div.onclick = () => {
-                    playSoftClick();
-                    copyDirectText(item.taskText);
-                };
-                container.appendChild(div);
+    // конфетти простые
+    function triggerConfetti(heavy=false) {
+        const canvas = document.getElementById('confettiCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        let particles = [];
+        for (let i=0;i<80+(heavy?100:0);i++) {
+            particles.push({
+                x: Math.random()*canvas.width, y: -20,
+                size: Math.random()*6+2,
+                speedY: Math.random()*8+5,
+                speedX: (Math.random()-0.5)*5,
+                color: `hsl(${Math.random()*360}, 80%, 60%)`
             });
         }
-
-        function toggleDrawer(open) {
-            playSoftClick();
-            const drawer = document.getElementById('questLogDrawer');
-            if (open) {
-                drawer.classList.add('open');
-                renderQuestHistory();
-            } else {
-                drawer.classList.remove('open');
-            }
+        function animateConfetti() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            let anyAlive = false;
+            particles.forEach(p => {
+                p.x += p.speedX;
+                p.y += p.speedY;
+                if (p.y < canvas.height+50) anyAlive = true;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+            });
+            particles = particles.filter(p => p.y < canvas.height+50);
+            if (anyAlive) requestAnimationFrame(animateConfetti);
         }
+        animateConfetti();
+    }
 
-        // --- LEVEL & XP STORAGE SYSTEM ---
-        let userXP = parseInt(localStorage.getItem('itilandia_xp')) || 0;
+    // --------------------------------------------------------------
+    // 7. ПЕРЕКЛЮЧЕНИЕ ТЕМ И СТИЛИ
+    // --------------------------------------------------------------
+    function switchSubject(subj, btnElement) {
+        if (isSpinning) return;
+        playSoftClick();
+        currentSubject = subj;
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        btnElement.classList.add('active');
+        const accentMap = {
+            photoshop:'#00c6ff', illustrator:'#f7971e', blender:'#ff007f', ai:'#9b5de5',
+            python:'#3776ab', krita:'#00f5d4', aftereffects:'#d62828', figma:'#00bbf9',
+            constructor:'#d4af37', marathon:'#ff0055'
+        };
+        document.documentElement.style.setProperty('--accent-color', accentMap[subj] || '#d4af37');
+        startAngle = 0; ringAngles = [0,0,0];
+        prepareWheelSectors();
+        document.getElementById('placeholder').style.display = 'block';
+        document.getElementById('taskTitle').classList.remove('show');
+        document.getElementById('taskDisplay').classList.remove('show');
+        document.getElementById('copyBtn').classList.remove('show');
+        document.getElementById('doneBtn').classList.remove('show');
+        document.getElementById('timerContainer').classList.remove('show');
+        document.getElementById('placeholder').innerText = `КОЛЕСО: ${btnElement.innerText.toUpperCase()}`;
+    }
 
-        function getLevelInfo(xpVal) {
-            if (xpVal < 300) return { level: 1, name: 'Новичок', min: 0, max: 300 };
-            if (xpVal < 800) return { level: 2, name: 'Подмастерье', min: 300, max: 800 };
-            if (xpVal < 1500) return { level: 3, name: '3D-Владыка', min: 800, max: 1500 };
-            return { level: 4, name: 'Пиксельный Бог', min: 1500, max: 1500 }; // Max Level/Infinity Prestige
-        }
-
-        function updateXPDisplay() {
-            const info = getLevelInfo(userXP);
-            const fillPct = info.level === 4 ? 100 : ((userXP - info.min) / (info.max - info.min)) * 100;
-            
-            document.getElementById('xpBarFill').style.width = `${fillPct}%`;
-            document.getElementById('levelName').innerText = `${info.name} (УРОВЕНЬ ${info.level})`;
-            document.getElementById('xpDisplayVal').innerText = info.level === 4 ? `${userXP} XP` : `${userXP - info.min} / ${info.max - info.min} XP`;
-        }
-
-        function claimXP() {
-            initAudio();
-            const doneBtn = document.getElementById('doneBtn');
-            doneBtn.classList.remove('show'); // Prevent double click
-
-            const oldLevel = getLevelInfo(userXP).level;
-            userXP += 100;
-            localStorage.setItem('itilandia_xp', userXP);
-
-            playVictoryChime();
-            triggerConfetti();
-
-            const newLevel = getLevelInfo(userXP).level;
-            if (newLevel > oldLevel) {
-                setTimeout(() => {
-                    playLevelUpChime();
-                    triggerConfetti(true);
-                }, 500);
-            }
-            updateXPDisplay();
-        }
-
-        // --- MINIMALIST CHALLENGE TIMER ---
-        let countdownActive = false;
-        let timerEndTimestamp = 0;
-        let totalTimerDuration = 0;
-        let timerAnimationId = null;
-
-        function startTimer(minutes) {
-            playSoftClick();
-            const now = Date.now();
-            timerEndTimestamp = now + minutes * 60 * 1000;
-            totalTimerDuration = minutes * 60 * 1000;
-            countdownActive = true;
-            document.getElementById('timerPresets').style.display = 'none';
-            tickTimer();
-        }
-
-        function tickTimer() {
-            if (!countdownActive) return;
-            const now = Date.now();
-            const remaining = timerEndTimestamp - now;
-
-            if (remaining <= 0) {
-                playLevelUpChime();
-                triggerConfetti(true);
-                resetActiveTimer();
-                return;
-            }
-
-            const totalSeconds = Math.ceil(remaining / 1000);
-            const m = Math.floor(totalSeconds / 60);
-            const s = totalSeconds % 60;
-            
-            const displayStr = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-            const displayEl = document.getElementById('timerDisplay');
-            displayEl.innerText = displayStr;
-
-            const percentage = (remaining / totalTimerDuration) * 100;
-            document.getElementById('timerProgressFill').style.width = `${percentage}%`;
-
-            // Warnings at final 10 seconds
-            if (totalSeconds <= 10) {
-                displayEl.classList.add('danger');
-                playTimerWarningClick();
-            } else {
-                displayEl.classList.remove('danger');
-            }
-
-            timerAnimationId = setTimeout(tickTimer, 1000);
-        }
-
-        function resetActiveTimer() {
-            countdownActive = false;
-            clearTimeout(timerAnimationId);
-            document.getElementById('timerPresets').style.display = 'flex';
-            document.getElementById('timerDisplay').innerText = '15:00';
-            document.getElementById('timerDisplay').classList.remove('danger');
-            document.getElementById('timerProgressFill').style.width = '100%';
-        }
-
-        // --- CHEAT CODES INPUT TERMINAL ---
-        function handleCheatcode(e) {
-            if (e.key === 'Enter') {
-                const code = e.target.value.toUpperCase().trim();
-                e.target.value = '';
-                
-                // Clear active states
-                if (matrixInterval) clearInterval(matrixInterval);
-                document.getElementById('matrixCanvas').style.opacity = '0';
-                activeCheatCode = null;
-                
-                if (code === 'MATRIX') {
-                    playLevelUpChime();
-                    document.getElementById('matrixCanvas').style.opacity = '1';
-                    activeCheatCode = 'MATRIX';
-                    matrixInterval = setInterval(drawMatrix, 35);
-                    updateAccentStyles(currentSubject);
-                } else if (code === 'SNOW') {
-                    playLevelUpChime();
-                    document.getElementById('matrixCanvas').style.opacity = '1';
-                    activeCheatCode = 'SNOW';
-                    snowFlakes = [];
-                    matrixInterval = setInterval(drawSnow, 25);
-                    updateAccentStyles(currentSubject);
-                } else if (code === 'RAINBOW') {
-                    playLevelUpChime();
-                    activeCheatCode = 'RAINBOW';
-                    tickRainbow();
-                } else if (code === 'RETRO') {
-                    playLevelUpChime();
-                    activeCheatCode = 'RETRO';
-                    updateAccentStyles(currentSubject);
-                } else if (code === 'SPACE') {
-                    playLevelUpChime();
-                    activeCheatCode = 'SPACE';
-                    updateAccentStyles(currentSubject);
-                } else if (code === 'BOOST') {
-                    playLevelUpChime();
-                    userXP += 500;
-                    localStorage.setItem('itilandia_xp', userXP);
-                    triggerConfetti(true);
-                    updateXPDisplay();
-                } else if (code === 'GOLD') {
-                    playLevelUpChime();
-                    activeCheatCode = 'GOLD';
-                    updateAccentStyles(currentSubject);
-                } else if (code === 'HELL') {
-                    playLevelUpChime();
-                    activeCheatCode = 'HELL';
-                    updateAccentStyles(currentSubject);
-                } else if (code === 'RESET') {
-                    playSoftClick();
-                    userXP = 0;
-                    localStorage.setItem('itilandia_xp', 0);
-                    localStorage.removeItem('itilandia_history');
-                    updateXPDisplay();
-                    updateAccentStyles(currentSubject);
-                } else {
-                    playSoftClick();
-                    updateAccentStyles(currentSubject);
+    // --------------------------------------------------------------
+    // 8. CHEAT-коды (консоль)
+    // --------------------------------------------------------------
+    function handleCheat(e) {
+        if (e.key !== 'Enter') return;
+        const code = e.target.value.toUpperCase().trim();
+        e.target.value = '';
+        if (code === 'BOOST') { userXP += 500; localStorage.setItem('itilandia_xp',userXP); updateXPBar(); triggerConfetti(true); }
+        if (code === 'RESET') { userXP = 0; localStorage.setItem('itilandia_xp',0); localStorage.removeItem('itilandia_history'); updateXPBar(); renderHistory(); }
+        if (code === 'GOLD') document.documentElement.style.setProperty('--accent-color', '#ffd700');
+        if (code === 'MATRIX') {
+            const mCanvas = document.getElementById('matrixCanvas');
+            mCanvas.style.opacity = '0.35';
+            let drops = [];
+            function matrixRain() {
+                if (!mCanvas.style.opacity || mCanvas.style.opacity === '0') return;
+                const ctx = mCanvas.getContext('2d');
+                mCanvas.width = window.innerWidth; mCanvas.height = window.innerHeight;
+                ctx.fillStyle = 'rgba(7,7,8,0.1)';
+                ctx.fillRect(0,0,mCanvas.width,mCanvas.height);
+                ctx.fillStyle = '#0f0';
+                ctx.font = '12px monospace';
+                if (drops.length === 0) for (let i=0;i<100;i++) drops[i]=1;
+                for (let i=0;i<drops.length;i++) {
+                    ctx.fillText(String.fromCharCode(0x30A0+Math.random()*100), i*14, drops[i]*14);
+                    if (drops[i]*14 > mCanvas.height && Math.random()>0.975) drops[i]=0;
+                    drops[i]++;
                 }
-                drawWheel();
+                requestAnimationFrame(matrixRain);
             }
+            matrixRain();
         }
+    }
 
-        // --- CLIPBOARD ACTIONS ---
-        function copyTaskToClipboard() {
-            playSoftClick();
-            copyDirectText(activeTaskText);
-        }
-
-        function copyDirectText(textVal) {
-            const btnText = document.getElementById('copyBtnText');
-            const textarea = document.createElement('textarea');
-            textarea.value = `Челлендж от Айтиландии:\n\n${textVal}`;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-            
-            try {
-                document.execCommand('copy');
-                if (btnText) {
-                    btnText.innerText = "СКОПИРОВАНО!";
-                    btnText.style.color = "var(--accent-color)";
-                }
-            } catch (err) {
-                if (btnText) btnText.innerText = "ОШИБКА";
-            }
-            
-            document.body.removeChild(textarea);
-
-            setTimeout(() => {
-                if (btnText) {
-                    btnText.innerText = "Скопировать";
-                    btnText.style.color = "";
-                }
-            }, 2000);
-        }
-
-        // --- WINDOW INITIALIZERS ---
-        window.addEventListener('DOMContentLoaded', () => {
-            loadTasks();
-            updateXPDisplay();
-            updateAccentStyles('photoshop'); 
-            
-            const subjectTabs = document.getElementById('subjectTabs');
-            if (subjectTabs) {
-                // Wheel hover scrolling
-                subjectTabs.addEventListener('wheel', (e) => {
-                    if (e.deltaY !== 0) {
-                        e.preventDefault();
-                        subjectTabs.scrollLeft += e.deltaY * 1.5;
-                    }
-                });
-
-                // Horizontal drag-to-scroll
-                let isDown = false;
-                let startX;
-                let scrollLeft;
-
-                subjectTabs.addEventListener('mousedown', (e) => {
-                    isDown = true;
-                    startX = e.pageX - subjectTabs.offsetLeft;
-                    scrollLeft = subjectTabs.scrollLeft;
-                });
-
-                subjectTabs.addEventListener('mouseleave', () => { isDown = false; });
-                subjectTabs.addEventListener('mouseup', () => { isDown = false; });
-
-                subjectTabs.addEventListener('mousemove', (e) => {
-                    if (!isDown) return;
-                    e.preventDefault();
-                    const x = e.pageX - subjectTabs.offsetLeft;
-                    const walk = (x - startX) * 1.5; 
-                    subjectTabs.scrollLeft = scrollLeft - walk;
-                });
-            }
-
-            // Unlock audio node on gesture
-            const warmAudio = () => {
-                initAudio();
-                window.removeEventListener('click', warmAudio);
-                window.removeEventListener('touchstart', warmAudio);
-            };
-            window.addEventListener('click', warmAudio);
-            window.addEventListener('touchstart', warmAudio);
+    // --------------------------------------------------------------
+    // 9. ИНИЦИАЛИЗАЦИЯ
+    // --------------------------------------------------------------
+    window.addEventListener('DOMContentLoaded', () => {
+        updateXPBar();
+        renderHistory();
+        prepareWheelSectors();
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => switchSubject(btn.dataset.subj, btn));
         });
-    </script>
+        document.getElementById('generateBtn').addEventListener('click', spinWheel);
+        document.getElementById('copyBtn').addEventListener('click', () => copyToClipboard(activeTaskText));
+        document.getElementById('doneBtn').addEventListener('click', claimXP);
+        document.querySelectorAll('.timer-preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => startTimer(parseInt(btn.dataset.min)));
+        });
+        document.getElementById('drawerTrigger').addEventListener('click', () => {
+            document.getElementById('questLogDrawer').classList.add('open');
+            renderHistory();
+        });
+        document.getElementById('closeDrawer').addEventListener('click', () => {
+            document.getElementById('questLogDrawer').classList.remove('open');
+        });
+        document.getElementById('terminalInput').addEventListener('keypress', handleCheat);
+        // Разрешить аудио после первого клика
+        document.body.addEventListener('click', () => initAudio(), { once: true });
+    });
+</script>
 </body>
 </html>
