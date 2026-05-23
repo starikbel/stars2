@@ -1467,105 +1467,61 @@
         }
 
         // --- WHEEL SPIN ACTION ---
-        function spinWheel() {
-            if (isSpinning) return;
-            initAudio();
-            isSpinning = true;
-            
-            const btn = document.getElementById('generateBtn');
-            btn.disabled = true;
+      function spinWheel() {
 
-            const placeholder = document.getElementById('placeholder');
-            const taskTitle = document.getElementById('taskTitle');
-            const taskDisplay = document.getElementById('taskDisplay');
-            const copyBtn = document.getElementById('copyBtn');
-            const doneBtn = document.getElementById('doneBtn');
-            const timerContainer = document.getElementById('timerContainer');
-            
-            placeholder.style.display = 'none';
-            taskTitle.style.display = 'none';
-            taskDisplay.style.display = 'none';
-            taskTitle.classList.remove('show');
-            taskDisplay.classList.remove('show');
-            copyBtn.classList.remove('show');
-            doneBtn.classList.remove('show');
-            timerContainer.classList.remove('show');
-            resetActiveTimer();
+    // Каждый запуск — новая случайная подборка
+    if (!isMarathonMode) {
 
-            const spinDuration = 5200; 
-            const startTime = performance.now();
+        const fullList = fallbackTasks[currentSubject] || [];
 
-            let lastAudioIndex = -1;
+        // Перемешиваем ВСЕ задания
+        const shuffled = shuffleArray([...fullList]);
 
-            if (currentSubject === 'constructor') {
-                const targetRotations = [
-                    (5 + Math.random() * 5) * 2 * Math.PI,    
-                    -(6 + Math.random() * 4) * 2 * Math.PI,   
-                    (7 + Math.random() * 5) * 2 * Math.PI     
-                ];
-                const initAngles = [...ringAngles];
+        // Берём случайную партию
+        const sectorCount = Math.min(10, shuffled.length);
 
-                function animateTriple(currentTime) {
-                    const elapsed = currentTime - startTime;
-                    if (elapsed < spinDuration) {
-                        const progress = elapsed / spinDuration;
-                        const easeOut = 1 - Math.pow(1 - progress, 4.5); 
-                        
-                        ringAngles[0] = initAngles[0] + targetRotations[0] * easeOut;
-                        ringAngles[1] = initAngles[1] + targetRotations[1] * easeOut;
-                        ringAngles[2] = initAngles[2] + targetRotations[2] * easeOut;
-                        
-                        const numSectors = tripleSectors.what.length;
-                        const arc = 2 * Math.PI / numSectors;
-                        const currIndex = Math.floor(ringAngles[0] / arc);
-                        if (currIndex !== lastAudioIndex) {
-                            playTickSound();
-                            lastAudioIndex = currIndex;
-                        }
+        activeSectors = shuffled.slice(0, sectorCount);
 
-                        drawWheel();
-                        requestAnimationFrame(animateTriple);
-                    } else {
-                        ringAngles[0] = initAngles[0] + targetRotations[0];
-                        ringAngles[1] = initAngles[1] + targetRotations[1];
-                        ringAngles[2] = initAngles[2] + targetRotations[2];
-                        drawWheel();
-                        resolveSpinResults();
-                    }
-                }
-                requestAnimationFrame(animateTriple);
+    } else {
 
-            } else {
-                const numSectors = activeSectors.length;
-                const spinRotations = 6 + Math.random() * 7;
-                const totalTargetRotation = spinRotations * 2 * Math.PI;
-                const initialAngle = startAngle;
+        const shuffled = shuffleArray([...allStandardTasks]);
 
-                function animateSingle(currentTime) {
-                    const elapsed = currentTime - startTime;
-                    if (elapsed < spinDuration) {
-                        const progress = elapsed / spinDuration;
-                        const easeOut = 1 - Math.pow(1 - progress, 4); 
-                        startAngle = initialAngle + totalTargetRotation * easeOut;
-                        
-                        const arc = 2 * Math.PI / numSectors;
-                        const currIndex = Math.floor(startAngle / arc);
-                        if (currIndex !== lastAudioIndex) {
-                            playTickSound();
-                            lastAudioIndex = currIndex;
-                        }
+        const sectorCount = Math.min(10, shuffled.length);
 
-                        drawWheel();
-                        requestAnimationFrame(animateSingle);
-                    } else {
-                        startAngle = initialAngle + totalTargetRotation;
-                        drawWheel();
-                        resolveSpinResults();
-                    }
-                }
-                requestAnimationFrame(animateSingle);
-            }
-        }
+        activeSectors = shuffled.slice(0, sectorCount);
+    }
+
+    // Перерисовываем колесо
+    drawWheel();
+
+    if (isSpinning) return;
+
+    isSpinning = true;
+
+    const extraSpins = 5 + Math.random() * 5;
+
+    const randomSector = Math.floor(Math.random() * activeSectors.length);
+
+    const degreesPerSector = 360 / activeSectors.length;
+
+    const targetAngle =
+        (360 * extraSpins) +
+        (360 - (randomSector * degreesPerSector) - degreesPerSector / 2);
+
+    currentRotation += targetAngle;
+
+    wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+    setTimeout(() => {
+
+        const task = activeSectors[randomSector];
+
+        resultText.textContent = task;
+
+        isSpinning = false;
+
+    }, 5000);
+}
 
         // --- RESOLVE SPIN OUTCOME AND DISPLAY ---
         let activeTaskText = '';
