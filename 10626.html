@@ -1468,61 +1468,29 @@
 
         // --- WHEEL SPIN ACTION ---
      function spinWheel() {
-         function spinWheel() {
+        // Каждый запуск — новая случайная партия
+     if (!isMarathonMode) {
 
-    // Каждый запуск — новая случайная подборка
-    if (!isMarathonMode) {
+         const fullList = fallbackTasks[currentSubject] || [];
 
-        const fullList = fallbackTasks[currentSubject] || [];
+         const shuffled = shuffleArray([...fullList]);
 
-        // Перемешиваем ВСЕ задания
-        const shuffled = shuffleArray([...fullList]);
+         const sectorCount = Math.min(10, shuffled.length);
 
-        // Берём случайную партию
-        const sectorCount = Math.min(10, shuffled.length);
+         activeSectors = shuffled.slice(0, sectorCount);
 
-        activeSectors = shuffled.slice(0, sectorCount);
+     } else {
 
-    } else {
+         const shuffled = shuffleArray([...allStandardTasks]);
 
-        const shuffled = shuffleArray([...allStandardTasks]);
+         const sectorCount = Math.min(10, shuffled.length);
 
-        const sectorCount = Math.min(10, shuffled.length);
+         activeSectors = shuffled.slice(0, sectorCount);
+     }
 
-        activeSectors = shuffled.slice(0, sectorCount);
-    }
-
-    // Перерисовываем колесо
-    drawWheel();
-
-    if (isSpinning) return;
-
-    isSpinning = true;
-
-    const extraSpins = 5 + Math.random() * 5;
-
-    const randomSector = Math.floor(Math.random() * activeSectors.length);
-
-    const degreesPerSector = 360 / activeSectors.length;
-
-    const targetAngle =
-        (360 * extraSpins) +
-        (360 - (randomSector * degreesPerSector) - degreesPerSector / 2);
-
-    currentRotation += targetAngle;
-
-    wheel.style.transform = `rotate(${currentRotation}deg)`;
-
-    setTimeout(() => {
-
-        const task = activeSectors[randomSector];
-
-        resultText.textContent = task;
-
-        isSpinning = false;
-
-    }, 5000);
-}
+     // Перерисовка колеса
+     drawWheel();
+         
             if (isSpinning) return;
             initAudio();
             isSpinning = true;
