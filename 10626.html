@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ITILANDIA // CREATIVE WHEEL 4.2 PRO</title>
+    <!-- Favicon (динамический canvas) -->
+    <link rel="icon" id="dynamicFavicon">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,600&display=swap');
 
@@ -17,17 +19,19 @@
             --tab-color: #6e6e73;
             --font-primary: 'Montserrat', sans-serif;
             --font-accent: 'Playfair Display', serif;
+            --wheel-bg: #09090a;
             transition: background-color 0.5s ease, color 0.5s ease;
         }
 
         /* Светлая тема */
         body.light-theme {
-            --bg-color: #f0f2f5;
+            --bg-color: #ffffff;
             --text-color: #1c1c1e;
             --card-bg: linear-gradient(180deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0) 100%);
             --border-color: rgba(0, 0, 0, 0.08);
             --tab-color: #8e8e93;
-            background-color: #f0f2f5;
+            --wheel-bg: #f5f5f7;
+            background-color: #ffffff;
             color: #1c1c1e;
         }
         body.light-theme .tab-btn { color: #8e8e93; }
@@ -39,24 +43,56 @@
         }
         body.light-theme .trigger-btn:hover { background-color: #2c2c2e; }
         body.light-theme .timer-display { color: #1c1c1e; }
-        body.light-theme .quest-log-drawer { background: rgba(240, 242, 245, 0.95); }
+        body.light-theme .quest-log-drawer { background: rgba(255, 255, 255, 0.95); }
         body.light-theme .quest-item { border-color: rgba(0,0,0,0.05); }
         body.light-theme .quest-item .quest-item-subject { color: var(--accent-color); }
-        body.light-theme .drawer-trigger { background: rgba(240,242,245,0.8); color: #1c1c1e; }
+        body.light-theme .drawer-trigger { background: rgba(255,255,255,0.8); color: #1c1c1e; }
         body.light-theme .terminal-input { color: #1c1c1e; border-bottom-color: rgba(0,0,0,0.15); }
+        body.light-theme .tabs-wrapper::before,
+        body.light-theme .tabs-wrapper::after {
+            background: none !important;
+        }
+        body.light-theme #wheelCanvas {
+            background-color: #f5f5f7;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+        }
+        body.light-theme .xp-bar-container {
+            background: rgba(0, 0, 0, 0.05);
+            border-color: rgba(0, 0, 0, 0.03);
+        }
+        body.light-theme .copy-btn, body.light-theme .done-btn {
+            border-color: rgba(0, 0, 0, 0.1);
+            color: #6e6e73;
+        }
+        body.light-theme .copy-btn:hover { color: #1c1c1e; }
+        body.light-theme .timer-preset-btn {
+            border-color: rgba(0, 0, 0, 0.1);
+            color: #6e6e73;
+        }
+        body.light-theme .timer-preset-btn:hover { color: #1c1c1e; }
+        body.light-theme .timer-progress { background: rgba(0, 0, 0, 0.05); }
+        body.light-theme h1 { color: #1c1c1e; }
+        body.light-theme h1 span { color: #6e6e73; }
+        body.light-theme footer { border-top-color: rgba(0, 0, 0, 0.05); color: #8e8e93; }
+        body.light-theme .tab-btn.marathon-tab { color: #3a3a3c; border-color: rgba(0, 0, 0, 0.15); }
+        body.light-theme .tab-btn.marathon-tab.active { background: rgba(0, 0, 0, 0.05); border-color: #1c1c1e; color: #1c1c1e; }
+        body.light-theme .zen-btn { background: rgba(255,255,255,0.8); color: #1c1c1e; border-color: rgba(0, 0, 0, 0.1); }
 
-        /* Zen Mode: скрываем лишнее */
+        /* Zen Mode: скрываем всё, кроме фона */
         body.zen-mode header,
         body.zen-mode .tabs-wrapper,
         body.zen-mode .display-container,
         body.zen-mode .trigger-btn,
         body.zen-mode .drawer-trigger,
-        body.zen-mode footer {
+        body.zen-mode footer,
+        body.zen-mode .zen-btn,
+        body.zen-mode .wheel-wrapper {
             display: none !important;
         }
         body.zen-mode main {
             justify-content: center;
             padding: 0;
+            min-height: 100vh;
         }
         body.zen-mode .playzone {
             margin-bottom: 0;
@@ -118,7 +154,6 @@
             transition: opacity 1s ease;
         }
 
-        /* Эффект звёзд (космос) */
         #starsCanvas {
             position: fixed;
             top: 0;
@@ -156,11 +191,6 @@
             border: 1.5px solid rgba(255, 255, 255, 0.03);
         }
 
-        body.light-theme .xp-bar-container {
-            background: rgba(0, 0, 0, 0.05);
-            border-color: rgba(0, 0, 0, 0.03);
-        }
-
         .xp-bar-fill {
             height: 100%;
             width: 0%;
@@ -196,9 +226,6 @@
             color: #ffffff;
             line-height: 1.2;
         }
-
-        body.light-theme h1 { color: #1c1c1e; }
-        body.light-theme h1 span { color: #6e6e73; }
 
         h1 span {
             font-family: var(--font-primary);
@@ -320,19 +347,10 @@
             border-radius: 20px;
             padding: 7px 16px;
         }
-        body.light-theme .tab-btn.marathon-tab {
-            color: #3a3a3c;
-            border-color: rgba(0, 0, 0, 0.15);
-        }
         .tab-btn.marathon-tab.active {
             background: rgba(255, 255, 255, 0.08);
             border-color: #ffffff;
             color: #ffffff;
-        }
-        body.light-theme .tab-btn.marathon-tab.active {
-            background: rgba(0, 0, 0, 0.05);
-            border-color: #1c1c1e;
-            color: #1c1c1e;
         }
         .tab-btn.marathon-tab::after { display: none; }
 
@@ -381,14 +399,9 @@
             border-radius: 50%;
             display: block;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.03);
-            background-color: #09090a;
-            transition: box-shadow 0.5s ease;
+            background-color: var(--wheel-bg);
+            transition: box-shadow 0.5s ease, background-color 0.5s ease;
             cursor: inherit;
-        }
-
-        body.light-theme #wheelCanvas {
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05);
-            background-color: #ffffff;
         }
 
         .display-container {
@@ -501,11 +514,6 @@
             pointer-events: none;
         }
 
-        body.light-theme .copy-btn, body.light-theme .done-btn {
-            border-color: rgba(0, 0, 0, 0.1);
-            color: #6e6e73;
-        }
-
         .done-btn {
             background: rgba(255, 255, 255, 0.04);
             border-color: var(--accent-color);
@@ -527,9 +535,6 @@
             color: #ffffff;
             border-color: var(--accent-color);
             background: rgba(255, 255, 255, 0.02);
-        }
-        body.light-theme .copy-btn:hover {
-            color: #1c1c1e;
         }
 
         .copy-btn svg {
@@ -572,17 +577,9 @@
             transition: all 0.3s ease;
         }
 
-        body.light-theme .timer-preset-btn {
-            border-color: rgba(0, 0, 0, 0.1);
-            color: #6e6e73;
-        }
-
         .timer-preset-btn:hover {
             border-color: var(--accent-color);
             color: #ffffff;
-        }
-        body.light-theme .timer-preset-btn:hover {
-            color: #1c1c1e;
         }
 
         .timer-display {
@@ -615,9 +612,6 @@
             margin-top: 5px;
             border-radius: 1px;
             overflow: hidden;
-        }
-        body.light-theme .timer-progress {
-            background: rgba(0, 0, 0, 0.05);
         }
 
         .timer-progress-fill {
@@ -658,37 +652,6 @@
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
-        }
-
-        .zen-btn {
-            position: fixed;
-            bottom: 30px;
-            left: 30px;
-            background: rgba(7, 7, 8, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            color: #ffffff;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            transition: all 0.3s ease;
-            z-index: 100;
-            font-size: 20px;
-        }
-
-        body.light-theme .zen-btn {
-            background: rgba(240, 242, 245, 0.8);
-            color: #1c1c1e;
-            border-color: rgba(0, 0, 0, 0.1);
-        }
-
-        .zen-btn:hover {
-            border-color: var(--accent-color);
-            transform: scale(1.05);
         }
 
         .quest-log-drawer {
@@ -737,7 +700,6 @@
         }
 
         .drawer-close:hover { color: #ffffff; }
-        body.light-theme .drawer-close:hover { color: #1c1c1e; }
 
         .quest-list {
             flex-grow: 1;
@@ -826,10 +788,6 @@
             align-items: center;
             gap: 10px;
         }
-        body.light-theme footer {
-            border-top-color: rgba(0, 0, 0, 0.05);
-            color: #8e8e93;
-        }
 
         .terminal-container {
             display: flex;
@@ -858,10 +816,6 @@
             text-align: center;
             transition: all 0.3s ease;
         }
-        body.light-theme .terminal-input {
-            color: #1c1c1e;
-            border-bottom-color: rgba(0, 0, 0, 0.15);
-        }
 
         .terminal-input:focus {
             border-color: var(--accent-color);
@@ -883,7 +837,6 @@
             .wheel-wrapper { width: 290px; height: 290px; }
             #wheelCanvas { width: 290px; height: 290px; }
             .drawer-trigger { bottom: 15px; right: 15px; }
-            .zen-btn { bottom: 15px; left: 15px; }
         }
     </style>
 </head>
@@ -965,9 +918,6 @@
 
         <button id="generateBtn" class="trigger-btn" onclick="spinWheel()">Крутить колесо</button>
     </main>
-
-    <!-- Кнопка Zen Mode -->
-    <div class="zen-btn" onclick="toggleZenMode()" title="Zen Mode — скрыть всё, кроме колеса">🧘</div>
 
     <div class="drawer-trigger" onclick="toggleDrawer(true)">
         <svg viewBox="0 0 24 24">
@@ -1102,6 +1052,44 @@
                 });
             } catch (e) {}
         }
+
+        // --- DYNAMIC FAVICON ---
+        function updateFavicon() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim();
+            ctx.fillStyle = '#070708';
+            ctx.fillRect(0, 0, 64, 64);
+            ctx.beginPath();
+            ctx.arc(32, 32, 28, 0, 2 * Math.PI);
+            ctx.fillStyle = '#101012';
+            ctx.fill();
+            ctx.strokeStyle = accent;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(32, 8);
+            ctx.lineTo(36, 24);
+            ctx.lineTo(32, 20);
+            ctx.lineTo(28, 24);
+            ctx.fillStyle = accent;
+            ctx.fill();
+            for (let i = 0; i < 8; i++) {
+                const angle = (i * Math.PI * 2 / 8);
+                const x = 32 + Math.cos(angle) * 20;
+                const y = 32 + Math.sin(angle) * 20;
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, 2 * Math.PI);
+                ctx.fillStyle = (i % 2 === 0) ? accent : '#a1a1a6';
+                ctx.fill();
+            }
+            const link = document.getElementById('dynamicFavicon');
+            link.href = canvas.toDataURL('image/png');
+        }
+        setInterval(updateFavicon, 1000);
+        updateFavicon();
 
         // --- CORE STATE ---
         let tasks = {};
@@ -1260,17 +1248,22 @@
             }
         }
 
-        // Эффект звёзд (космос)
+        // Эффект звёзд (из центра в стороны)
         let starsArray = [];
         function initStars() {
             starsArray = [];
-            for (let i = 0; i < 200; i++) {
+            const centerX = starsCanvas.width / 2;
+            const centerY = starsCanvas.height / 2;
+            for (let i = 0; i < 300; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 30;
                 starsArray.push({
-                    x: Math.random() * starsCanvas.width,
-                    y: Math.random() * starsCanvas.height,
+                    x: centerX + Math.cos(angle) * distance,
+                    y: centerY + Math.sin(angle) * distance,
                     radius: Math.random() * 2 + 1,
-                    speedX: (Math.random() - 0.5) * 2,
-                    speedY: (Math.random() - 0.5) * 2,
+                    angle: angle,
+                    speed: Math.random() * 3 + 1,
+                    distance: distance,
                     alpha: Math.random() * 0.7 + 0.3
                 });
             }
@@ -1279,23 +1272,25 @@
         function drawStars() {
             if (!starsCanvas || !starsCtx) return;
             starsCtx.clearRect(0, 0, starsCanvas.width, starsCanvas.height);
-            starsCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            starsCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
             starsCtx.fillRect(0, 0, starsCanvas.width, starsCanvas.height);
+            
+            const centerX = starsCanvas.width / 2;
+            const centerY = starsCanvas.height / 2;
             
             for (let i = 0; i < starsArray.length; i++) {
                 const s = starsArray[i];
+                s.distance += s.speed;
+                if (s.distance > Math.max(starsCanvas.width, starsCanvas.height)) {
+                    s.distance = 5;
+                    s.angle = Math.random() * Math.PI * 2;
+                }
+                const x = centerX + Math.cos(s.angle) * s.distance;
+                const y = centerY + Math.sin(s.angle) * s.distance;
                 starsCtx.beginPath();
-                starsCtx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
-                starsCtx.fillStyle = `rgba(255, 255, 255, ${s.alpha})`;
+                starsCtx.arc(x, y, s.radius, 0, Math.PI * 2);
+                starsCtx.fillStyle = `rgba(255, 255, 255, ${s.alpha * (1 - s.distance / 1000)})`;
                 starsCtx.fill();
-                
-                s.x += s.speedX;
-                s.y += s.speedY;
-                
-                if (s.x < 0) s.x = starsCanvas.width;
-                if (s.x > starsCanvas.width) s.x = 0;
-                if (s.y < 0) s.y = starsCanvas.height;
-                if (s.y > starsCanvas.height) s.y = 0;
             }
         }
 
@@ -1325,7 +1320,7 @@
             requestAnimationFrame(tickRainbow);
         }
 
-        // --- Zen Mode ---
+        // --- Zen Mode (клавиша Z) ---
         function toggleZenMode() {
             document.body.classList.toggle('zen-mode');
             playSoftClick();
@@ -1342,6 +1337,7 @@
                 document.body.classList.remove('light-theme');
                 updateAccentStyles(currentSubject);
             }
+            drawWheel();
         }
 
         // --- DATA LOADING & SECTORS (no hardcoded tasks) ---
@@ -1434,7 +1430,7 @@
                 if (numSectors === 0) return;
                 const arc = 2 * Math.PI / numSectors;
 
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+                ctx.shadowColor = document.body.classList.contains('light-theme') ? 'rgba(0,0,0,0.1)' : 'rgba(0, 0, 0, 0.4)';
                 ctx.shadowBlur = 15;
                 ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
                 ctx.lineWidth = 2;
@@ -1445,13 +1441,17 @@
 
                 for (let i = 0; i < numSectors; i++) {
                     const angle = startAngle + i * arc;
-                    ctx.fillStyle = (i % 2 === 0) ? '#101012' : '#17171a';
+                    if (document.body.classList.contains('light-theme')) {
+                        ctx.fillStyle = (i % 2 === 0) ? '#e5e5ea' : '#d1d1d6';
+                    } else {
+                        ctx.fillStyle = (i % 2 === 0) ? '#101012' : '#17171a';
+                    }
                     ctx.beginPath();
                     ctx.moveTo(centerX, centerY);
                     ctx.arc(centerX, centerY, radius, angle, angle + arc);
                     ctx.lineTo(centerX, centerY);
                     ctx.fill();
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+                    ctx.strokeStyle = document.body.classList.contains('light-theme') ? 'rgba(0,0,0,0.05)' : 'rgba(255, 255, 255, 0.03)';
                     ctx.lineWidth = 1;
                     ctx.stroke();
                     ctx.save();
@@ -1468,7 +1468,7 @@
 
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
-                ctx.fillStyle = '#070708';
+                ctx.fillStyle = document.body.classList.contains('light-theme') ? '#ffffff' : '#070708';
                 ctx.fill();
                 const accent = getAccentColor(currentSubject).main;
                 ctx.strokeStyle = accent;
@@ -1495,16 +1495,22 @@
 
                 for (let i = 0; i < numSectors; i++) {
                     const angle = ring.angle + i * arc;
-                    if (rIdx === 0) ctx.fillStyle = (i % 2 === 0) ? '#101012' : '#151518';
-                    else if (rIdx === 1) ctx.fillStyle = (i % 2 === 0) ? '#17171a' : '#1d1d22';
-                    else ctx.fillStyle = (i % 2 === 0) ? '#1f1f24' : '#25252b';
+                    if (document.body.classList.contains('light-theme')) {
+                        if (rIdx === 0) ctx.fillStyle = (i % 2 === 0) ? '#e5e5ea' : '#d1d1d6';
+                        else if (rIdx === 1) ctx.fillStyle = (i % 2 === 0) ? '#d1d1d6' : '#c6c6c8';
+                        else ctx.fillStyle = (i % 2 === 0) ? '#c6c6c8' : '#b8b8ba';
+                    } else {
+                        if (rIdx === 0) ctx.fillStyle = (i % 2 === 0) ? '#101012' : '#151518';
+                        else if (rIdx === 1) ctx.fillStyle = (i % 2 === 0) ? '#17171a' : '#1d1d22';
+                        else ctx.fillStyle = (i % 2 === 0) ? '#1f1f24' : '#25252b';
+                    }
 
                     ctx.beginPath();
                     ctx.arc(cx, cy, ring.rOut, angle, angle + arc);
                     ctx.arc(cx, cy, ring.rIn, angle + arc, angle, true);
                     ctx.closePath();
                     ctx.fill();
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+                    ctx.strokeStyle = document.body.classList.contains('light-theme') ? 'rgba(0,0,0,0.05)' : 'rgba(255, 255, 255, 0.02)';
                     ctx.lineWidth = 1;
                     ctx.stroke();
 
@@ -1525,7 +1531,7 @@
 
             ctx.beginPath();
             ctx.arc(cx, cy, 24, 0, 2 * Math.PI);
-            ctx.fillStyle = '#070708';
+            ctx.fillStyle = document.body.classList.contains('light-theme') ? '#ffffff' : '#070708';
             ctx.fill();
             const accent = getAccentColor('constructor').main;
             ctx.strokeStyle = accent;
@@ -2099,6 +2105,14 @@
                 }
             }, 2000);
         }
+
+        // --- KEYBOARD SHORTCUTS ---
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'z' || e.key === 'Z') {
+                e.preventDefault();
+                toggleZenMode();
+            }
+        });
 
         // --- INIT ---
         window.addEventListener('DOMContentLoaded', () => {
