@@ -76,7 +76,6 @@
         body.light-theme footer { border-top-color: rgba(0, 0, 0, 0.05); color: #8e8e93; }
         body.light-theme .tab-btn.marathon-tab { color: #3a3a3c; border-color: rgba(0, 0, 0, 0.15); }
         body.light-theme .tab-btn.marathon-tab.active { background: rgba(0, 0, 0, 0.05); border-color: #1c1c1e; color: #1c1c1e; }
-        body.light-theme .zen-btn { background: rgba(255,255,255,0.8); color: #1c1c1e; border-color: rgba(0, 0, 0, 0.1); }
 
         /* Zen Mode: скрываем всё, кроме фона */
         body.zen-mode header,
@@ -85,7 +84,6 @@
         body.zen-mode .trigger-btn,
         body.zen-mode .drawer-trigger,
         body.zen-mode footer,
-        body.zen-mode .zen-btn,
         body.zen-mode .wheel-wrapper {
             display: none !important;
         }
@@ -1311,13 +1309,20 @@
         }
 
         let rainbowHue = 0;
+        let rainbowAnimationId = null;
         function tickRainbow() {
-            if (activeCheatCode !== 'RAINBOW') return;
+            if (activeCheatCode !== 'RAINBOW') {
+                if (rainbowAnimationId) {
+                    cancelAnimationFrame(rainbowAnimationId);
+                    rainbowAnimationId = null;
+                }
+                return;
+            }
             rainbowHue = (rainbowHue + 1) % 360;
             document.documentElement.style.setProperty('--accent-color', `hsl(${rainbowHue}, 100%, 60%)`);
             document.documentElement.style.setProperty('--accent-glow', `hsla(${rainbowHue}, 100%, 60%, 0.15)`);
             drawWheel();
-            requestAnimationFrame(tickRainbow);
+            rainbowAnimationId = requestAnimationFrame(tickRainbow);
         }
 
         // --- Zen Mode (клавиша Z) ---
@@ -1986,30 +1991,29 @@
             document.getElementById('timerProgressFill').style.width = '100%';
         }
 
-        // --- CHEAT CODES ---
+        // --- CHEAT CODES (с полным сбросом RESET) ---
         function handleCheatcode(e) {
             if (e.key === 'Enter') {
                 const code = e.target.value.toUpperCase().trim();
                 e.target.value = '';
-                if (matrixInterval) clearInterval(matrixInterval);
-                document.getElementById('matrixCanvas').style.opacity = '0';
-                activeCheatCode = null;
                 
                 if (code === 'MATRIX') {
                     playLevelUpChime();
+                    if (starsInterval) stopStars();
+                    if (matrixInterval) clearInterval(matrixInterval);
                     document.getElementById('matrixCanvas').style.opacity = '1';
                     activeCheatCode = 'MATRIX';
                     matrixInterval = setInterval(drawMatrix, 35);
                     updateAccentStyles(currentSubject);
-                    stopStars();
                 } else if (code === 'SNOW') {
                     playLevelUpChime();
+                    if (starsInterval) stopStars();
+                    if (matrixInterval) clearInterval(matrixInterval);
                     document.getElementById('matrixCanvas').style.opacity = '1';
                     activeCheatCode = 'SNOW';
                     snowFlakes = [];
                     matrixInterval = setInterval(drawSnow, 25);
                     updateAccentStyles(currentSubject);
-                    stopStars();
                 } else if (code === 'STARS') {
                     playLevelUpChime();
                     if (matrixInterval) clearInterval(matrixInterval);
@@ -2028,21 +2032,27 @@
                     updateAccentStyles(currentSubject);
                 } else if (code === 'RAINBOW') {
                     playLevelUpChime();
+                    if (matrixInterval) clearInterval(matrixInterval);
+                    if (starsInterval) stopStars();
+                    document.getElementById('matrixCanvas').style.opacity = '0';
                     activeCheatCode = 'RAINBOW';
                     tickRainbow();
-                    stopStars();
-                    if (matrixInterval) clearInterval(matrixInterval);
-                    document.getElementById('matrixCanvas').style.opacity = '0';
                 } else if (code === 'RETRO') {
                     playLevelUpChime();
+                    if (matrixInterval) clearInterval(matrixInterval);
+                    if (starsInterval) stopStars();
+                    if (rainbowAnimationId) cancelAnimationFrame(rainbowAnimationId);
+                    document.getElementById('matrixCanvas').style.opacity = '0';
                     activeCheatCode = 'RETRO';
                     updateAccentStyles(currentSubject);
-                    stopStars();
                 } else if (code === 'SPACE') {
                     playLevelUpChime();
+                    if (matrixInterval) clearInterval(matrixInterval);
+                    if (starsInterval) stopStars();
+                    if (rainbowAnimationId) cancelAnimationFrame(rainbowAnimationId);
+                    document.getElementById('matrixCanvas').style.opacity = '0';
                     activeCheatCode = 'SPACE';
                     updateAccentStyles(currentSubject);
-                    stopStars();
                 } else if (code === 'BOOST') {
                     playLevelUpChime();
                     userXP += 500;
@@ -2051,21 +2061,55 @@
                     updateXPDisplay();
                 } else if (code === 'GOLD') {
                     playLevelUpChime();
+                    if (matrixInterval) clearInterval(matrixInterval);
+                    if (starsInterval) stopStars();
+                    if (rainbowAnimationId) cancelAnimationFrame(rainbowAnimationId);
+                    document.getElementById('matrixCanvas').style.opacity = '0';
                     activeCheatCode = 'GOLD';
                     updateAccentStyles(currentSubject);
-                    stopStars();
                 } else if (code === 'HELL') {
                     playLevelUpChime();
+                    if (matrixInterval) clearInterval(matrixInterval);
+                    if (starsInterval) stopStars();
+                    if (rainbowAnimationId) cancelAnimationFrame(rainbowAnimationId);
+                    document.getElementById('matrixCanvas').style.opacity = '0';
                     activeCheatCode = 'HELL';
                     updateAccentStyles(currentSubject);
-                    stopStars();
                 } else if (code === 'RESET') {
                     playSoftClick();
+                    // Сброс XP
                     userXP = 0;
                     localStorage.setItem('itilandia_xp', 0);
+                    // Сброс истории заданий
                     localStorage.removeItem('itilandia_history');
+                    renderQuestHistory();
                     updateXPDisplay();
+                    
+                    // Сброс светлой темы на тёмную
+                    setLightTheme(false);
+                    
+                    // Сброс всех визуальных эффектов
+                    if (matrixInterval) clearInterval(matrixInterval);
+                    if (starsInterval) stopStars();
+                    if (rainbowAnimationId) cancelAnimationFrame(rainbowAnimationId);
+                    document.getElementById('matrixCanvas').style.opacity = '0';
+                    activeCheatCode = null;
+                    
+                    // Возвращаем акцентный цвет к стандартному для текущего предмета
                     updateAccentStyles(currentSubject);
+                    drawWheel();
+                    
+                    // Небольшая подсказка
+                    const placeholder = document.getElementById('placeholder');
+                    if (placeholder) {
+                        const originalText = placeholder.innerText;
+                        placeholder.innerText = 'ВСЕ СБРОШЕНО К НАСТРОЙКАМ ПО УМОЛЧАНИЮ';
+                        setTimeout(() => {
+                            if (placeholder.innerText === 'ВСЕ СБРОШЕНО К НАСТРОЙКАМ ПО УМОЛЧАНИЮ') {
+                                placeholder.innerText = originalText;
+                            }
+                        }, 2000);
+                    }
                 } else {
                     playSoftClick();
                     updateAccentStyles(currentSubject);
